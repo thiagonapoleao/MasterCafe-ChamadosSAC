@@ -1,0 +1,217 @@
+import os
+import json
+import base64
+from datetime import datetime
+from typing import Optional, Dict, Any
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+app = FastAPI(title="Painel Executivo de Gestão & SAC")
+templates = Jinja2Templates(directory="templates")
+
+# Obter string de conexão do PostgreSQL das variáveis de ambiente
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://usuario:senha@host:5432/nome_banco")
+
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+
+def obter_logo_base64():
+    nomes_alvo = ["Logotipo.PNG", "Logotipo.png", "logotipo.PNG", "logotipo.png", "logo.png"]
+    for nome in nomes_alvo:
+        if os.path.isfile(nome):
+            ext = os.path.splitext(nome)[1].lower().replace(".", "")
+            mime = "jpeg" if ext in ["jpg", "jpeg"] else "png"
+            with open(nome, "rb") as f:
+                return f"data:image/{mime};base64,{base64.b64encode(f.read()).decode('utf-8')}"
+    return ""
+
+def format_currency_br(val):
+    try:
+        n = float(val)
+        return f"R$ {n:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except Exception:
+        return "R$ 0,00"
+
+@app.get("/", response_class=HTMLResponse)
+async def carregar_pagina_principal(request: Request):
+    logo_base64_src = obter_logo_base64()
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 1. Usuários
+    cur.execute("SELECT nome, usuario, senha, acesso FROM usuarios")
+    usuarios = cur.fetchall()
+    
+    # 2. Clientes
+    cur.execute("SELECT id as linha, cliente, local, local_interno as \"localInterno\", maquina, modelo_maquina as \"modeloMaquina\", filial_responsavel as \"filialResponsavel\" FROM clientes ORDER BY cliente ASC")
+    lista_clientes = cur.fetchall()
+    
+    # 3. Configurações
+    cur.execute("SELECT tipo, valor FROM sac_configs")
+    configs = cur.fetchall()
+    formas_pgto = [c["valor"] for c in configs if c["tipo"] == "forma_pagamento"]
+    problemas = [c["valor"] for c in configs if c["tipo"] == "problema"]
+    descricoes = [c["valor"] for c in configs if c["tipo"] == "descricao"]
+    
+    # 4. Chamados
+    cur.execute("""
+        SELECT id as linha, chamado, 
+               to_char(data, 'DD/MM/YYYY') as data,
+               cliente, local_interno as "localInterno", cidade, descricao, produto,
+               to_char(data_transacao, 'DD/MM/YYYY') as "dataTransacao",
+               hora_transacao as "horaTransacao", valor, nome_sobrenome as "nomeSobrenome",
+               celular, problemas, forma_pgto as "formaPgto", reembolso, pix,
+               atendente, data_hora_lancamento as "dataHoraLancamento",
+               reembolso_realizado as "reembolsoRealizado",
+               financeiro_responsavel as "financeiroResponsavel",
+               observacao
+        FROM chamados 
+        ORDER BY id DESC
+    """)
+    chamados_raw = cur.fetchall()
+    
+    # Maior SAC por ano
+    maior_sac_ano = {}
+    chamados_formatados = []
+    for c in chamados_raw:
+        item = dict(c)
+        item["valor"] = format_currency_br(item["valor"])
+        chamados_formatados.append(item)
+        
+        ch_str = str(item.get("chamado", ""))
+        if ch_str.startswith("SAC-"):
+            partes = ch_str.split("-")
+            if len(partes) == 3:
+                ano, seq = partes[1], int(partes[2])
+                maior_sac_ano[ano] = max(maior_sac_ano.get(ano, 0), seq)
+                
+    cur.close()
+    conn.close()
+    
+    dados_sac = {
+        "clientes": [{"cliente": c["cliente"], "local": c["localInterno"], "cidade": c["filialResponsavel"]} for c in lista_clientes],
+        "cadastro_clientes": lista_clientes,
+        "formas_pagamento": sorted(list(set(formas_pgto))),
+        "cidades": sorted(list(set([c["filialResponsavel"] for c in lista_clientes if c.get("filialResponsavel")]))),
+        "problemas": sorted(list(set(problemas))),
+        "descricoes": sorted(list(set(descricoes))),
+        "usuarios": usuarios,
+        "maior_sac_ano": maior_sac_ano,
+        "chamados": chamados_formatados
+    }
+    
+    dados_sac_json = json.dumps(dados_sac, default=str, ensure_ascii=False)
+    total_chamados = len(chamados_formatados)
+    
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "logo_base64_src": logo_base64_src,
+        "dados_sac_json": dados_sac_json,
+        "total_chamados_carregados": total_chamados
+    })
+
+# API para Operações CRUD do SAC e Cadastro de Clientes
+@app.post("/api/action")
+async def processar_acao_api(payload: Dict[str, Any]):
+    acao = payload.get("acao") or payload.get("action") or payload.get("tipo")
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    try:
+        # Inserir ou Editar Chamado
+        if acao in ["inserir", "editar"]:
+            data_parts = str(payload.get("Data", "")).split("/")
+            data_sql = f"{data_parts[2]}-{data_parts[1]}-{data_parts[0]}" if len(data_parts) == 3 else datetime.now().strftime("%Y-%m-%d")
+            
+            dt_tr_parts = str(payload.get("Data da Transação", "")).split("/")
+            dt_transacao_sql = f"{dt_tr_parts[2]}-{dt_tr_parts[1]}-{dt_tr_parts[0]}" if len(dt_tr_parts) == 3 else None
+            
+            if acao == "inserir":
+                cur.execute("""
+                    INSERT INTO chamados (chamado, data, cliente, local_interno, cidade, descricao, produto,
+                                          data_transacao, hora_transacao, valor, nome_sobrenome, celular,
+                                          problemas, forma_pgto, reembolso, pix, atendente, data_hora_lancamento,
+                                          reembolso_realizado, financeiro_responsavel, observacao)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    payload.get("Chamado"), data_sql, payload.get("Cliente"), payload.get("Local Interno"),
+                    payload.get("Cidade"), payload.get("Descrição"), payload.get("Produto"),
+                    dt_transacao_sql, payload.get("Hora da Transação"), payload.get("Valor", 0),
+                    payload.get("Nome/Sobrenome"), payload.get("Celular"), payload.get("Problemas"),
+                    payload.get("Forma de Pagamento"), payload.get("Reembolso"), payload.get("Pix - Reembolso"),
+                    payload.get("Atendente"), payload.get("Data/Hora do lançamento"), payload.get("Reembolso Realizado"),
+                    payload.get("Financeiro Responsavel"), payload.get("Observação")
+                ))
+            else:
+                cur.execute("""
+                    UPDATE chamados SET 
+                        data = %s, cliente = %s, local_interno = %s, cidade = %s, descricao = %s, produto = %s,
+                        data_transacao = %s, hora_transacao = %s, valor = %s, nome_sobrenome = %s, celular = %s,
+                        problemas = %s, forma_pgto = %s, reembolso = %s, pix = %s, atendente = %s,
+                        reembolso_realizado = %s, financeiro_responsavel = %s, observacao = %s
+                    WHERE chamado = %s
+                """, (
+                    data_sql, payload.get("Cliente"), payload.get("Local Interno"),
+                    payload.get("Cidade"), payload.get("Descrição"), payload.get("Produto"),
+                    dt_transacao_sql, payload.get("Hora da Transação"), payload.get("Valor", 0),
+                    payload.get("Nome/Sobrenome"), payload.get("Celular"), payload.get("Problemas"),
+                    payload.get("Forma de Pagamento"), payload.get("Reembolso"), payload.get("Pix - Reembolso"),
+                    payload.get("Atendente"), payload.get("Reembolso Realizado"),
+                    payload.get("Financeiro Responsavel"), payload.get("Observação"),
+                    payload.get("Chamado")
+                ))
+            conn.commit()
+            return {"status": "success"}
+
+        # Excluir Chamado
+        elif acao == "excluir":
+            chamado_num = payload.get("Chamado") or payload.get("chamado")
+            cur.execute("DELETE FROM chamados WHERE chamado = %s", (chamado_num,))
+            conn.commit()
+            return {"status": "success"}
+
+        # Inserir ou Editar Cliente
+        elif acao in ["inserir_cliente", "editar_cliente"]:
+            cli = payload.get("Cliente")
+            loc = payload.get("Local")
+            loc_int = payload.get("Local interno")
+            maq = payload.get("Máquina")
+            mod = payload.get("Modelo de máquina")
+            fil = payload.get("Filial Responsavel")
+            
+            if acao == "inserir_cliente":
+                cur.execute("""
+                    INSERT INTO clientes (cliente, local, local_interno, maquina, modelo_maquina, filial_responsavel)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (cli, loc, loc_int, maq, mod, fil))
+            else:
+                cur.execute("""
+                    UPDATE clientes SET cliente=%s, local=%s, local_interno=%s, maquina=%s, modelo_maquina=%s, filial_responsavel=%s
+                    WHERE id = %s
+                """, (cli, loc, loc_int, maq, mod, fil, payload.get("linha")))
+            conn.commit()
+            return {"status": "success"}
+
+        # Excluir Cliente
+        elif acao == "excluir_cliente":
+            linha_id = payload.get("linha")
+            if linha_id:
+                cur.execute("DELETE FROM clientes WHERE id = %s", (linha_id,))
+            else:
+                cur.execute("DELETE FROM clientes WHERE cliente = %s AND local_interno = %s", (payload.get("Cliente"), payload.get("Local interno")))
+            conn.commit()
+            return {"status": "success"}
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        cur.close()
+        conn.close()
+
+    return {"status": "ignored"}
