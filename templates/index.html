@@ -1607,34 +1607,82 @@
     // =========================================================================
     // TÉRMINO: limparFormSAC
     // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: editarChamadoSAC
+// =========================================================================
+    // INÍCIO: editarChamadoSAC (ROBUSTO COM FALLBACK DE COLUNAS SQL/CSV)
     // =========================================================================
     function editarChamadoSAC(numeroChamado, origem = 'sac') {
-      const item = listaChamadosSAC.find(c => c.chamado === numeroChamado);
-      if (!item) return;
+      const item = listaChamadosSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === String(numeroChamado).trim().toUpperCase());
+      if (!item) {
+        console.warn('Chamado não encontrado para edição:', numeroChamado);
+        return;
+      }
 
       origemEdicaoSAC = origem;
       switchPage('sac');
       chamadoEmEdicao = item;
-      document.getElementById('sacChamado').value = item.chamado;
-      document.getElementById('sacData').value = dataPtBrParaIso(item.data);
-      document.getElementById('sacCliente').value = item.cliente;
-      aoMudarClienteSAC();
-      document.getElementById('sacLocalInterno').value = item.localInterno;
-      document.getElementById('sacCidade').value = item.cidade;
-      document.getElementById('sacDescricao').value = item.descricao;
-      document.getElementById('sacProduto').value = item.produto || '';
-      document.getElementById('sacDataTransacao').value = dataPtBrParaIso(item.dataTransacao) || '';
-      document.getElementById('sacHoraTransacao').value = item.horaTransacao || '';
-      document.getElementById('sacValor').value = parseValorNumerico(item.valor) || '';
-      document.getElementById('sacNome').value = item.nomeSobrenome;
-      document.getElementById('sacCelular').value = item.celular;
-      document.getElementById('sacProblema').value = item.problemas;
-      document.getElementById('sacFormaPgto').value = item.formaPgto || '';
 
-      const rmbVal = (item.reembolso || '').trim().toLowerCase();
+      // 1. Identificador e Data Principal
+      document.getElementById('sacChamado').value = item.chamado || item.Chamado || '';
+      const dataOriginal = item.data || item.Data || '';
+      document.getElementById('sacData').value = dataOriginal.includes('/') ? dataPtBrParaIso(dataOriginal) : dataOriginal;
+
+      // 2. Cliente e Cascata de Local Interno
+      const clienteVal = item.cliente || item.Cliente || '';
+      document.getElementById('sacCliente').value = clienteVal;
+      aoMudarClienteSAC(); // Repopula o select de locais internos
+
+      // Local Interno (aceita local_interno, localInterno, Local Interno ou local)
+      const localVal = item.local_interno || item.localInterno || item['Local Interno'] || item.local || '';
+      const selectLocal = document.getElementById('sacLocalInterno');
+      
+      // Se a opção não constava na lista populada do cliente, adiciona para garantir a seleção
+      if (localVal) {
+        let optExiste = Array.from(selectLocal.options).some(o => o.value.toLowerCase() === localVal.toLowerCase());
+        if (!optExiste) {
+          const novaOpt = document.createElement('option');
+          novaOpt.value = localVal;
+          novaOpt.textContent = localVal;
+          selectLocal.appendChild(novaOpt);
+        }
+        selectLocal.value = localVal;
+      }
+
+      // 3. Filial / Cidade
+      document.getElementById('sacCidade').value = item.cidade || item.Cidade || item.filial || '';
+
+      // 4. Descrição e Produto
+      document.getElementById('sacDescricao').value = item.descricao || item.Descricao || item['Descrição'] || '';
+      
+      const prodVal = (item.produto || item.Produto || '').trim();
+      const selectProduto = document.getElementById('sacProduto');
+      if (prodVal.toLowerCase().includes('café') || prodVal.toLowerCase().includes('cafe')) {
+        selectProduto.value = 'Café';
+      } else if (prodVal.toLowerCase().includes('snak')) {
+        selectProduto.value = 'Snaky';
+      } else {
+        selectProduto.value = prodVal;
+      }
+
+      // 5. Data e Hora da Transação
+      const dtTrans = item.data_transacao || item.dataTransacao || item['Data da Transação'] || '';
+      document.getElementById('sacDataTransacao').value = dtTrans.includes('/') ? dataPtBrParaIso(dtTrans) : dtTrans;
+      
+      let hrTrans = item.hora_transacao || item.horaTransacao || item['Hora da Transação'] || '';
+      if (hrTrans && hrTrans.length > 5) hrTrans = hrTrans.substring(0, 5); // Formata HH:MM
+      document.getElementById('sacHoraTransacao').value = hrTrans;
+
+      // 6. Valor
+      const valNum = parseValorNumerico(item.valor || item.Valor);
+      document.getElementById('sacValor').value = valNum ? valNum : '';
+
+      // 7. Dados do Cliente / Contato
+      document.getElementById('sacNome').value = item.nome_sobrenome || item.nomeSobrenome || item['Nome/Sobrenome'] || item.nome || '';
+      document.getElementById('sacCelular').value = item.celular || item.Celular || '';
+      document.getElementById('sacProblema').value = item.problemas || item.Problemas || item.problema || '';
+      document.getElementById('sacFormaPgto').value = item.forma_pgto || item.formaPgto || item['Forma de Pagamento'] || '';
+
+      // 8. Reembolso
+      const rmbVal = String(item.reembolso || item.Reembolso || '').trim().toLowerCase();
       if (rmbVal.includes('remoto') || rmbVal.includes('crédito') || rmbVal.includes('credito')) {
         document.getElementById('sacReembolso').value = 'Crédito Remoto';
       } else if (rmbVal.includes('pendente')) {
@@ -1642,26 +1690,33 @@
       } else if (rmbVal.includes('stone') || rmbVal.includes('devolução') || rmbVal.includes('devolucao')) {
         document.getElementById('sacReembolso').value = 'Devolução Stone';
       } else {
-        document.getElementById('sacReembolso').value = '';
+        document.getElementById('sacReembolso').value = item.reembolso || item.Reembolso || '';
       }
 
-      document.getElementById('sacPix').value = item.pix || '';
-      document.getElementById('sacObservacao').value = item.observacao || '';
-      var rReal = (item.reembolsoRealizado || 'Não').trim().toLowerCase();
-      document.getElementById('sacReembolsoRealizado').value = (rReal === 'sim' || rReal === 's' || rReal === 'true') ? 'Sim' : 'Não';
-      document.getElementById('sacAtendente').value = item.atendente || atendenteSACLogado;
-      document.getElementById('sacDataHoraAuto').value = item.dataHoraLancamento || 'Original Preservado';
+      // 9. Pix e Observação
+      document.getElementById('sacPix').value = item.pix || item.Pix || item['Pix - Reembolso'] || '';
+      document.getElementById('sacObservacao').value = item.observacao || item.observação || item.obs || item.Observação || '';
 
+      // 10. Reembolso Realizado (Sim/Não)
+      const rReal = String(item.reembolso_realizado || item.reembolsoRealizado || item['Reembolso Realizado'] || 'Não').trim().toLowerCase();
+      document.getElementById('sacReembolsoRealizado').value = (rReal === 'sim' || rReal === 's' || rReal === 'true') ? 'Sim' : 'Não';
+
+      // 11. Atendente e Carimbo de Data/Hora
+      document.getElementById('sacAtendente').value = item.atendente || item.Atendente || atendenteSACLogado;
+      document.getElementById('sacDataHoraAuto').value = item.data_hora_lancamento || item.dataHoraLancamento || item['Data/Hora do lançamento'] || 'Original Preservado';
+
+      // 12. Atualização dos Avisos e Botões da UI
       document.getElementById('alertSACEditMode').classList.remove('hidden');
-      document.getElementById('labelSACEditChamado').innerText = item.chamado;
-      document.getElementById('sacFormTitleText').innerText = 'Edição da Ocorrência: ' + item.chamado;
+      document.getElementById('labelSACEditChamado').innerText = item.chamado || item.Chamado;
+      document.getElementById('sacFormTitleText').innerText = 'Edição da Ocorrência: ' + (item.chamado || item.Chamado);
       document.getElementById('btnSalvarSACText').innerText = 'Salvar Alterações';
       document.getElementById('sacForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
       lucide.createIcons();
     }
     // =========================================================================
     // TÉRMINO: editarChamadoSAC
-    // =========================================================================
+    // =====================================
 
     // =========================================================================
     // INÍCIO: cancelarEdicaoSAC
