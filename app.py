@@ -84,7 +84,7 @@ async def carregar_pagina_principal(request: Request):
                 problemas = [c["valor"] for c in configs if c.get("tipo") == "problema" and c.get("valor")]
                 descricoes = [c["valor"] for c in configs if c.get("tipo") == "descricao" and c.get("valor")]
                 
-                # 4. Chamados (com proteção COALESCE para evitar campos None)
+                # 4. Chamados
                 cur.execute("""
                     SELECT id as linha, 
                            COALESCE(chamado, '') as chamado, 
@@ -113,7 +113,6 @@ async def carregar_pagina_principal(request: Request):
                 """)
                 chamados_raw = cur.fetchall() or []
 
-        # Processamento e contagem dos maiores números de SAC por ano
         maior_sac_ano = {}
         chamados_formatados = []
         for c in chamados_raw:
@@ -145,12 +144,16 @@ async def carregar_pagina_principal(request: Request):
         dados_sac_json = json.dumps(dados_sac, default=str, ensure_ascii=False)
         total_chamados = len(chamados_formatados)
         
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "logo_base64_src": logo_base64_src,
-            "dados_sac_json": dados_sac_json,
-            "total_chamados_carregados": total_chamados
-        })
+        # Chamada corrigida com argumentos nomeados request e name
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html",
+            context={
+                "logo_base64_src": logo_base64_src,
+                "dados_sac_json": dados_sac_json,
+                "total_chamados_carregados": total_chamados
+            }
+        )
 
     except Exception as e:
         tb = traceback.format_exc()
@@ -163,7 +166,6 @@ async def carregar_pagina_principal(request: Request):
                 </div>
                 <p style="color: #475569; font-size: 0.875rem;">O FastAPI interceptou uma falha durante o carregamento inicial. Detalhes técnicos:</p>
                 <pre style="background: #0f172a; color: #f87171; padding: 1.25rem; border-radius: 8px; font-size: 0.8125rem; overflow-x: auto; line-height: 1.5; white-space: pre-wrap; word-break: break-all;">{tb}</pre>
-                <p style="color: #64748b; font-size: 0.8125rem; margin-top: 1rem;">Se for falha de coluna ou tabela, execute a criação ou alteração no SQL Editor do Supabase.</p>
             </div>
             """,
             status_code=500
