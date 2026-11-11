@@ -2015,27 +2015,52 @@
     // =========================================================================
     // INÍCIO: renderizarTabelaChamadosSAC
     // =========================================================================
-  // Altere para renderizar apenas os primeiros 100 itens na tabela:
-function renderizarTabelaChamadosSAC(lista = listaChamadosSAC) {
-  const tbody = document.getElementById('tableSACChamadosBody');
-  const badge = document.getElementById('badgeContadorSAC');
-  if (badge) badge.innerText = lista.length + ' chamado(s)';
-  if (!tbody) return;
-  
-  if (!lista || lista.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhuma ocorrência encontrada.</td></tr>';
-    return;
-  }
+    function renderizarTabelaChamadosSAC(lista = listaChamadosSAC) {
+      const tbody = document.getElementById('tableSACChamadosBody');
+      const badge = document.getElementById('badgeContadorSAC');
+      if (badge) badge.innerText = lista.length + ' chamado(s)';
+      if (!tbody) return;
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhuma ocorrência encontrada.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map(c => {
+        const rVal = (c.reembolsoRealizado || 'Não').toString().trim().toLowerCase();
+        const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
+        const badgePago = pago 
+          ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
+          : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
 
-  // LIMITA A EXIBIÇÃO NO DOM PARA OS 100 PRIMEIROS REGISTROS
-  const listaParaExibir = lista.slice(0, 100);
-
-  tbody.innerHTML = listaParaExibir.map(c => {
-    // ... restante da montagem do template string continua exatamente igual ...
-  }).join('');
-  
-  lucide.createIcons();
-}
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="text-center whitespace-nowrap">
+              <div class="inline-flex items-center gap-1 justify-center">
+                <button type="button" onclick="editarChamadoSAC('${c.chamado}', 'sac')" title="Editar chamado ${c.chamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
+                  <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" onclick="excluirChamadoSAC('${c.chamado}')" title="Excluir chamado ${c.chamado}" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </td>
+            <td class="font-mono font-bold text-sky-700 truncate" title="${c.chamado}">${c.chamado}</td>
+            <td class="truncate" title="${c.data || '-'}">${c.data || '-'}</td>
+            <td class="font-semibold text-slate-800 truncate" title="${c.cliente || ''}">${c.cliente || '-'}</td>
+            <td class="text-slate-600 truncate" title="${c.localInterno || ''}">${c.localInterno || '-'}</td>
+            <td class="text-slate-600 truncate" title="${c.cidade || ''}">${c.cidade || '-'}</td>
+            <td class="font-medium text-slate-700 truncate" title="${c.produto || '-'}">${c.produto || '-'}</td>
+            <td class="text-right font-bold text-emerald-700 truncate" title="${c.valor || ''}">${formatCurrency(parseValorNumerico(c.valor))}</td>
+            <td class="font-medium text-slate-800 truncate" title="${c.nomeSobrenome || ''}">${c.nomeSobrenome || '-'}</td>
+            <td class="text-slate-700 font-medium truncate" title="${c.formaPgto || ''}">${c.formaPgto || '-'}</td>
+            <td class="text-sky-900 font-semibold truncate" title="${c.reembolso || ''}">${c.reembolso || '-'}</td>
+            <td class="text-center whitespace-nowrap">${badgePago}</td>
+            <td class="font-semibold text-emerald-800 truncate" title="${c.financeiroResponsavel || ''}">${c.financeiroResponsavel || '-'}</td>
+            <td class="text-slate-600 truncate" title="${c.observacao || ''}">${c.observacao || '-'}</td>
+            <td class="font-medium text-slate-600 truncate" title="${c.atendente || ''}">${c.atendente || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
     }
     // =========================================================================
     // TÉRMINO: renderizarTabelaChamadosSAC
@@ -2044,14 +2069,14 @@ function renderizarTabelaChamadosSAC(lista = listaChamadosSAC) {
     // =========================================================================
     // INÍCIO: filtrarChamadosAbertos
     // =========================================================================
-   function renderizarTabelaChamadosAbertos(lista = listaChamadosSAC) {
-  // ...
-  const listaParaExibir = lista.slice(0, 100);
-  tbody.innerHTML = listaParaExibir.map(c => {
-    // ...
-  }).join('');
-  lucide.createIcons();
-}
+    function filtrarChamadosAbertos() {
+      const termo = (document.getElementById('searchAbertos')?.value || '').trim().toLowerCase();
+      if (!termo) { renderizarTabelaChamadosAbertos(listaChamadosSAC); return; }
+      const filtrados = listaChamadosSAC.filter(c => 
+        Object.values(c).some(val => String(val || '').toLowerCase().includes(termo))
+      );
+      renderizarTabelaChamadosAbertos(filtrados);
+    }
     // =========================================================================
     // TÉRMINO: filtrarChamadosAbertos
     // =========================================================================
