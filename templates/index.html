@@ -556,7 +556,7 @@
                 </div>
                 <div class="md:col-span-2 lg:col-span-3">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Descrição *</label>
-                  <input list="listaSACDescricoes" id="sacDescricao" placeholder="Selecione a descrição do ocorrido..." required onchange="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" onblur="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACDescricoes" id="sacDescricao" placeholder="Selecione a descrição (Produtos)..." required onchange="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" onblur="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACDescricoes"></datalist>
                 </div>
                 <div>
@@ -1011,7 +1011,7 @@
       const p = (document.getElementById('globalLoginPass').value || '').trim().toLowerCase();
       const erroBox = document.getElementById('globalLoginErro');
 
-      const userValido = dadosSAC.usuarios.find(x => 
+      const userValido = (dadosSAC.usuarios || []).find(x => 
         String(x.usuario || '').trim().toLowerCase() === u && 
         String(x.senha || '').trim().toLowerCase() === p
       );
@@ -1278,7 +1278,7 @@
     // INICIALIZAÇÃO & FORMULÁRIO SAC
     // =========================================================================
     function calcularPreviaProximoChamado(ano) {
-      let maior = dadosSAC.maior_sac_ano[ano] || 0;
+      let maior = (dadosSAC.maior_sac_ano && dadosSAC.maior_sac_ano[ano]) || 0;
       listaChamadosSAC.forEach(c => {
         if (c.chamado) {
           const m = c.chamado.match(new RegExp('SAC-' + ano + '-(\\d+)', 'i'));
@@ -1289,6 +1289,26 @@
         }
       });
       return 'SAC-' + ano + '-' + String(maior + 1).padStart(4, '0');
+    }
+
+    // Função utilitária para extrair textos de listas (seja array simples ou lista de objetos da tabela)
+    function extrairListaTexto(fonte, propriedadesChave = []) {
+      if (!Array.isArray(fonte)) return [];
+      const resultado = [];
+      fonte.forEach(item => {
+        if (typeof item === 'string' || typeof item === 'number') {
+          const s = String(item).trim();
+          if (s) resultado.push(s);
+        } else if (item && typeof item === 'object') {
+          for (const chave of propriedadesChave) {
+            if (item[chave]) {
+              const s = String(item[chave]).trim();
+              if (s) { resultado.push(s); break; }
+            }
+          }
+        }
+      });
+      return [...new Set(resultado)].sort();
     }
 
     function inicializarFormularioSAC() {
@@ -1313,29 +1333,58 @@
       document.getElementById('sacObservacao').value = "";
       document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
 
+      // 1. Clientes
       const dlCli = document.getElementById('listaSACClientes');
       dlCli.innerHTML = '';
-      [...new Set(dadosSAC.clientes.map(c => c.cliente).filter(Boolean))].sort().forEach(cli => {
+      [...new Set((dadosSAC.clientes || []).map(c => c.cliente).filter(Boolean))].sort().forEach(cli => {
         const opt = document.createElement('option'); opt.value = cli; dlCli.appendChild(opt);
       });
 
+      // 2. Cidades / Filiais
       const dlCid = document.getElementById('listaSACCidades');
       dlCid.innerHTML = '';
-      (dadosSAC.cidades?.length ? dadosSAC.cidades : [...new Set(dadosSAC.clientes.map(c => c.cidade).filter(Boolean))]).sort().forEach(cid => {
+      (dadosSAC.cidades?.length ? dadosSAC.cidades : [...new Set((dadosSAC.clientes || []).map(c => c.cidade).filter(Boolean))]).sort().forEach(cid => {
         const opt = document.createElement('option'); opt.value = cid; dlCid.appendChild(opt);
       });
 
+      // 3. Descrição * -> Tabela "produtos"
+      const listaProdutos = extrairListaTexto(
+        dadosSAC.produtos || dadosSAC.descricoes || [], 
+        ['produto', 'descricao', 'nome', 'descricao_produto', 'item']
+      );
       const dlDesc = document.getElementById('listaSACDescricoes');
       dlDesc.innerHTML = '';
-      dadosSAC.descricoes.forEach(d => { const opt = document.createElement('option'); opt.value = d; dlDesc.appendChild(opt); });
+      listaProdutos.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        dlDesc.appendChild(opt);
+      });
 
+      // 4. Problemas * -> Tabela "problemas"
+      const listaProblemas = extrairListaTexto(
+        dadosSAC.problemas || [], 
+        ['problema', 'problemas', 'descricao', 'motivo', 'nome']
+      );
       const dlProb = document.getElementById('listaSACProblemas');
       dlProb.innerHTML = '';
-      dadosSAC.problemas.forEach(p => { const opt = document.createElement('option'); opt.value = p; dlProb.appendChild(opt); });
+      listaProblemas.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p;
+        dlProb.appendChild(opt);
+      });
 
+      // 5. Forma de Pagamento * -> Tabela "formas_pgt"
+      const listaFormasPgt = extrairListaTexto(
+        dadosSAC.formas_pgt || dadosSAC.formas_pagamento || [], 
+        ['forma_pgt', 'forma_pagamento', 'forma', 'descricao', 'nome']
+      );
       const dlPgto = document.getElementById('listaSACFormasPgto');
       dlPgto.innerHTML = '';
-      dadosSAC.formas_pagamento.forEach(f => { const opt = document.createElement('option'); opt.value = f; dlPgto.appendChild(opt); });
+      listaFormasPgt.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = f;
+        dlPgto.appendChild(opt);
+      });
     }
 
     function aoMudarClienteSAC() {
@@ -1344,7 +1393,7 @@
       selectLocal.innerHTML = '<option value="">Selecione o Local Interno...</option>';
       if (!cli) return;
 
-      const locaisDoCliente = dadosSAC.clientes.filter(c => c.cliente.toLowerCase() === cli.toLowerCase());
+      const locaisDoCliente = (dadosSAC.clientes || []).filter(c => c.cliente && c.cliente.toLowerCase() === cli.toLowerCase());
       if (!locaisDoCliente.length) return;
 
       const locaisUnicos = [...new Set(locaisDoCliente.map(l => l.local).filter(Boolean))].sort();
@@ -1363,7 +1412,7 @@
       const cli = (document.getElementById('sacCliente').value || '').trim();
       const loc = document.getElementById('sacLocalInterno').value;
       if (!cli || !loc) return;
-      const achado = dadosSAC.clientes.find(c => c.cliente.toLowerCase() === cli.toLowerCase() && c.local === loc);
+      const achado = (dadosSAC.clientes || []).find(c => c.cliente && c.cliente.toLowerCase() === cli.toLowerCase() && c.local === loc);
       if (achado && achado.cidade) document.getElementById('sacCidade').value = achado.cidade;
     }
 
@@ -1564,7 +1613,10 @@
       }
 
       const m = chamado.match(/SAC-(\d{4})-(\d+)/i);
-      if (m) dadosSAC.maior_sac_ano[m[1]] = Math.max(dadosSAC.maior_sac_ano[m[1]] || 0, parseInt(m[2], 10));
+      if (m) {
+        if (!dadosSAC.maior_sac_ano) dadosSAC.maior_sac_ano = {};
+        dadosSAC.maior_sac_ano[m[1]] = Math.max(dadosSAC.maior_sac_ano[m[1]] || 0, parseInt(m[2], 10));
+      }
 
       const destinoAposSalvar = (ehEdicao && origemEdicaoSAC === 'chamadosAbertos') ? 'chamadosAbertos' : 'sac';
       limparFormSAC();
@@ -1768,7 +1820,7 @@
       if (badge) badge.innerText = lista.length + ' cliente(s)';
       if (!tbody) return;
       if (!lista || lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 font-semibold">Nenhum cliente encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 font-semibold">Nenhum cliente carregado.</td></tr>';
         return;
       }
       tbody.innerHTML = lista.map((c, idx) => `
@@ -1828,6 +1880,7 @@
       if (ehEdicao) listaCadastroClientes[clienteEmEdicao.indexOriginal] = novoItem;
       else listaCadastroClientes.unshift(novoItem);
 
+      if (!dadosSAC.clientes) dadosSAC.clientes = [];
       dadosSAC.clientes.push({ cliente, local: localInterno, cidade: filialResponsavel });
       limparFormCliente();
       renderizarTabelaClientes();
