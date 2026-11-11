@@ -1176,29 +1176,29 @@
     // TÉRMINO: obterValoresDeDatalist
     // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: validarInputComLista
+   // =========================================================================
+    // INÍCIO: validarInputComLista (CORRIGIDO: NÃO LIMPA O CAMPO EM CASO DE ERRO)
     // =========================================================================
     function validarInputComLista(inputId, datalistId, nomeAmigavel, dispararCascataCliente = false) {
       const input = document.getElementById(inputId);
       if (!input) return false;
       const valor = (input.value || '').trim();
-      if (!valor) return true;
+      if (!valor) return false; // Campo vazio já é pego pelo required
 
       const opcoesValidas = obterValoresDeDatalist(datalistId);
-      const achado = opcoesValidas.find(item => item.toLowerCase() === valor.toLowerCase());
+      
+      // Se o datalist ainda estiver vazio (ex: carregando do backend), permite o valor atual
+      if (opcoesValidas.length === 0) return true;
+
+      const achado = opcoesValidas.find(item => item.trim().toLowerCase() === valor.toLowerCase());
 
       if (!achado) {
-        alert('⛔ Bloqueio de Segurança:\nO valor digitado no campo "' + nomeAmigavel + '" não está cadastrado na base de dados.\nPor favor, selecione exclusivamente um dos itens disponíveis na listagem.');
-        input.value = '';
-        if (dispararCascataCliente) {
-          document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
-          document.getElementById('sacCidade').value = '';
-        }
+        alert('⛔ Atenção no campo "' + nomeAmigavel + '":\nO valor "' + valor + '" não foi encontrado na lista padrão.\nPor favor, escolha uma opção disponível.');
+        // NÃO limpa o input.value para o usuário não perder o que estava preenchido
         setTimeout(() => { input.focus(); }, 50);
         return false;
       } else {
-        input.value = achado;
+        input.value = achado; // Normaliza com a grafia oficial da lista
         if (dispararCascataCliente) {
           aoMudarClienteSAC();
         }
@@ -1774,82 +1774,147 @@
     // TÉRMINO: excluirChamadoSAC
     // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: handleSACSubmit
+   // =========================================================================
+    // INÍCIO: handleSACSubmit (CORRIGIDO: PRESERVA DADOS NA EDIÇÃO)
     // =========================================================================
     async function handleSACSubmit(e) {
       e.preventDefault();
-      
-      if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente')) return;
-      const selectLocal = document.getElementById('sacLocalInterno');
-      if (!selectLocal.value) { alert('⛔ Selecione um Local Interno.'); selectLocal.focus(); return; }
-      if (!validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')) return;
-      if (!validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')) return;
-      if (!validarInputComLista('sacProblema', 'listaSACProblemas', 'Problemas')) return;
-      if (!validarInputComLista('sacFormaPgto', 'listaSACFormasPgto', 'Forma de Pagamento')) return;
-      const selectProduto = document.getElementById('sacProduto');
-      if (!selectProduto.value) { alert('⛔ Selecione o Produto (Café ou Snaky).'); selectProduto.focus(); return; }
 
-      const ehEdicao = (chamadoEmEdicao !== null);
-      let chamado = document.getElementById('sacChamado').value.trim();
-      const anoAtual = new Date().getFullYear();
-      if (!ehEdicao) chamado = calcularPreviaProximoChamado(anoAtual);
-
-      if (!ehEdicao && listaChamadosSAC.some(c => c.chamado.toUpperCase() === chamado.toUpperCase())) {
-        alert('⛔ Chamado Duplicado! O número "' + chamado + '" já existe.');
-        document.getElementById('sacChamado').value = calcularPreviaProximoChamado(anoAtual);
+      // 1. Coleta e sanitização de valores diretos
+      const clienteInput = document.getElementById('sacCliente');
+      const cliente = (clienteInput?.value || '').trim();
+      if (!cliente) {
+        alert('⛔ Preencha o campo Cliente.');
+        clienteInput?.focus();
         return;
       }
 
-      const dataIso = document.getElementById('sacData').value;
-      const data = dataIsoParaPtBr(dataIso);
+      const selectLocal = document.getElementById('sacLocalInterno');
+      let localInterno = (selectLocal?.value || '').trim();
+      if (!localInterno) {
+        alert('⛔ Selecione um Local Interno.');
+        selectLocal?.focus();
+        return;
+      }
 
-      const cliente = document.getElementById('sacCliente').value.trim();
-      const localInterno = document.getElementById('sacLocalInterno').value;
-      const cidade = document.getElementById('sacCidade').value.trim();
-      const descricao = document.getElementById('sacDescricao').value.trim();
-      const produto = document.getElementById('sacProduto').value;
+      const cidade = (document.getElementById('sacCidade')?.value || '').trim();
+      if (!cidade) {
+        alert('⛔ Preencha a Filial Responsável.');
+        document.getElementById('sacCidade')?.focus();
+        return;
+      }
+
+      const descricao = (document.getElementById('sacDescricao')?.value || '').trim();
+      if (!descricao) {
+        alert('⛔ Preencha a Descrição.');
+        document.getElementById('sacDescricao')?.focus();
+        return;
+      }
+
+      const selectProduto = document.getElementById('sacProduto');
+      const produto = (selectProduto?.value || '').trim();
+      if (!produto) {
+        alert('⛔ Selecione o Produto (Café ou Snaky).');
+        selectProduto?.focus();
+        return;
+      }
+
+      const problemas = (document.getElementById('sacProblema')?.value || '').trim();
+      if (!problemas) {
+        alert('⛔ Preencha o campo Problemas.');
+        document.getElementById('sacProblema')?.focus();
+        return;
+      }
+
+      const formaPgto = (document.getElementById('sacFormaPgto')?.value || '').trim();
+      if (!formaPgto) {
+        alert('⛔ Selecione ou preencha a Forma de Pagamento.');
+        document.getElementById('sacFormaPgto')?.focus();
+        return;
+      }
+
+      // 2. Identificação de Edição vs Inserção
+      const ehEdicao = (chamadoEmEdicao !== null);
+      let chamado = document.getElementById('sacChamado').value.trim();
+      const anoAtual = new Date().getFullYear();
+      if (!ehEdicao && !chamado) {
+        chamado = calcularPreviaProximoChamado(anoAtual);
+      }
+
+      const dataIso = document.getElementById('sacData').value;
+      const data = dataIso.includes('-') ? dataIsoParaPtBr(dataIso) : dataIso;
+
       const dataTransacaoIso = document.getElementById('sacDataTransacao').value;
-      const dataTransacao = dataIsoParaPtBr(dataTransacaoIso);
+      const dataTransacao = dataTransacaoIso.includes('-') ? dataIsoParaPtBr(dataTransacaoIso) : dataTransacaoIso;
       const horaTransacao = document.getElementById('sacHoraTransacao').value;
       const valor = parseFloat(document.getElementById('sacValor').value) || 0;
       const nomeSobrenome = converterParaPrimeirasMaiusculas(document.getElementById('sacNome').value.trim());
       const celular = document.getElementById('sacCelular').value.trim();
-      const problemas = document.getElementById('sacProblema').value.trim();
-      const formaPgto = document.getElementById('sacFormaPgto').value.trim();
       const reembolso = (document.getElementById('sacReembolso').value || '').trim();
       const pix = document.getElementById('sacPix').value.trim();
       const reembolsoRealizado = document.getElementById('sacReembolsoRealizado').value || "Não";
       const observacao = document.getElementById('sacObservacao').value.trim();
 
-      let atendente = ehEdicao && chamadoEmEdicao?.atendente ? chamadoEmEdicao.atendente : (atendenteSACLogado || document.getElementById('sacAtendente').value);
-      let dataHoraLancamento = ehEdicao && chamadoEmEdicao?.dataHoraLancamento ? chamadoEmEdicao.dataHoraLancamento : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
-      let financeiroResponsavel = (reembolsoRealizado === "Sim") ? (atendenteSACLogado || chamadoEmEdicao?.financeiroResponsavel || "") : (chamadoEmEdicao?.financeiroResponsavel || "");
+      let atendente = ehEdicao && (chamadoEmEdicao?.atendente || chamadoEmEdicao?.Atendente) 
+        ? (chamadoEmEdicao.atendente || chamadoEmEdicao.Atendente) 
+        : (atendenteSACLogado || document.getElementById('sacAtendente').value);
 
+      let dataHoraLancamento = ehEdicao && (chamadoEmEdicao?.dataHoraLancamento || chamadoEmEdicao?.data_hora_lancamento)
+        ? (chamadoEmEdicao.dataHoraLancamento || chamadoEmEdicao.data_hora_lancamento)
+        : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
+
+      let finRespOriginal = chamadoEmEdicao?.financeiroResponsavel || chamadoEmEdicao?.financeiro_responsavel || "";
+      let financeiroResponsavel = (reembolsoRealizado === "Sim")
+        ? (atendenteSACLogado || finRespOriginal)
+        : finRespOriginal;
+
+      // Monta payload com compatibilidade para o backend
       const payloadSAC = {
-        "acao": ehEdicao ? "editar" : "inserir", 
+        "acao": ehEdicao ? "editar" : "inserir",
         "action": ehEdicao ? "editar" : "inserir",
+        "id": ehEdicao ? (chamadoEmEdicao.id || chamadoEmEdicao.linha) : undefined,
         "linha": ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : "",
-        "Chamado": chamado, 
-        "Data": data, 
-        "Cliente": cliente, 
+        "chamado": chamado,
+        "Chamado": chamado,
+        "data": data,
+        "Data": data,
+        "cliente": cliente,
+        "Cliente": cliente,
+        "local_interno": localInterno,
         "Local Interno": localInterno,
-        "Cidade": cidade, 
-        "Descrição": descricao, 
+        "cidade": cidade,
+        "Cidade": cidade,
+        "descricao": descricao,
+        "Descrição": descricao,
+        "produto": produto,
         "Produto": produto,
-        "Data da Transação": dataTransacao, 
+        "data_transacao": dataTransacao,
+        "Data da Transação": dataTransacao,
+        "hora_transacao": horaTransacao,
         "Hora da Transação": horaTransacao,
-        "Valor": valor, 
-        "Nome/Sobrenome": nomeSobrenome, 
+        "valor": valor,
+        "Valor": valor,
+        "nome_sobrenome": nomeSobrenome,
+        "Nome/Sobrenome": nomeSobrenome,
+        "celular": celular,
         "Celular": celular,
-        "Problemas": problemas, 
-        "Forma de Pagamento": formaPgto, 
+        "problemas": problemas,
+        "Problemas": problemas,
+        "forma_pgto": formaPgto,
+        "Forma de Pagamento": formaPgto,
+        "reembolso": reembolso,
         "Reembolso": reembolso,
-        "Pix - Reembolso": pix, 
-        "Atendente": atendente, 
+        "pix": pix,
+        "Pix - Reembolso": pix,
+        "atendente": atendente,
+        "Atendente": atendente,
+        "data_hora_lancamento": dataHoraLancamento,
         "Data/Hora do lançamento": dataHoraLancamento,
-        "Reembolso Realizado": reembolsoRealizado, 
+        "reembolso_realizado": reembolsoRealizado,
+        "Reembolso Realizado": reembolsoRealizado,
+        "financeiro_responsavel": financeiroResponsavel,
         "Financeiro Responsavel": financeiroResponsavel,
+        "observacao": observacao,
         "Observação": observacao
       };
 
@@ -1862,42 +1927,60 @@
       const btnSalvar = document.getElementById('btnSalvarSAC');
       if (btnSalvar) btnSalvar.disabled = true;
 
-      // Execução assíncrona com await explícito e verificação de retorno
       const resultado = await enviarParaBancoGarantido(payloadSAC);
 
       if (btnSalvar) btnSalvar.disabled = false;
 
+      // Se falhar no banco, MANTÉM os campos preenchidos e avisa o erro
       if (resultado.status === "error") {
         fecharModalLoading();
         alert('❌ Falha ao gravar chamado no banco de dados:\n' + resultado.message);
-        return;
+        return; // Não executa limparFormSAC()
       }
 
       if (resultado.data && resultado.data.chamado) {
         chamado = resultado.data.chamado;
       }
 
+      // Atualiza o estado da memória
       const novoItem = {
+        ...chamadoEmEdicao,
+        id: ehEdicao ? (chamadoEmEdicao.id || chamadoEmEdicao.linha) : (resultado.data?.id || resultado.data?.linha),
         linha: ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : (resultado.data?.linha || listaChamadosSAC.length + 2),
-        chamado, data, cliente, localInterno, cidade, descricao, produto,
-        dataTransacao, horaTransacao, valor: formatCurrency(valor),
-        nomeSobrenome, celular, problemas, formaPgto, reembolso, pix, atendente,
-        dataHoraLancamento, reembolsoRealizado, financeiroResponsavel, observacao
+        chamado, Chamado: chamado,
+        data, Data: data,
+        cliente, Cliente: cliente,
+        local_interno: localInterno, localInterno: localInterno,
+        cidade, Cidade: cidade,
+        descricao, Descricao: descricao,
+        produto, Produto: produto,
+        data_transacao: dataTransacao, dataTransacao: dataTransacao,
+        hora_transacao: horaTransacao, horaTransacao: horaTransacao,
+        valor: formatCurrency(valor), Valor: valor,
+        nome_sobrenome: nomeSobrenome, nomeSobrenome: nomeSobrenome,
+        celular, Celular: celular,
+        problemas, Problemas: problemas,
+        forma_pgto: formaPgto, formaPgto: formaPgto,
+        reembolso, Reembolso: reembolso,
+        pix, Pix: pix,
+        atendente, Atendente: atendente,
+        data_hora_lancamento: dataHoraLancamento, dataHoraLancamento: dataHoraLancamento,
+        reembolso_realizado: reembolsoRealizado, reembolsoRealizado: reembolsoRealizado,
+        financeiro_responsavel: financeiroResponsavel, financeiroResponsavel: financeiroResponsavel,
+        observacao, Observação: observacao
       };
 
       if (ehEdicao) {
-        listaChamadosSAC = listaChamadosSAC.map(c => c.chamado === chamado ? novoItem : c);
+        listaChamadosSAC = listaChamadosSAC.map(c => 
+          (c.chamado === chamado || c.Chamado === chamado) ? novoItem : c
+        );
       } else {
         listaChamadosSAC.unshift(novoItem);
       }
 
-      const m = chamado.match(/SAC-(\d{4})-(\d+)/i);
-      if (m) {
-        if (!dadosSAC.maior_sac_ano) dadosSAC.maior_sac_ano = {};
-        dadosSAC.maior_sac_ano[m[1]] = Math.max(dadosSAC.maior_sac_ano[m[1]] || 0, parseInt(m[2], 10));
-      }
-
       const destinoAposSalvar = (ehEdicao && origemEdicaoSAC === 'chamadosAbertos') ? 'chamadosAbertos' : 'sac';
+      
+      // Limpeza ocorre SOMENTE após o sucesso confirmado da API
       limparFormSAC();
       renderizarTabelaChamadosSAC();
       renderizarTabelaChamadosAbertos();
