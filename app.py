@@ -44,22 +44,21 @@ def format_currency_br(val):
         return "R$ 0,00"
 
 def converter_para_data_iso(data_str: Any) -> Optional[str]:
-    """Converte datas nos formatos DD/MM/AAAA ou YYYY-MM-DD para formato SQL seguro (YYYY-MM-DD) ou None."""
+    """Converte datas em DD/MM/AAAA ou YYYY-MM-DD para YYYY-MM-DD aceito pelo Postgres."""
     if not data_str:
         return None
     s = str(data_str).strip()
-    if not s:
+    if not s or s.lower() in ["none", "null"]:
         return None
-    # Já está em ISO (YYYY-MM-DD)
     if len(s) >= 10 and s[4] == '-' and s[7] == '-':
         return s[:10]
-    # Está em formato BR (DD/MM/YYYY)
     partes = s.split("/")
     if len(partes) == 3 and len(partes[2]) == 4:
         return f"{partes[2]}-{partes[1].zfill(2)}-{partes[0].zfill(2)}"
     return None
 
 def buscar_primeira_coluna_texto(cur, tabela: str, colunas_preferenciais: list) -> list:
+    """Carrega dados para datalists de forma segura sem abortar a transação caso colunas mudem."""
     try:
         cur.execute(f"SELECT * FROM {tabela} LIMIT 0")
         colunas_reais = [desc[0].lower() for desc in (cur.description or [])]
@@ -86,6 +85,7 @@ async def carregar_pagina_principal(request: Request):
         descricoes = []
         chamados_raw = []
 
+        # autocommit=True evita que eventuais erros em consultas secundárias abortem o carregamento
         with get_db_connection(autocommit=True) as conn:
             with conn.cursor() as cur:
                 # 1. Usuários
@@ -112,7 +112,7 @@ async def carregar_pagina_principal(request: Request):
                 except Exception:
                     lista_clientes = []
                 
-                # 3. Listas dinâmicas
+                # 3. Listas dinâmicas a partir das tabelas dedicadas
                 descricoes = buscar_primeira_coluna_texto(cur, "produtos", ["descricao", "produto", "nome", "item"])
                 problemas = buscar_primeira_coluna_texto(cur, "problemas", ["problema", "descricao", "nome", "motivo"])
                 formas_pgto = buscar_primeira_coluna_texto(cur, "formas_pgt", ["forma_pgt", "forma", "descricao", "nome"])
@@ -146,6 +146,7 @@ async def carregar_pagina_principal(request: Request):
                 """)
                 chamados_raw = cur.fetchall() or []
 
+        # Fallbacks: se tabelas auxiliares estiverem vazias, preenche com histórico da tabela chamados
         if not descricoes:
             descricoes = sorted(list(set([str(c.get("descricao", "")).strip() for c in chamados_raw if str(c.get("descricao", "")).strip()])))
         if not problemas:
@@ -216,26 +217,26 @@ async def processar_acao_api(payload: Dict[str, Any]):
     try:
         conn = get_db_connection(autocommit=False)
         with conn.cursor() as cur:
+            
             # =========================================================================
-            # 1. INSERIR OU EDITAR CHAMADO NA TABELA "chamados"
+            # 1. INSERIR OU EDITAR NA TABELA "chamados"
             # =========================================================================
             if acao in ["inserir", "editar"]:
-                # Normalização segura de campos
                 chamado_num = str(payload.get("Chamado") or payload.get("chamado") or "").strip()
                 if not chamado_num:
-                    raise ValueError("O número do chamado é obrigatório.")
+                    raise ValueError("O identificador do chamado é obrigatório.")
 
+                # Tratamento de datas
                 data_br = payload.get("Data") or payload.get("data")
                 data_sql = converter_para_data_iso(data_br) or datetime.now().strftime("%Y-%m-%d")
-                
+
                 dt_tr = payload.get("Data da Transação") or payload.get("data_transacao") or payload.get("dataTransacao")
                 dt_transacao_sql = converter_para_data_iso(dt_tr)
 
-                hr_tr = payload.get("Hora da Transação") or payload.get("hora_transacao") or payload.get("horaTransacao") or None
-                if hr_tr and str(hr_tr).strip() == "":
-                    hr_tr = None
+                hr_tr = payload.get("Hora da Transação") or payload.get("hora_transacao") or payload.get("horaTransacao")
+                hr_tr = str(hr_tr).strip() if hr_tr and str(hr_tr).strip() else None
 
-                # Conversão rigorosa de valor numérico
+                # Conversão de valores monetários
                 val_raw = payload.get("Valor") if "Valor" in payload else payload.get("valor", 0)
                 try:
                     if isinstance(val_raw, str):
@@ -244,93 +245,90 @@ async def processar_acao_api(payload: Dict[str, Any]):
                 except Exception:
                     valor_sql = 0.0
 
-                cliente = payload.get("Cliente") or payload.get("cliente") or ""
-                local_interno = payload.get("Local Interno") or payload.get("local_interno") or payload.get("localInterno") or ""
-                cidade = payload.get("Cidade") or payload.get("cidade") or ""
-                descricao = payload.get("Descrição") or payload.get("descricao") or ""
-                produto = payload.get("Produto") or payload.get("produto") or ""
-                nome_sobrenome = payload.get("Nome/Sobrenome") or payload.get("Nome Sobrenome") or payload.get("nome_sobrenome") or ""
-                celular = payload.get("Celular") or payload.get("celular") or ""
-                problemas = payload.get("Problemas") or payload.get("problemas") or ""
-                forma_pgto = payload.get("Forma de Pagamento") or payload.get("forma_pgto") or payload.get("formaPgto") or ""
-                reembolso = payload.get("Reembolso") or payload.get("reembolso") or ""
-                pix = payload.get("Pix - Reembolso") or payload.get("pix") or ""
-                atendente = payload.get("Atendente") or payload.get("atendente") or ""
-                data_hora_lancamento = payload.get("Data/Hora do lançamento") or payload.get("data_hora_lancamento") or datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                reembolso_realizado = payload.get("Reembolso Realizado") or payload.get("reembolso_realizado") or "Não"
-                financeiro_responsavel = payload.get("Financeiro Responsavel") or payload.get("financeiro_responsavel") or ""
-                observacao = payload.get("Observação") or payload.get("observacao") or ""
+                # Dicionário normalizado
+                dados_registro = {
+                    "chamado": chamado_num,
+                    "data": data_sql,
+                    "cliente": payload.get("Cliente") or payload.get("cliente") or "",
+                    "local_interno": payload.get("Local Interno") or payload.get("local_interno") or payload.get("localInterno") or "",
+                    "cidade": payload.get("Cidade") or payload.get("cidade") or "",
+                    "descricao": payload.get("Descrição") or payload.get("descricao") or "",
+                    "produto": payload.get("Produto") or payload.get("produto") or "",
+                    "data_transacao": dt_transacao_sql,
+                    "hora_transacao": hr_tr,
+                    "valor": valor_sql,
+                    "nome_sobrenome": payload.get("Nome/Sobrenome") or payload.get("Nome Sobrenome") or payload.get("nome_sobrenome") or "",
+                    "celular": payload.get("Celular") or payload.get("celular") or "",
+                    "problemas": payload.get("Problemas") or payload.get("problemas") or "",
+                    "forma_pgto": payload.get("Forma de Pagamento") or payload.get("forma_pgto") or payload.get("formaPgto") or "",
+                    "reembolso": payload.get("Reembolso") or payload.get("reembolso") or "",
+                    "pix": payload.get("Pix - Reembolso") or payload.get("pix") or "",
+                    "atendente": payload.get("Atendente") or payload.get("atendente") or "",
+                    "data_hora_lancamento": payload.get("Data/Hora do lançamento") or payload.get("data_hora_lancamento") or datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                    "reembolso_realizado": payload.get("Reembolso Realizado") or payload.get("reembolso_realizado") or "Não",
+                    "financeiro_responsavel": payload.get("Financeiro Responsavel") or payload.get("financeiro_responsavel") or "",
+                    "observacao": payload.get("Observação") or payload.get("observacao") or ""
+                }
 
-                if acao == "inserir":
-                    # Garante que não gere erro de duplicidade acidental: se já existir, faz UPDATE
-                    cur.execute("SELECT id FROM chamados WHERE chamado = %s", (chamado_num,))
-                    ja_existe = cur.fetchone()
+                # Inspeciona as colunas existentes na tabela chamados
+                cur.execute("SELECT * FROM chamados LIMIT 0")
+                colunas_tabela = [desc[0] for desc in (cur.description or [])]
+                colunas_map = {c.lower(): c for c in colunas_tabela}
 
-                    if not ja_existe:
-                        cur.execute("""
-                            INSERT INTO chamados (
-                                chamado, data, cliente, local_interno, cidade, descricao, produto,
-                                data_transacao, hora_transacao, valor, nome_sobrenome, celular,
-                                problemas, forma_pgto, reembolso, pix, atendente, data_hora_lancamento,
-                                reembolso_realizado, financeiro_responsavel, observacao
-                            ) VALUES (
-                                %s, %s, %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s, %s,
-                                %s, %s, %s
-                            )
-                        """, (
-                            chamado_num, data_sql, cliente, local_interno, cidade, descricao, produto,
-                            dt_transacao_sql, hr_tr, valor_sql, nome_sobrenome, celular,
-                            problemas, forma_pgto, reembolso, pix, atendente, data_hora_lancamento,
-                            reembolso_realizado, financeiro_responsavel, observacao
-                        ))
-                    else:
-                        acao = "editar"
+                col_chamado = colunas_map.get("chamado", "chamado")
+                cur.execute(f'SELECT id FROM chamados WHERE "{col_chamado}" = %s', (chamado_num,))
+                ja_existe = cur.fetchone()
 
-                if acao == "editar":
-                    cur.execute("""
-                        UPDATE chamados SET 
-                            data = %s,
-                            cliente = %s,
-                            local_interno = %s,
-                            cidade = %s,
-                            descricao = %s,
-                            produto = %s,
-                            data_transacao = %s,
-                            hora_transacao = %s,
-                            valor = %s,
-                            nome_sobrenome = %s,
-                            celular = %s,
-                            problemas = %s,
-                            forma_pgto = %s,
-                            reembolso = %s,
-                            pix = %s,
-                            atendente = %s,
-                            reembolso_realizado = %s,
-                            financeiro_responsavel = %s,
-                            observacao = %s
-                        WHERE chamado = %s
-                    """, (
-                        data_sql, cliente, local_interno, cidade, descricao, produto,
-                        dt_transacao_sql, hr_tr, valor_sql, nome_sobrenome, celular,
-                        problemas, forma_pgto, reembolso, pix, atendente,
-                        reembolso_realizado, financeiro_responsavel, observacao,
-                        chamado_num
-                    ))
+                if acao == "inserir" and not ja_existe:
+                    cols_inserir = []
+                    valores_inserir = []
+                    placeholders = []
+
+                    for k, val in dados_registro.items():
+                        if k in colunas_map:
+                            nome_real = colunas_map[k]
+                            cols_inserir.append(f'"{nome_real}"')
+                            valores_inserir.append(val)
+                            placeholders.append("%s")
+
+                    query = f"""
+                        INSERT INTO chamados ({', '.join(cols_inserir)})
+                        VALUES ({', '.join(placeholders)})
+                    """
+                    cur.execute(query, tuple(valores_inserir))
+                else:
+                    sets = []
+                    valores_update = []
+                    for k, val in dados_registro.items():
+                        if k != "chamado" and k in colunas_map:
+                            nome_real = colunas_map[k]
+                            sets.append(f'"{nome_real}" = %s')
+                            valores_update.append(val)
+
+                    valores_update.append(chamado_num)
+                    query = f"""
+                        UPDATE chamados SET {', '.join(sets)}
+                        WHERE "{col_chamado}" = %s
+                    """
+                    cur.execute(query, tuple(valores_update))
 
                 conn.commit()
-                return {"status": "success", "message": f"Chamado {chamado_num} gravado com sucesso no banco."}
+                return {"status": "success", "message": f"Chamado {chamado_num} gravado com sucesso."}
 
             # =========================================================================
-            # 2. EXCLUIR CHAMADO DA TABELA "chamados"
+            # 2. EXCLUIR NA TABELA "chamados"
             # =========================================================================
             elif acao in ["excluir", "excluir_sac"]:
                 chamado_num = str(payload.get("Chamado") or payload.get("chamado") or "").strip()
                 if not chamado_num:
                     raise ValueError("Número do chamado ausente para exclusão.")
-                
-                cur.execute("DELETE FROM chamados WHERE chamado = %s", (chamado_num,))
+
+                cur.execute("SELECT * FROM chamados LIMIT 0")
+                colunas_tabela = [desc[0] for desc in (cur.description or [])]
+                colunas_map = {c.lower(): c for c in colunas_tabela}
+                col_chamado = colunas_map.get("chamado", "chamado")
+
+                cur.execute(f'DELETE FROM chamados WHERE "{col_chamado}" = %s', (chamado_num,))
                 conn.commit()
                 return {"status": "success", "message": f"Chamado {chamado_num} removido com sucesso."}
 
@@ -344,7 +342,7 @@ async def processar_acao_api(payload: Dict[str, Any]):
                 maq = payload.get("Máquina") or payload.get("maquina")
                 mod = payload.get("Modelo de máquina") or payload.get("modelo_maquina")
                 fil = payload.get("Filial Responsavel") or payload.get("filial_responsavel")
-                
+
                 if acao == "inserir_cliente":
                     cur.execute("""
                         INSERT INTO clientes (cliente, local, local_interno, maquina, modelo_maquina, filial_responsavel)
@@ -373,7 +371,8 @@ async def processar_acao_api(payload: Dict[str, Any]):
                 conn.rollback()
             except Exception:
                 pass
-        print(f"ERRO SQL EM /api/action: {traceback.format_exc()}")
+        erro_detalhado = traceback.format_exc()
+        print(f"ERRO SQL /api/action: {erro_detalhado}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if conn:
