@@ -13,11 +13,9 @@ from psycopg.rows import dict_row
 
 app = FastAPI(title="Painel Executivo de Gestão & SAC")
 
-# Diretório base absoluto para garantir o carregamento do templates/index.html
 BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-# String padrão apontando para o Pooler IPv4 com fallback para variável de ambiente
 DEFAULT_DB_URL = "postgresql://postgres.asptoykwjnpxwvnixslw:[SUA-SENHA]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
 DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DB_URL)
 
@@ -77,12 +75,39 @@ async def carregar_pagina_principal(request: Request):
                 """)
                 lista_clientes = [dict(c) for c in (cur.fetchall() or [])]
                 
-                # 3. Configurações
-                cur.execute("SELECT tipo, valor FROM sac_configs")
-                configs = cur.fetchall() or []
-                formas_pgto = [c["valor"] for c in configs if c.get("tipo") == "forma_pagamento" and c.get("valor")]
-                problemas = [c["valor"] for c in configs if c.get("tipo") == "problema" and c.get("valor")]
-                descricoes = [c["valor"] for c in configs if c.get("tipo") == "descricao" and c.get("valor")]
+                # 3. Listas dinâmicas a partir das tabelas dedicadas:
+                # A. Descrição -> tabela "produtos"
+                try:
+                    cur.execute("""
+                        SELECT COALESCE(descricao, nome, produto, '') as valor 
+                        FROM produtos 
+                        ORDER BY 1 ASC
+                    """)
+                    descricoes = [r["valor"].strip() for r in (cur.fetchall() or []) if r.get("valor") and str(r.get("valor")).strip()]
+                except Exception:
+                    descricoes = []
+
+                # B. Problemas -> tabela "problemas"
+                try:
+                    cur.execute("""
+                        SELECT COALESCE(problema, descricao, nome, '') as valor 
+                        FROM problemas 
+                        ORDER BY 1 ASC
+                    """)
+                    problemas = [r["valor"].strip() for r in (cur.fetchall() or []) if r.get("valor") and str(r.get("valor")).strip()]
+                except Exception:
+                    problemas = []
+
+                # C. Formas de Pagamento -> tabela "formas_pgt"
+                try:
+                    cur.execute("""
+                        SELECT COALESCE(forma, forma_pgt, descricao, nome, '') as valor 
+                        FROM formas_pgt 
+                        ORDER BY 1 ASC
+                    """)
+                    formas_pgto = [r["valor"].strip() for r in (cur.fetchall() or []) if r.get("valor") and str(r.get("valor")).strip()]
+                except Exception:
+                    formas_pgto = []
                 
                 # 4. Chamados
                 cur.execute("""
@@ -144,7 +169,6 @@ async def carregar_pagina_principal(request: Request):
         dados_sac_json = json.dumps(dados_sac, default=str, ensure_ascii=False)
         total_chamados = len(chamados_formatados)
         
-        # Chamada corrigida com argumentos nomeados request e name
         return templates.TemplateResponse(
             request=request,
             name="index.html",
@@ -159,19 +183,14 @@ async def carregar_pagina_principal(request: Request):
         tb = traceback.format_exc()
         return HTMLResponse(
             content=f"""
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 2rem; max-width: 800px; margin: 2rem auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
-                    <span style="background: #fee2e2; color: #dc2626; padding: 0.5rem; border-radius: 8px; font-size: 1.5rem;">⚠️</span>
-                    <h2 style="color: #0f172a; margin: 0; font-size: 1.25rem;">Erro na Execução da Aplicação</h2>
-                </div>
-                <p style="color: #475569; font-size: 0.875rem;">O FastAPI interceptou uma falha durante o carregamento inicial. Detalhes técnicos:</p>
-                <pre style="background: #0f172a; color: #f87171; padding: 1.25rem; border-radius: 8px; font-size: 0.8125rem; overflow-x: auto; line-height: 1.5; white-space: pre-wrap; word-break: break-all;">{tb}</pre>
+            <div style="font-family: monospace; padding: 2rem; background: #0f172a; color: #f87171; min-height: 100vh;">
+                <h2 style="color: #ef4444; margin-top: 0;">Traceback do Erro:</h2>
+                <pre style="white-space: pre-wrap; word-break: break-all; font-size: 13px; line-height: 1.5;">{tb}</pre>
             </div>
             """,
             status_code=500
         )
 
-# Endpoint para Operações CRUD
 @app.post("/api/action")
 async def processar_acao_api(payload: Dict[str, Any]):
     acao = payload.get("acao") or payload.get("action") or payload.get("tipo")
