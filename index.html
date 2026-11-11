@@ -1774,147 +1774,82 @@
     // TÉRMINO: excluirChamadoSAC
     // =========================================================================
 
-   // =========================================================================
-    // INÍCIO: handleSACSubmit (CORRIGIDO: PRESERVA DADOS NA EDIÇÃO)
+    // =========================================================================
+    // INÍCIO: handleSACSubmit
     // =========================================================================
     async function handleSACSubmit(e) {
       e.preventDefault();
-
-      // 1. Coleta e sanitização de valores diretos
-      const clienteInput = document.getElementById('sacCliente');
-      const cliente = (clienteInput?.value || '').trim();
-      if (!cliente) {
-        alert('⛔ Preencha o campo Cliente.');
-        clienteInput?.focus();
-        return;
-      }
-
+      
+      if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente')) return;
       const selectLocal = document.getElementById('sacLocalInterno');
-      let localInterno = (selectLocal?.value || '').trim();
-      if (!localInterno) {
-        alert('⛔ Selecione um Local Interno.');
-        selectLocal?.focus();
-        return;
-      }
-
-      const cidade = (document.getElementById('sacCidade')?.value || '').trim();
-      if (!cidade) {
-        alert('⛔ Preencha a Filial Responsável.');
-        document.getElementById('sacCidade')?.focus();
-        return;
-      }
-
-      const descricao = (document.getElementById('sacDescricao')?.value || '').trim();
-      if (!descricao) {
-        alert('⛔ Preencha a Descrição.');
-        document.getElementById('sacDescricao')?.focus();
-        return;
-      }
-
+      if (!selectLocal.value) { alert('⛔ Selecione um Local Interno.'); selectLocal.focus(); return; }
+      if (!validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')) return;
+      if (!validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')) return;
+      if (!validarInputComLista('sacProblema', 'listaSACProblemas', 'Problemas')) return;
+      if (!validarInputComLista('sacFormaPgto', 'listaSACFormasPgto', 'Forma de Pagamento')) return;
       const selectProduto = document.getElementById('sacProduto');
-      const produto = (selectProduto?.value || '').trim();
-      if (!produto) {
-        alert('⛔ Selecione o Produto (Café ou Snaky).');
-        selectProduto?.focus();
-        return;
-      }
+      if (!selectProduto.value) { alert('⛔ Selecione o Produto (Café ou Snaky).'); selectProduto.focus(); return; }
 
-      const problemas = (document.getElementById('sacProblema')?.value || '').trim();
-      if (!problemas) {
-        alert('⛔ Preencha o campo Problemas.');
-        document.getElementById('sacProblema')?.focus();
-        return;
-      }
-
-      const formaPgto = (document.getElementById('sacFormaPgto')?.value || '').trim();
-      if (!formaPgto) {
-        alert('⛔ Selecione ou preencha a Forma de Pagamento.');
-        document.getElementById('sacFormaPgto')?.focus();
-        return;
-      }
-
-      // 2. Identificação de Edição vs Inserção
       const ehEdicao = (chamadoEmEdicao !== null);
       let chamado = document.getElementById('sacChamado').value.trim();
       const anoAtual = new Date().getFullYear();
-      if (!ehEdicao && !chamado) {
-        chamado = calcularPreviaProximoChamado(anoAtual);
+      if (!ehEdicao) chamado = calcularPreviaProximoChamado(anoAtual);
+
+      if (!ehEdicao && listaChamadosSAC.some(c => c.chamado.toUpperCase() === chamado.toUpperCase())) {
+        alert('⛔ Chamado Duplicado! O número "' + chamado + '" já existe.');
+        document.getElementById('sacChamado').value = calcularPreviaProximoChamado(anoAtual);
+        return;
       }
 
       const dataIso = document.getElementById('sacData').value;
-      const data = dataIso.includes('-') ? dataIsoParaPtBr(dataIso) : dataIso;
+      const data = dataIsoParaPtBr(dataIso);
 
+      const cliente = document.getElementById('sacCliente').value.trim();
+      const localInterno = document.getElementById('sacLocalInterno').value;
+      const cidade = document.getElementById('sacCidade').value.trim();
+      const descricao = document.getElementById('sacDescricao').value.trim();
+      const produto = document.getElementById('sacProduto').value;
       const dataTransacaoIso = document.getElementById('sacDataTransacao').value;
-      const dataTransacao = dataTransacaoIso.includes('-') ? dataIsoParaPtBr(dataTransacaoIso) : dataTransacaoIso;
+      const dataTransacao = dataIsoParaPtBr(dataTransacaoIso);
       const horaTransacao = document.getElementById('sacHoraTransacao').value;
       const valor = parseFloat(document.getElementById('sacValor').value) || 0;
       const nomeSobrenome = converterParaPrimeirasMaiusculas(document.getElementById('sacNome').value.trim());
       const celular = document.getElementById('sacCelular').value.trim();
+      const problemas = document.getElementById('sacProblema').value.trim();
+      const formaPgto = document.getElementById('sacFormaPgto').value.trim();
       const reembolso = (document.getElementById('sacReembolso').value || '').trim();
       const pix = document.getElementById('sacPix').value.trim();
       const reembolsoRealizado = document.getElementById('sacReembolsoRealizado').value || "Não";
       const observacao = document.getElementById('sacObservacao').value.trim();
 
-      let atendente = ehEdicao && (chamadoEmEdicao?.atendente || chamadoEmEdicao?.Atendente) 
-        ? (chamadoEmEdicao.atendente || chamadoEmEdicao.Atendente) 
-        : (atendenteSACLogado || document.getElementById('sacAtendente').value);
+      let atendente = ehEdicao && chamadoEmEdicao?.atendente ? chamadoEmEdicao.atendente : (atendenteSACLogado || document.getElementById('sacAtendente').value);
+      let dataHoraLancamento = ehEdicao && chamadoEmEdicao?.dataHoraLancamento ? chamadoEmEdicao.dataHoraLancamento : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
+      let financeiroResponsavel = (reembolsoRealizado === "Sim") ? (atendenteSACLogado || chamadoEmEdicao?.financeiroResponsavel || "") : (chamadoEmEdicao?.financeiroResponsavel || "");
 
-      let dataHoraLancamento = ehEdicao && (chamadoEmEdicao?.dataHoraLancamento || chamadoEmEdicao?.data_hora_lancamento)
-        ? (chamadoEmEdicao.dataHoraLancamento || chamadoEmEdicao.data_hora_lancamento)
-        : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
-
-      let finRespOriginal = chamadoEmEdicao?.financeiroResponsavel || chamadoEmEdicao?.financeiro_responsavel || "";
-      let financeiroResponsavel = (reembolsoRealizado === "Sim")
-        ? (atendenteSACLogado || finRespOriginal)
-        : finRespOriginal;
-
-      // Monta payload com compatibilidade para o backend
       const payloadSAC = {
-        "acao": ehEdicao ? "editar" : "inserir",
+        "acao": ehEdicao ? "editar" : "inserir", 
         "action": ehEdicao ? "editar" : "inserir",
-        "id": ehEdicao ? (chamadoEmEdicao.id || chamadoEmEdicao.linha) : undefined,
         "linha": ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : "",
-        "chamado": chamado,
-        "Chamado": chamado,
-        "data": data,
-        "Data": data,
-        "cliente": cliente,
-        "Cliente": cliente,
-        "local_interno": localInterno,
+        "Chamado": chamado, 
+        "Data": data, 
+        "Cliente": cliente, 
         "Local Interno": localInterno,
-        "cidade": cidade,
-        "Cidade": cidade,
-        "descricao": descricao,
-        "Descrição": descricao,
-        "produto": produto,
+        "Cidade": cidade, 
+        "Descrição": descricao, 
         "Produto": produto,
-        "data_transacao": dataTransacao,
-        "Data da Transação": dataTransacao,
-        "hora_transacao": horaTransacao,
+        "Data da Transação": dataTransacao, 
         "Hora da Transação": horaTransacao,
-        "valor": valor,
-        "Valor": valor,
-        "nome_sobrenome": nomeSobrenome,
-        "Nome/Sobrenome": nomeSobrenome,
-        "celular": celular,
+        "Valor": valor, 
+        "Nome/Sobrenome": nomeSobrenome, 
         "Celular": celular,
-        "problemas": problemas,
-        "Problemas": problemas,
-        "forma_pgto": formaPgto,
-        "Forma de Pagamento": formaPgto,
-        "reembolso": reembolso,
+        "Problemas": problemas, 
+        "Forma de Pagamento": formaPgto, 
         "Reembolso": reembolso,
-        "pix": pix,
-        "Pix - Reembolso": pix,
-        "atendente": atendente,
-        "Atendente": atendente,
-        "data_hora_lancamento": dataHoraLancamento,
+        "Pix - Reembolso": pix, 
+        "Atendente": atendente, 
         "Data/Hora do lançamento": dataHoraLancamento,
-        "reembolso_realizado": reembolsoRealizado,
-        "Reembolso Realizado": reembolsoRealizado,
-        "financeiro_responsavel": financeiroResponsavel,
+        "Reembolso Realizado": reembolsoRealizado, 
         "Financeiro Responsavel": financeiroResponsavel,
-        "observacao": observacao,
         "Observação": observacao
       };
 
@@ -1927,60 +1862,68 @@
       const btnSalvar = document.getElementById('btnSalvarSAC');
       if (btnSalvar) btnSalvar.disabled = true;
 
+      // Execução assíncrona com await explícito e verificação de retorno
       const resultado = await enviarParaBancoGarantido(payloadSAC);
 
       if (btnSalvar) btnSalvar.disabled = false;
 
-      // Se falhar no banco, MANTÉM os campos preenchidos e avisa o erro
       if (resultado.status === "error") {
         fecharModalLoading();
         alert('❌ Falha ao gravar chamado no banco de dados:\n' + resultado.message);
-        return; // Não executa limparFormSAC()
+        return;
       }
 
       if (resultado.data && resultado.data.chamado) {
         chamado = resultado.data.chamado;
       }
 
-      // Atualiza o estado da memória
-      const novoItem = {
-        ...chamadoEmEdicao,
-        id: ehEdicao ? (chamadoEmEdicao.id || chamadoEmEdicao.linha) : (resultado.data?.id || resultado.data?.linha),
-        linha: ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : (resultado.data?.linha || listaChamadosSAC.length + 2),
-        chamado, Chamado: chamado,
-        data, Data: data,
-        cliente, Cliente: cliente,
-        local_interno: localInterno, localInterno: localInterno,
-        cidade, Cidade: cidade,
-        descricao, Descricao: descricao,
-        produto, Produto: produto,
-        data_transacao: dataTransacao, dataTransacao: dataTransacao,
-        hora_transacao: horaTransacao, horaTransacao: horaTransacao,
-        valor: formatCurrency(valor), Valor: valor,
-        nome_sobrenome: nomeSobrenome, nomeSobrenome: nomeSobrenome,
-        celular, Celular: celular,
-        problemas, Problemas: problemas,
-        forma_pgto: formaPgto, formaPgto: formaPgto,
-        reembolso, Reembolso: reembolso,
-        pix, Pix: pix,
-        atendente, Atendente: atendente,
-        data_hora_lancamento: dataHoraLancamento, dataHoraLancamento: dataHoraLancamento,
-        reembolso_realizado: reembolsoRealizado, reembolsoRealizado: reembolsoRealizado,
-        financeiro_responsavel: financeiroResponsavel, financeiroResponsavel: financeiroResponsavel,
-        observacao, Observação: observacao
+     const novoItem = {
+        linha: ehEdicao && (chamadoEmEdicao.linha || chamadoEmEdicao.id) ? (chamadoEmEdicao.linha || chamadoEmEdicao.id) : (resultado.data?.linha || listaChamadosSAC.length + 2),
+        chamado,
+        data,
+        cliente,
+        local_interno: localInterno,
+        localInterno: localInterno,
+        cidade,
+        descricao,
+        produto,
+        data_transacao: dataTransacao,
+        dataTransacao: dataTransacao,
+        hora_transacao: horaTransacao,
+        horaTransacao: horaTransacao,
+        valor: formatCurrency(valor),
+        nome_sobrenome: nomeSobrenome,
+        nomeSobrenome: nomeSobrenome,
+        celular,
+        problemas,
+        forma_pgto: formaPgto,
+        formaPgto: formaPgto,
+        reembolso,
+        pix,
+        atendente,
+        data_hora_lancamento: dataHoraLancamento,
+        dataHoraLancamento: dataHoraLancamento,
+        reembolso_realizado: reembolsoRealizado,
+        reembolsoRealizado: reembolsoRealizado,
+        financeiro_responsavel: financeiroResponsavel,
+        financeiroResponsavel: financeiroResponsavel,
+        observacao,
+        obs: observacao
       };
 
       if (ehEdicao) {
-        listaChamadosSAC = listaChamadosSAC.map(c => 
-          (c.chamado === chamado || c.Chamado === chamado) ? novoItem : c
-        );
+        listaChamadosSAC = listaChamadosSAC.map(c => c.chamado === chamado ? novoItem : c);
       } else {
         listaChamadosSAC.unshift(novoItem);
       }
 
+      const m = chamado.match(/SAC-(\d{4})-(\d+)/i);
+      if (m) {
+        if (!dadosSAC.maior_sac_ano) dadosSAC.maior_sac_ano = {};
+        dadosSAC.maior_sac_ano[m[1]] = Math.max(dadosSAC.maior_sac_ano[m[1]] || 0, parseInt(m[2], 10));
+      }
+
       const destinoAposSalvar = (ehEdicao && origemEdicaoSAC === 'chamadosAbertos') ? 'chamadosAbertos' : 'sac';
-      
-      // Limpeza ocorre SOMENTE após o sucesso confirmado da API
       limparFormSAC();
       renderizarTabelaChamadosSAC();
       renderizarTabelaChamadosAbertos();
@@ -2013,22 +1956,84 @@
     // =========================================================================
 
 // =========================================================================
-    // INÍCIO: renderizarTabelaChamadosSAC
+    // VARIÁVEIS DE CONTROLE DE PAGINAÇÃO (50 POR PÁGINA)
     // =========================================================================
-    function renderizarTabelaChamadosSAC(lista = listaChamadosSAC) {
-      const tbody = document.getElementById('tableSACChamadosBody');
-      const badge = document.getElementById('badgeContadorSAC');
-      if (badge) badge.innerText = (lista ? lista.length : 0) + ' chamado(s)';
-      if (!tbody) return;
-      if (!lista || lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhuma ocorrência encontrada.</td></tr>';
+    const ITENS_POR_PAGINA = 50;
+
+    let paginaAtualSAC = 1;
+    let listaFiltradaSACCache = null;
+
+    let paginaAtualAbertos = 1;
+    let listaFiltradaAbertosCache = null;
+
+    // =========================================================================
+    // INÍCIO: filtrarChamadosSAC
+    // =========================================================================
+    function filtrarChamadosSAC() {
+      const termo = (document.getElementById('searchSACChamados')?.value || '').trim().toLowerCase();
+      paginaAtualSAC = 1; // Retorna à primeira página ao pesquisar
+
+      if (!termo) {
+        listaFiltradaSACCache = null;
+        renderizarTabelaChamadosSAC(listaChamadosSAC);
         return;
       }
 
-      // OTIMIZAÇÃO: Limita a montagem no DOM para até 100 itens evitando travamento de tela
-      const listaExibicao = lista.slice(0, 100);
+      listaFiltradaSACCache = listaChamadosSAC.filter(c => 
+        Object.values(c).some(val => String(val || '').toLowerCase().includes(termo))
+      );
+      renderizarTabelaChamadosSAC(listaFiltradaSACCache);
+    }
+    // =========================================================================
+    // TÉRMINO: filtrarChamadosSAC
+    // =========================================================================
 
-      tbody.innerHTML = listaExibicao.map(c => {
+    // =========================================================================
+    // INÍCIO: mudarPaginaSAC
+    // =========================================================================
+    function mudarPaginaSAC(delta) {
+      const listaBase = listaFiltradaSACCache || listaChamadosSAC;
+      const totalPaginas = Math.ceil(listaBase.length / ITENS_POR_PAGINA) || 1;
+      const novaPagina = paginaAtualSAC + delta;
+
+      if (novaPagina >= 1 && novaPagina <= totalPaginas) {
+        paginaAtualSAC = novaPagina;
+        renderizarTabelaChamadosSAC(listaBase);
+      }
+    }
+    // =========================================================================
+    // TÉRMINO: mudarPaginaSAC
+    // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: renderizarTabelaChamadosSAC
+    // =========================================================================
+    function renderizarTabelaChamadosSAC(lista = (listaFiltradaSACCache || listaChamadosSAC)) {
+      const tbody = document.getElementById('tableSACChamadosBody');
+      const badge = document.getElementById('badgeContadorSAC');
+      const totalRegistros = lista ? lista.length : 0;
+
+      if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
+      if (!tbody) return;
+
+      if (!lista || totalRegistros === 0) {
+        tbody.innerHTML = '<tr><td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhuma ocorrência encontrada.</td></tr>';
+        atualizarControlesPaginacaoSAC(0, 0, 0, 1, 1);
+        return;
+      }
+
+      // Calcula limites da página
+      const totalPaginas = Math.ceil(totalRegistros / ITENS_POR_PAGINA) || 1;
+      if (paginaAtualSAC > totalPaginas) paginaAtualSAC = totalPaginas;
+      if (paginaAtualSAC < 1) paginaAtualSAC = 1;
+
+      const indiceInicio = (paginaAtualSAC - 1) * ITENS_POR_PAGINA;
+      const indiceFim = Math.min(indiceInicio + ITENS_POR_PAGINA, totalRegistros);
+      
+      // FATIAMENTO DE PERFORMANCE: renderiza apenas os 50 registros da página
+      const listaPaginada = lista.slice(indiceInicio, indiceFim);
+
+      tbody.innerHTML = listaPaginada.map(c => {
         const rVal = (c.reembolso_realizado || c.reembolsoRealizado || 'Não').toString().trim().toLowerCase();
         const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
         const badgePago = pago 
@@ -2078,44 +2083,94 @@
           </tr>
         `;
       }).join('');
+
+      atualizarControlesPaginacaoSAC(indiceInicio + 1, indiceFim, totalRegistros, paginaAtualSAC, totalPaginas);
       lucide.createIcons();
     }
     // =========================================================================
     // TÉRMINO: renderizarTabelaChamadosSAC
     // =========================================================================
 
+    function atualizarControlesPaginacaoSAC(de, ate, total, pagina, totalPaginas) {
+      const info = document.getElementById('infoPaginacaoSAC');
+      const badge = document.getElementById('badgePaginaSAC');
+      const btnAnt = document.getElementById('btnPagAntSAC');
+      const btnProx = document.getElementById('btnPagProxSAC');
+
+      if (info) info.innerText = `Exibindo ${de.toLocaleString('pt-BR')} a ${ate.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} chamados`;
+      if (badge) badge.innerText = `Página ${pagina} de ${totalPaginas}`;
+      if (btnAnt) btnAnt.disabled = (pagina <= 1);
+      if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
+    }
+
     // =========================================================================
     // INÍCIO: filtrarChamadosAbertos
     // =========================================================================
     function filtrarChamadosAbertos() {
       const termo = (document.getElementById('searchAbertos')?.value || '').trim().toLowerCase();
-      if (!termo) { renderizarTabelaChamadosAbertos(listaChamadosSAC); return; }
-      const filtrados = listaChamadosSAC.filter(c => 
+      paginaAtualAbertos = 1; // Retorna à primeira página ao pesquisar
+
+      if (!termo) {
+        listaFiltradaAbertosCache = null;
+        renderizarTabelaChamadosAbertos(listaChamadosSAC);
+        return;
+      }
+
+      listaFiltradaAbertosCache = listaChamadosSAC.filter(c => 
         Object.values(c).some(val => String(val || '').toLowerCase().includes(termo))
       );
-      renderizarTabelaChamadosAbertos(filtrados);
+      renderizarTabelaChamadosAbertos(listaFiltradaAbertosCache);
     }
     // =========================================================================
     // TÉRMINO: filtrarChamadosAbertos
     // =========================================================================
 
     // =========================================================================
+    // INÍCIO: mudarPaginaAbertos
+    // =========================================================================
+    function mudarPaginaAbertos(delta) {
+      const listaBase = listaFiltradaAbertosCache || listaChamadosSAC;
+      const totalPaginas = Math.ceil(listaBase.length / ITENS_POR_PAGINA) || 1;
+      const novaPagina = paginaAtualAbertos + delta;
+
+      if (novaPagina >= 1 && novaPagina <= totalPaginas) {
+        paginaAtualAbertos = novaPagina;
+        renderizarTabelaChamadosAbertos(listaBase);
+      }
+    }
+    // =========================================================================
+    // TÉRMINO: mudarPaginaAbertos
+    // =========================================================================
+
+    // =========================================================================
     // INÍCIO: renderizarTabelaChamadosAbertos
     // =========================================================================
-    function renderizarTabelaChamadosAbertos(lista = listaChamadosSAC) {
+    function renderizarTabelaChamadosAbertos(lista = (listaFiltradaAbertosCache || listaChamadosSAC)) {
       const tbody = document.getElementById('tableChamadosAbertosBody');
       const badge = document.getElementById('badgeContadorAbertos');
-      if (badge) badge.innerText = (lista ? lista.length : 0) + ' chamado(s)';
+      const totalRegistros = lista ? lista.length : 0;
+
+      if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
       if (!tbody) return;
-      if (!lista || lista.length === 0) {
+
+      if (!lista || totalRegistros === 0) {
         tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto encontrado.</td></tr>';
+        atualizarControlesPaginacaoAbertos(0, 0, 0, 1, 1);
         return;
       }
 
-      // OTIMIZAÇÃO: Limita a montagem no DOM para até 100 itens evitando travamento de tela
-      const listaExibicao = lista.slice(0, 100);
+      // Calcula limites da página
+      const totalPaginas = Math.ceil(totalRegistros / ITENS_POR_PAGINA) || 1;
+      if (paginaAtualAbertos > totalPaginas) paginaAtualAbertos = totalPaginas;
+      if (paginaAtualAbertos < 1) paginaAtualAbertos = 1;
 
-      tbody.innerHTML = listaExibicao.map(c => {
+      const indiceInicio = (paginaAtualAbertos - 1) * ITENS_POR_PAGINA;
+      const indiceFim = Math.min(indiceInicio + ITENS_POR_PAGINA, totalRegistros);
+      
+      // FATIAMENTO DE PERFORMANCE: renderiza apenas os 50 registros da página
+      const listaPaginada = lista.slice(indiceInicio, indiceFim);
+
+      tbody.innerHTML = listaPaginada.map(c => {
         const rVal = (c.reembolso_realizado || c.reembolsoRealizado || 'Não').toString().trim().toLowerCase();
         const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
         const badgePago = pago 
@@ -2152,11 +2207,25 @@
           </tr>
         `;
       }).join('');
+
+      atualizarControlesPaginacaoAbertos(indiceInicio + 1, indiceFim, totalRegistros, paginaAtualAbertos, totalPaginas);
       lucide.createIcons();
     }
     // =========================================================================
     // TÉRMINO: renderizarTabelaChamadosAbertos
     // =========================================================================
+
+    function atualizarControlesPaginacaoAbertos(de, ate, total, pagina, totalPaginas) {
+      const info = document.getElementById('infoPaginacaoAbertos');
+      const badge = document.getElementById('badgePaginaAbertos');
+      const btnAnt = document.getElementById('btnPagAntAbertos');
+      const btnProx = document.getElementById('btnPagProxAbertos');
+
+      if (info) info.innerText = `Exibindo ${de.toLocaleString('pt-BR')} a ${ate.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} chamados`;
+      if (badge) badge.innerText = `Página ${pagina} de ${totalPaginas}`;
+      if (btnAnt) btnAnt.disabled = (pagina <= 1);
+      if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
+    }
 
     // =========================================================================
     // INÍCIO: limparFormCliente
