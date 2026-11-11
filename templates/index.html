@@ -922,7 +922,9 @@
       nivelAcessoLogado = sessionStorage.getItem('sac_nivel_acesso') || "";
     } catch(e) {}
 
-    // CONVERSORES DE DATAS ENTRE ISO (YYYY-MM-DD) E PT-BR (DD/MM/AAAA)
+    // =========================================================================
+    // INÍCIO: dataIsoParaPtBr
+    // =========================================================================
     function dataIsoParaPtBr(isoStr) {
       if (!isoStr) return '';
       const s = String(isoStr).trim();
@@ -932,7 +934,13 @@
       }
       return s;
     }
+    // =========================================================================
+    // TÉRMINO: dataIsoParaPtBr
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: dataPtBrParaIso
+    // =========================================================================
     function dataPtBrParaIso(ptBrStr) {
       if (!ptBrStr) return '';
       const s = String(ptBrStr).trim();
@@ -947,8 +955,13 @@
       }
       return '';
     }
+    // =========================================================================
+    // TÉRMINO: dataPtBrParaIso
+    // =========================================================================
 
-    // PARSER RIGOROSO DE VALORES NUMÉRICOS
+    // =========================================================================
+    // INÍCIO: parseValorNumerico
+    // =========================================================================
     function parseValorNumerico(v) {
       if (v === null || v === undefined) return 0;
       let s = String(v).trim().replace('R$', '').replace(/\s+/g, '');
@@ -965,12 +978,23 @@
       const n = parseFloat(s);
       return isNaN(n) ? 0 : n;
     }
+    // =========================================================================
+    // TÉRMINO: parseValorNumerico
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: formatCurrency
+    // =========================================================================
     function formatCurrency(val) {
       return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
+    // =========================================================================
+    // TÉRMINO: formatCurrency
+    // =========================================================================
 
-    // CONTROLE DE AUTENTICAÇÃO
+    // =========================================================================
+    // INÍCIO: verificarEstadoAutenticacao
+    // =========================================================================
     function verificarEstadoAutenticacao() {
       const loginScreen = document.getElementById('systemLoginScreen');
       const appContainer = document.getElementById('systemAppContainer');
@@ -1004,7 +1028,13 @@
       }
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: verificarEstadoAutenticacao
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: realizarLoginGlobal
+    // =========================================================================
     function realizarLoginGlobal(e) {
       e.preventDefault();
       const u = (document.getElementById('globalLoginUser').value || '').trim().toLowerCase();
@@ -1034,7 +1064,13 @@
         erroBox.classList.remove('hidden');
       }
     }
+    // =========================================================================
+    // TÉRMINO: realizarLoginGlobal
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: realizarLogoutGlobal
+    // =========================================================================
     function realizarLogoutGlobal() {
       atendenteSACLogado = "";
       loginUsuarioConectado = "";
@@ -1048,7 +1084,13 @@
       document.getElementById('globalLoginForm').reset();
       verificarEstadoAutenticacao();
     }
+    // =========================================================================
+    // TÉRMINO: realizarLogoutGlobal
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: aplicarRegrasDeAcesso
+    // =========================================================================
     function aplicarRegrasDeAcesso() {
       const btnCadastro = document.getElementById('navCadastroClientes');
       const badgeAcesso = document.getElementById('badgeNivelAcesso');
@@ -1084,7 +1126,13 @@
         }
       }
     }
+    // =========================================================================
+    // TÉRMINO: aplicarRegrasDeAcesso
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: converterParaPrimeirasMaiusculas
+    // =========================================================================
     function converterParaPrimeirasMaiusculas(texto) {
       if (!texto) return '';
       const preposicoes = ['de', 'da', 'do', 'das', 'dos', 'e'];
@@ -1101,18 +1149,36 @@
         })
         .join(' ');
     }
+    // =========================================================================
+    // TÉRMINO: converterParaPrimeirasMaiusculas
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: formatarNomeProprio
+    // =========================================================================
     function formatarNomeProprio(input) {
       if (!input || !input.value) return;
       input.value = converterParaPrimeirasMaiusculas(input.value);
     }
+    // =========================================================================
+    // TÉRMINO: formatarNomeProprio
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: obterValoresDeDatalist
+    // =========================================================================
     function obterValoresDeDatalist(datalistId) {
       const dl = document.getElementById(datalistId);
       if (!dl) return [];
       return Array.from(dl.options).map(opt => (opt.value || '').trim());
     }
+    // =========================================================================
+    // TÉRMINO: obterValoresDeDatalist
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: validarInputComLista
+    // =========================================================================
     function validarInputComLista(inputId, datalistId, nomeAmigavel, dispararCascataCliente = false) {
       const input = document.getElementById(inputId);
       if (!input) return false;
@@ -1139,7 +1205,13 @@
         return true;
       }
     }
+    // =========================================================================
+    // TÉRMINO: validarInputComLista
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: abrirModalLoading
+    // =========================================================================
     function abrirModalLoading(titulo, subtitulo, tipoAcao = 'loading') {
       const modal = document.getElementById('modalLoadingAcao');
       if (!modal) return;
@@ -1171,12 +1243,24 @@
       modal.classList.remove('hidden');
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: abrirModalLoading
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: fecharModalLoading
+    // =========================================================================
     function fecharModalLoading() {
       const modal = document.getElementById('modalLoadingAcao');
       if (modal) modal.classList.add('hidden');
     }
+    // =========================================================================
+    // TÉRMINO: fecharModalLoading
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: exibirMensagemTopo
+    // =========================================================================
     function exibirMensagemTopo(titulo, subtitulo, tipo = 'sucesso') {
       const alertBox = document.getElementById('alertSACSuccess');
       const alertTitle = document.getElementById('alertSACSuccessTitle');
@@ -1204,26 +1288,67 @@
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: exibirMensagemTopo
+    // =========================================================================
 
-    // COMUNICAÇÃO COM O BANCO DE DADOS (FASTAPI)
+    // =========================================================================
+    // INÍCIO: enviarParaBancoGarantido
+    // =========================================================================
     async function enviarParaBancoGarantido(payload) {
       try {
         const resp = await fetch(BACKEND_API_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
           body: JSON.stringify(payload)
         });
-        return await resp.json();
+
+        const dadosResposta = await resp.json().catch(() => null);
+
+        if (!resp.ok) {
+          const msgErro = (dadosResposta && (dadosResposta.detail || dadosResposta.message || dadosResposta.error)) 
+            || `Falha de comunicação (${resp.status} - ${resp.statusText})`;
+          return { status: "error", message: msgErro, detail: dadosResposta };
+        }
+
+        if (dadosResposta && (dadosResposta.status === "error" || dadosResposta.success === false)) {
+          return { 
+            status: "error", 
+            message: dadosResposta.detail || dadosResposta.message || "Erro retornado pelo servidor.",
+            detail: dadosResposta 
+          };
+        }
+
+        return { status: "success", data: dadosResposta };
       } catch (err) {
         console.error("Erro na comunicação com a API do banco:", err);
-        return { status: "error", detail: err };
+        return { 
+          status: "error", 
+          message: "Servidor inacessível ou falha de conexão de rede. Verifique se o backend está em execução.", 
+          detail: err 
+        };
       }
     }
+    // =========================================================================
+    // TÉRMINO: enviarParaBancoGarantido
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: executarRefresh
+    // =========================================================================
     function executarRefresh() {
       window.location.reload();
     }
+    // =========================================================================
+    // TÉRMINO: executarRefresh
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: switchPage
+    // =========================================================================
     function switchPage(page) {
       if (page === 'cadastroClientes' && (nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
         alert('⛔ Acesso Restrito:\nSeu perfil não tem permissão para cadastrar ou gerenciar clientes.');
@@ -1273,9 +1398,12 @@
       }
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: switchPage
+    // =========================================================================
 
     // =========================================================================
-    // INICIALIZAÇÃO & FORMULÁRIO SAC
+    // INÍCIO: calcularPreviaProximoChamado
     // =========================================================================
     function calcularPreviaProximoChamado(ano) {
       let maior = (dadosSAC.maior_sac_ano && dadosSAC.maior_sac_ano[ano]) || 0;
@@ -1290,8 +1418,13 @@
       });
       return 'SAC-' + ano + '-' + String(maior + 1).padStart(4, '0');
     }
+    // =========================================================================
+    // TÉRMINO: calcularPreviaProximoChamado
+    // =========================================================================
 
-    // Função utilitária para extrair textos de listas (seja array simples ou lista de objetos da tabela)
+    // =========================================================================
+    // INÍCIO: extrairListaTexto
+    // =========================================================================
     function extrairListaTexto(fonte, propriedadesChave = []) {
       if (!Array.isArray(fonte)) return [];
       const resultado = [];
@@ -1310,7 +1443,13 @@
       });
       return [...new Set(resultado)].sort();
     }
+    // =========================================================================
+    // TÉRMINO: extrairListaTexto
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: inicializarFormularioSAC
+    // =========================================================================
     function inicializarFormularioSAC() {
       if (chamadoEmEdicao) return;
       const anoAtual = new Date().getFullYear();
@@ -1386,7 +1525,13 @@
         dlPgto.appendChild(opt);
       });
     }
+    // =========================================================================
+    // TÉRMINO: inicializarFormularioSAC
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: aoMudarClienteSAC
+    // =========================================================================
     function aoMudarClienteSAC() {
       const cli = (document.getElementById('sacCliente').value || '').trim();
       const selectLocal = document.getElementById('sacLocalInterno');
@@ -1407,7 +1552,13 @@
         aoMudarLocalInternoSAC();
       }
     }
+    // =========================================================================
+    // TÉRMINO: aoMudarClienteSAC
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: aoMudarLocalInternoSAC
+    // =========================================================================
     function aoMudarLocalInternoSAC() {
       const cli = (document.getElementById('sacCliente').value || '').trim();
       const loc = document.getElementById('sacLocalInterno').value;
@@ -1415,7 +1566,13 @@
       const achado = (dadosSAC.clientes || []).find(c => c.cliente && c.cliente.toLowerCase() === cli.toLowerCase() && c.local === loc);
       if (achado && achado.cidade) document.getElementById('sacCidade').value = achado.cidade;
     }
+    // =========================================================================
+    // TÉRMINO: aoMudarLocalInternoSAC
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: limparFormSAC
+    // =========================================================================
     function limparFormSAC() {
       chamadoEmEdicao = null;
       document.getElementById('sacForm').reset();
@@ -1447,7 +1604,13 @@
       document.getElementById('sacDataHoraAuto').value = "Automático no Envio";
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: limparFormSAC
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: editarChamadoSAC
+    // =========================================================================
     function editarChamadoSAC(numeroChamado, origem = 'sac') {
       const item = listaChamadosSAC.find(c => c.chamado === numeroChamado);
       if (!item) return;
@@ -1496,41 +1659,72 @@
       document.getElementById('sacForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: editarChamadoSAC
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: cancelarEdicaoSAC
+    // =========================================================================
     function cancelarEdicaoSAC() {
       const origemAnterior = origemEdicaoSAC;
       limparFormSAC();
       if (origemAnterior === 'chamadosAbertos') switchPage('chamadosAbertos');
       origemEdicaoSAC = 'sac';
     }
+    // =========================================================================
+    // TÉRMINO: cancelarEdicaoSAC
+    // =========================================================================
 
-    function excluirChamadoSAC(numeroChamado) {
+    // =========================================================================
+    // INÍCIO: excluirChamadoSAC
+    // =========================================================================
+    async function excluirChamadoSAC(numeroChamado) {
       if (!confirm('Deseja realmente excluir o chamado ' + numeroChamado + '? Esta ação solicitará a remoção do banco SQL.')) return;
+      
       abrirModalLoading('Excluindo Ocorrência...', 'Removendo a ocorrência ' + numeroChamado + ' do banco de dados.', 'loading');
       const item = listaChamadosSAC.find(c => c.chamado === numeroChamado);
 
-      enviarParaBancoGarantido({
-        "action": "excluir", "acao": "excluir", "tipo": "excluir_sac",
-        "Chamado": numeroChamado, "chamado": numeroChamado,
+      const resultado = await enviarParaBancoGarantido({
+        "action": "excluir", 
+        "acao": "excluir", 
+        "tipo": "excluir_sac",
+        "Chamado": numeroChamado, 
+        "chamado": numeroChamado,
         "linha": item?.linha || ""
       });
 
+      if (resultado.status === "error") {
+        fecharModalLoading();
+        alert('❌ Falha ao excluir chamado:\n' + resultado.message);
+        return;
+      }
+
+      // Atualização de dados somente após validação positiva do banco
       listaChamadosSAC = listaChamadosSAC.filter(c => c.chamado !== numeroChamado);
       renderizarTabelaChamadosSAC();
       renderizarTabelaChamadosAbertos();
       atualizarDashboardSAC();
 
-      if (chamadoEmEdicao && chamadoEmEdicao.chamado === numeroChamado) limparFormSAC();
+      if (chamadoEmEdicao && chamadoEmEdicao.chamado === numeroChamado) {
+        limparFormSAC();
+      }
 
-      setTimeout(() => {
-        abrirModalLoading('Chamado Excluído!', 'A ocorrência ' + numeroChamado + ' foi removida da base com sucesso.', 'excluir');
-        exibirMensagemTopo('🗑️ Chamado ' + numeroChamado + ' excluído!', 'A ocorrência foi removida do sistema e do banco de dados.', 'excluir');
-        setTimeout(fecharModalLoading, 1000);
-      }, 500);
+      abrirModalLoading('Chamado Excluído!', 'A ocorrência ' + numeroChamado + ' foi removida da base com sucesso.', 'excluir');
+      exibirMensagemTopo('🗑️ Chamado ' + numeroChamado + ' excluído!', 'A ocorrência foi removida do sistema e do banco de dados.', 'excluir');
+      
+      setTimeout(fecharModalLoading, 1000);
     }
+    // =========================================================================
+    // TÉRMINO: excluirChamadoSAC
+    // =========================================================================
 
-    function handleSACSubmit(e) {
+    // =========================================================================
+    // INÍCIO: handleSACSubmit
+    // =========================================================================
+    async function handleSACSubmit(e) {
       e.preventDefault();
+      
       if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente')) return;
       const selectLocal = document.getElementById('sacLocalInterno');
       if (!selectLocal.value) { alert('⛔ Selecione um Local Interno.'); selectLocal.focus(); return; }
@@ -1551,12 +1745,6 @@
         document.getElementById('sacChamado').value = calcularPreviaProximoChamado(anoAtual);
         return;
       }
-
-      abrirModalLoading(
-        ehEdicao ? 'Atualizando Ocorrência...' : 'Lançando no Sistema...',
-        ehEdicao ? 'Gravando alterações do chamado ' + chamado + ' no banco de dados.' : 'Registrando a ocorrência ' + chamado + ' no banco de dados.',
-        'loading'
-      );
 
       const dataIso = document.getElementById('sacData').value;
       const data = dataIsoParaPtBr(dataIso);
@@ -1584,22 +1772,58 @@
       let financeiroResponsavel = (reembolsoRealizado === "Sim") ? (atendenteSACLogado || chamadoEmEdicao?.financeiroResponsavel || "") : (chamadoEmEdicao?.financeiroResponsavel || "");
 
       const payloadSAC = {
-        "acao": ehEdicao ? "editar" : "inserir", "action": ehEdicao ? "editar" : "inserir",
+        "acao": ehEdicao ? "editar" : "inserir", 
+        "action": ehEdicao ? "editar" : "inserir",
         "linha": ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : "",
-        "Chamado": chamado, "Data": data, "Cliente": cliente, "Local Interno": localInterno,
-        "Cidade": cidade, "Descrição": descricao, "Produto": produto,
-        "Data da Transação": dataTransacao, "Hora da Transação": horaTransacao,
-        "Valor": valor, "Nome/Sobrenome": nomeSobrenome, "Celular": celular,
-        "Problemas": problemas, "Forma de Pagamento": formaPgto, "Reembolso": reembolso,
-        "Pix - Reembolso": pix, "Atendente": atendente, "Data/Hora do lançamento": dataHoraLancamento,
-        "Reembolso Realizado": reembolsoRealizado, "Financeiro Responsavel": financeiroResponsavel,
+        "Chamado": chamado, 
+        "Data": data, 
+        "Cliente": cliente, 
+        "Local Interno": localInterno,
+        "Cidade": cidade, 
+        "Descrição": descricao, 
+        "Produto": produto,
+        "Data da Transação": dataTransacao, 
+        "Hora da Transação": horaTransacao,
+        "Valor": valor, 
+        "Nome/Sobrenome": nomeSobrenome, 
+        "Celular": celular,
+        "Problemas": problemas, 
+        "Forma de Pagamento": formaPgto, 
+        "Reembolso": reembolso,
+        "Pix - Reembolso": pix, 
+        "Atendente": atendente, 
+        "Data/Hora do lançamento": dataHoraLancamento,
+        "Reembolso Realizado": reembolsoRealizado, 
+        "Financeiro Responsavel": financeiroResponsavel,
         "Observação": observacao
       };
 
-      enviarParaBancoGarantido(payloadSAC);
+      abrirModalLoading(
+        ehEdicao ? 'Atualizando Ocorrência...' : 'Lançando no Sistema...',
+        ehEdicao ? 'Gravando alterações do chamado ' + chamado + ' no banco de dados.' : 'Registrando a ocorrência ' + chamado + ' no banco de dados.',
+        'loading'
+      );
+
+      const btnSalvar = document.getElementById('btnSalvarSAC');
+      if (btnSalvar) btnSalvar.disabled = true;
+
+      // Execução assíncrona com await explícito e verificação de retorno
+      const resultado = await enviarParaBancoGarantido(payloadSAC);
+
+      if (btnSalvar) btnSalvar.disabled = false;
+
+      if (resultado.status === "error") {
+        fecharModalLoading();
+        alert('❌ Falha ao gravar chamado no banco de dados:\n' + resultado.message);
+        return;
+      }
+
+      if (resultado.data && resultado.data.chamado) {
+        chamado = resultado.data.chamado;
+      }
 
       const novoItem = {
-        linha: ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : listaChamadosSAC.length + 2,
+        linha: ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : (resultado.data?.linha || listaChamadosSAC.length + 2),
         chamado, data, cliente, localInterno, cidade, descricao, produto,
         dataTransacao, horaTransacao, valor: formatCurrency(valor),
         nomeSobrenome, celular, problemas, formaPgto, reembolso, pix, atendente,
@@ -1625,16 +1849,18 @@
       atualizarDashboardSAC();
       origemEdicaoSAC = 'sac';
 
-      setTimeout(() => {
-        abrirModalLoading(ehEdicao ? 'Ocorrência Atualizada!' : 'Lançamento Concluído!', 'Ocorrência gravada com sucesso.', 'sucesso');
-        if (destinoAposSalvar === 'chamadosAbertos') switchPage('chamadosAbertos');
-        exibirMensagemTopo('✅ Ocorrência ' + chamado + ' registrada com sucesso!', 'Valor: ' + formatCurrency(valor) + ' · Forma Pgto: ' + (formaPgto || '-'));
-        setTimeout(fecharModalLoading, 1000);
-      }, 500);
+      abrirModalLoading(ehEdicao ? 'Ocorrência Atualizada!' : 'Lançamento Concluído!', 'Ocorrência gravada com sucesso.', 'sucesso');
+      if (destinoAposSalvar === 'chamadosAbertos') switchPage('chamadosAbertos');
+      exibirMensagemTopo('✅ Ocorrência ' + chamado + ' registrada com sucesso!', 'Valor: ' + formatCurrency(valor) + ' · Forma Pgto: ' + (formaPgto || '-'));
+      
+      setTimeout(fecharModalLoading, 1000);
     }
+    // =========================================================================
+    // TÉRMINO: handleSACSubmit
+    // =========================================================================
 
     // =========================================================================
-    // RENDERIZAÇÃO DAS TABELAS
+    // INÍCIO: filtrarChamadosSAC
     // =========================================================================
     function filtrarChamadosSAC() {
       const termo = (document.getElementById('searchSACChamados')?.value || '').trim().toLowerCase();
@@ -1644,7 +1870,13 @@
       );
       renderizarTabelaChamadosSAC(filtrados);
     }
+    // =========================================================================
+    // TÉRMINO: filtrarChamadosSAC
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: renderizarTabelaChamadosSAC
+    // =========================================================================
     function renderizarTabelaChamadosSAC(lista = listaChamadosSAC) {
       const tbody = document.getElementById('tableSACChamadosBody');
       const badge = document.getElementById('badgeContadorSAC');
@@ -1692,7 +1924,13 @@
       }).join('');
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: renderizarTabelaChamadosSAC
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: filtrarChamadosAbertos
+    // =========================================================================
     function filtrarChamadosAbertos() {
       const termo = (document.getElementById('searchAbertos')?.value || '').trim().toLowerCase();
       if (!termo) { renderizarTabelaChamadosAbertos(listaChamadosSAC); return; }
@@ -1701,7 +1939,13 @@
       );
       renderizarTabelaChamadosAbertos(filtrados);
     }
+    // =========================================================================
+    // TÉRMINO: filtrarChamadosAbertos
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: renderizarTabelaChamadosAbertos
+    // =========================================================================
     function renderizarTabelaChamadosAbertos(lista = listaChamadosSAC) {
       const tbody = document.getElementById('tableChamadosAbertosBody');
       const badge = document.getElementById('badgeContadorAbertos');
@@ -1740,9 +1984,12 @@
       }).join('');
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: renderizarTabelaChamadosAbertos
+    // =========================================================================
 
     // =========================================================================
-    // CADASTRO DE CLIENTES
+    // INÍCIO: limparFormCliente
     // =========================================================================
     function limparFormCliente() {
       clienteEmEdicao = null;
@@ -1752,9 +1999,23 @@
       document.getElementById('btnSalvarClienteText').innerText = "Cadastrar Cliente";
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: limparFormCliente
+    // =========================================================================
 
-    function cancelarEdicaoCliente() { limparFormCliente(); }
+    // =========================================================================
+    // INÍCIO: cancelarEdicaoCliente
+    // =========================================================================
+    function cancelarEdicaoCliente() { 
+      limparFormCliente(); 
+    }
+    // =========================================================================
+    // TÉRMINO: cancelarEdicaoCliente
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: editarCliente
+    // =========================================================================
     function editarCliente(index) {
       if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
         alert('⛔ Operação não permitida: Apenas usuários com perfil Geral podem editar clientes.');
@@ -1778,8 +2039,14 @@
       document.getElementById('clienteForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: editarCliente
+    // =========================================================================
 
-    function excluirCliente(index) {
+    // =========================================================================
+    // INÍCIO: excluirCliente
+    // =========================================================================
+    async function excluirCliente(index) {
       if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
         alert('⛔ Operação não permitida: Apenas usuários com perfil Geral podem excluir clientes.');
         return;
@@ -1790,30 +2057,53 @@
       if (!confirm('Deseja realmente excluir o cadastro de "' + descr + '"?')) return;
 
       abrirModalLoading('Excluindo Cliente...', 'Removendo o ponto "' + descr + '" do banco de dados.', 'loading');
-      enviarParaBancoGarantido({
-        "action": "excluir_cliente", "acao": "excluir_cliente", "tipo": "excluir_cliente",
+      
+      const resultado = await enviarParaBancoGarantido({
+        "action": "excluir_cliente", 
+        "acao": "excluir_cliente", 
+        "tipo": "excluir_cliente",
         "linha": item.linha || "",
-        "Cliente": item.cliente, "Local": item.local, "Local interno": item.localInterno,
-        "Máquina": item.maquina, "Modelo de máquina": item.modeloMaquina, "Filial Responsavel": item.filialResponsavel
+        "Cliente": item.cliente, 
+        "Local": item.local, 
+        "Local interno": item.localInterno,
+        "Máquina": item.maquina, 
+        "Modelo de máquina": item.modeloMaquina, 
+        "Filial Responsavel": item.filialResponsavel
       });
+
+      if (resultado.status === "error") {
+        fecharModalLoading();
+        alert('❌ Falha ao excluir cliente:\n' + resultado.message);
+        return;
+      }
 
       listaCadastroClientes.splice(index, 1);
       renderizarTabelaClientes();
       if (clienteEmEdicao && clienteEmEdicao.indexOriginal === index) limparFormCliente();
 
-      setTimeout(() => {
-        abrirModalLoading('Cliente Excluído!', 'O cadastro foi removido com sucesso.', 'excluir');
-        setTimeout(fecharModalLoading, 1000);
-      }, 500);
+      abrirModalLoading('Cliente Excluído!', 'O cadastro foi removido com sucesso.', 'excluir');
+      setTimeout(fecharModalLoading, 1000);
     }
+    // =========================================================================
+    // TÉRMINO: excluirCliente
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: filtrarClientesCadastrados
+    // =========================================================================
     function filtrarClientesCadastrados() {
       const termo = (document.getElementById('searchClientesCadastrados')?.value || '').trim().toLowerCase();
       if (!termo) { renderizarTabelaClientes(listaCadastroClientes); return; }
       const filtrados = listaCadastroClientes.filter(c => Object.values(c).some(val => String(val || '').toLowerCase().includes(termo)));
       renderizarTabelaClientes(filtrados);
     }
+    // =========================================================================
+    // TÉRMINO: filtrarClientesCadastrados
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: renderizarTabelaClientes
+    // =========================================================================
     function renderizarTabelaClientes(lista = listaCadastroClientes) {
       const tbody = document.getElementById('tableClientesBody');
       const badge = document.getElementById('badgeContadorClientes');
@@ -1845,8 +2135,14 @@
       `).join('');
       lucide.createIcons();
     }
+    // =========================================================================
+    // TÉRMINO: renderizarTabelaClientes
+    // =========================================================================
 
-    function handleClienteSubmit(e) {
+    // =========================================================================
+    // INÍCIO: handleClienteSubmit
+    // =========================================================================
+    async function handleClienteSubmit(e) {
       e.preventDefault();
       if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
         alert('⛔ Apenas perfil Geral pode cadastrar clientes.'); return;
@@ -1864,17 +2160,32 @@
       const ehEdicao = (clienteEmEdicao !== null);
       abrirModalLoading(ehEdicao ? 'Atualizando Cliente...' : 'Cadastrando Cliente...', 'Gravando no banco SQL...', 'loading');
 
-      enviarParaBancoGarantido({
+      const btnSalvarCli = document.getElementById('btnSalvarCliente');
+      if (btnSalvarCli) btnSalvarCli.disabled = true;
+
+      const resultado = await enviarParaBancoGarantido({
         "acao": ehEdicao ? "editar_cliente" : "inserir_cliente",
         "action": ehEdicao ? "editar_cliente" : "inserir_cliente",
         "tipo": "cadastro_cliente",
         "linha": ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : "",
-        "Cliente": cliente, "Local": local, "Local interno": localInterno,
-        "Máquina": maquina, "Modelo de máquina": modeloMaquina, "Filial Responsavel": filialResponsavel
+        "Cliente": cliente, 
+        "Local": local, 
+        "Local interno": localInterno,
+        "Máquina": maquina, 
+        "Modelo de máquina": modeloMaquina, 
+        "Filial Responsavel": filialResponsavel
       });
 
+      if (btnSalvarCli) btnSalvarCli.disabled = false;
+
+      if (resultado.status === "error") {
+        fecharModalLoading();
+        alert('❌ Falha ao salvar cliente:\n' + resultado.message);
+        return;
+      }
+
       const novoItem = {
-        linha: ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : listaCadastroClientes.length + 2,
+        linha: ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : (resultado.data?.linha || listaCadastroClientes.length + 2),
         cliente, local, localInterno, maquina, modeloMaquina, filialResponsavel
       };
       if (ehEdicao) listaCadastroClientes[clienteEmEdicao.indexOriginal] = novoItem;
@@ -1884,19 +2195,17 @@
       dadosSAC.clientes.push({ cliente, local: localInterno, cidade: filialResponsavel });
       limparFormCliente();
       renderizarTabelaClientes();
-      setTimeout(() => {
-        abrirModalLoading('Cliente Salvo!', 'Registro gravado com sucesso no banco de dados.', 'sucesso');
-        setTimeout(fecharModalLoading, 1000);
-      }, 500);
+
+      abrirModalLoading('Cliente Salvo!', 'Registro gravado com sucesso no banco de dados.', 'sucesso');
+      setTimeout(fecharModalLoading, 1000);
     }
+    // =========================================================================
+    // TÉRMINO: handleClienteSubmit
+    // =========================================================================
 
     // =========================================================================
-    // CONFIGURAÇÃO DOS GRÁFICOS (CHART.JS)
+    // INÍCIO: getHorizontalSACBarOptions
     // =========================================================================
-    const filterSACCliente = document.getElementById('filterSACCliente');
-    const filterSACProduto = document.getElementById('filterSACProduto');
-    const filterSACAtendente = document.getElementById('filterSACAtendente');
-
     function getHorizontalSACBarOptions() {
       const textColor = '#475569';
       const gridColor = 'rgba(226, 232, 240, 0.7)';
@@ -1924,6 +2233,13 @@
         }
       };
     }
+    // =========================================================================
+    // TÉRMINO: getHorizontalSACBarOptions
+    // =========================================================================
+
+    const filterSACCliente = document.getElementById('filterSACCliente');
+    const filterSACProduto = document.getElementById('filterSACProduto');
+    const filterSACAtendente = document.getElementById('filterSACAtendente');
 
     const chartTopProblemasSAC = new Chart(document.getElementById('chartTopProblemasSAC').getContext('2d'), {
       type: 'bar',
@@ -2070,7 +2386,7 @@
     });
 
     // =========================================================================
-    // ATUALIZAÇÃO DOS GRÁFICOS DINÂMICOS
+    // INÍCIO: parseDateToYMD
     // =========================================================================
     function parseDateToYMD(dStr) {
       if (!dStr) return '';
@@ -2083,7 +2399,13 @@
       }
       return '';
     }
+    // =========================================================================
+    // TÉRMINO: parseDateToYMD
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: atualizarGraficoLocaisAnterior
+    // =========================================================================
     function atualizarGraficoLocaisAnterior() {
       const mesAntInput = document.getElementById('filterMesLocaisAnterior')?.value;
       if (!mesAntInput) return;
@@ -2101,7 +2423,13 @@
       chartLocaisAnterior.data.datasets[0].data = top5.map(t => t.qt);
       chartLocaisAnterior.update();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoLocaisAnterior
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: atualizarGraficoLocaisAtual
+    // =========================================================================
     function atualizarGraficoLocaisAtual() {
       const mesAtualInput = document.getElementById('filterMesLocaisAtual')?.value;
       if (!mesAtualInput) return;
@@ -2119,7 +2447,13 @@
       chartLocaisAtual.data.datasets[0].data = top5.map(t => t.qt);
       chartLocaisAtual.update();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoLocaisAtual
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: atualizarGraficoMesesQtd
+    // =========================================================================
     function atualizarGraficoMesesQtd() {
       const selAno = document.getElementById('filterAnoMesesQtd')?.value || new Date().getFullYear();
       const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -2135,7 +2469,13 @@
       chartMesesQtd.data.datasets[0].data = contQtd;
       chartMesesQtd.update();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoMesesQtd
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: atualizarGraficoMesesVal
+    // =========================================================================
     function atualizarGraficoMesesVal() {
       const selAno = document.getElementById('filterAnoMesesVal')?.value || new Date().getFullYear();
       const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -2151,7 +2491,13 @@
       chartMesesVal.data.datasets[0].data = somaVal;
       chartMesesVal.update();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoMesesVal
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: atualizarGraficoDiasQtd
+    // =========================================================================
     function atualizarGraficoDiasQtd() {
       const mesDiasInput = document.getElementById('filterMesDiasQtd')?.value;
       let anoRef, mesRef;
@@ -2181,7 +2527,13 @@
       chartDiasQtd.data.datasets[0].data = diasPreenchidos.map(d => contagemPorDia[d]);
       chartDiasQtd.update();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoDiasQtd
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: atualizarGraficoDiasVal
+    // =========================================================================
     function atualizarGraficoDiasVal() {
       const mesDiasInput = document.getElementById('filterMesDiasVal')?.value;
       let anoRef, mesRef;
@@ -2214,7 +2566,13 @@
       chartDiasVal.data.datasets[0].data = diasPreenchidos.map(d => somaPorDia[d]);
       chartDiasVal.update();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoDiasVal
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: atualizarGraficoTopSemana
+    // =========================================================================
     function atualizarGraficoTopSemana() {
       const dtIni = document.getElementById('filterTopSemanaDtIni')?.value;
       const dtFim = document.getElementById('filterTopSemanaDtFim')?.value;
@@ -2235,7 +2593,13 @@
       chartTop10Semana.data.datasets[0].data = top10.map(t => t.qt);
       chartTop10Semana.update();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoTopSemana
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: atualizarGraficoTopFilial
+    // =========================================================================
     function atualizarGraficoTopFilial() {
       const filial = document.getElementById('filterTopFilialSelect')?.value || 'ALL';
       const dtIni = document.getElementById('filterTopFilialDtIni')?.value;
@@ -2258,7 +2622,13 @@
       chartTop3Filial.data.datasets[0].data = top3.map(t => t.qt);
       chartTop3Filial.update();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoTopFilial
+    // =========================================================================
 
+    // =========================================================================
+    // INÍCIO: inicializarFiltrosDashboardSAC
+    // =========================================================================
     function inicializarFiltrosDashboardSAC() {
       const clientesUnicos = [...new Set(listaChamadosSAC.map(c => c.cliente).filter(Boolean))].sort();
       filterSACCliente.innerHTML = '<option value="ALL">Todos os Clientes</option>';
@@ -2338,8 +2708,14 @@
         selFilial.appendChild(opt);
       });
     }
+    // =========================================================================
+    // TÉRMINO: inicializarFiltrosDashboardSAC
+    // =========================================================================
     inicializarFiltrosDashboardSAC();
 
+    // =========================================================================
+    // INÍCIO: atualizarDashboardSAC
+    // =========================================================================
     function atualizarDashboardSAC() {
       const cliVal = filterSACCliente.value;
       const prodVal = filterSACProduto.value;
@@ -2403,7 +2779,7 @@
       chartAtendentesSAC.data.datasets[0].data = topAtendentes.map(a => a.qt);
       chartAtendentesSAC.update();
 
-      // Gráficos divididos
+      // Gráficos dinâmicos complementares
       atualizarGraficoLocaisAnterior();
       atualizarGraficoLocaisAtual();
       atualizarGraficoMesesQtd();
@@ -2413,6 +2789,9 @@
       atualizarGraficoTopSemana();
       atualizarGraficoTopFilial();
     }
+    // =========================================================================
+    // TÉRMINO: atualizarDashboardSAC
+    // =========================================================================
 
     [filterSACCliente, filterSACProduto, filterSACAtendente].forEach(el => el.addEventListener('change', atualizarDashboardSAC));
     document.getElementById('btnLimparFiltrosSAC').addEventListener('click', () => {
