@@ -1,381 +1,467 @@
 import os
 import json
-import base64
-import traceback
 from datetime import datetime
-from typing import Optional, Dict, Any
-from pathlib import Path
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse
+from typing import Optional, Dict, Any, List
+
+from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-import psycopg
-from psycopg.rows import dict_row
 
-app = FastAPI(title="Painel Executivo de Gestão & SAC")
+from sqlalchemy import (
+    create_engine, Column, Integer, String, Numeric, 
+    Text, func, desc, text, Index
+)
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
-BASE_DIR = Path(__file__).resolve().parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+# ==============================================================================
+# CONFIGURAÇÃO DE BANCO DE DADOS (SUPABASE POSTGRESQL POOLER)
+# ==============================================================================
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg://postgres.asptoykwjnpxwvnixslw:napoleao140205@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+)
 
-DEFAULT_DB_URL = "postgresql://postgres.asptoykwjnpxwvnixslw:[SUA-SENHA]@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
-DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DB_URL)
+# Adequação de driver se fornecido apenas postgresql://
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
-def get_db_connection(autocommit: bool = False):
-    return psycopg.connect(DATABASE_URL, row_factory=dict_row, connect_timeout=15, autocommit=autocommit)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,      # Evita conexões mortas no pooler do Supabase
+    pool_recycle=300,        # Recicla conexões a cada 5 minutos
+    pool_size=5,             # Respeita o teto de 512 MB de RAM do Render
+    max_overflow=10,
+    connect_args={"connect_timeout": 30}
+)
 
-def obter_logo_base64():
-    nomes_alvo = [
-        "Logotipo.PNG", "Logotipo.png", "logotipo.PNG", "logotipo.png",
-        "LOGOTIPO.PNG", "logo.PNG", "logo.png"
-    ]
-    for nome in nomes_alvo:
-        caminho = BASE_DIR / nome
-        if caminho.is_file():
-            ext = caminho.suffix.lower().replace(".", "")
-            mime = "jpeg" if ext in ["jpg", "jpeg"] else "png"
-            with open(caminho, "rb") as f:
-                return f"data:image/{mime};base64,{base64.b64encode(f.read()).decode('utf-8')}"
-    return ""
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
-def format_currency_br(val):
-    try:
-        n = float(val) if val is not None else 0.0
-        return f"R$ {n:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    except Exception:
-        return "R$ 0,00"
+# ==============================================================================
+# MODELOS DE DADOS COM ÍNDICES INTEGRADOS (PASSO 3)
+# ==============================================================================
+class ChamadoModel(Base):
+    __tablename__ = "chamados"
 
-def converter_para_data_iso(data_str: Any) -> Optional[str]:
-    """Converte datas em DD/MM/AAAA ou YYYY-MM-DD para YYYY-MM-DD aceito pelo Postgres."""
-    if not data_str:
-        return None
-    s = str(data_str).strip()
-    if not s or s.lower() in ["none", "null"]:
-        return None
-    if len(s) >= 10 and s[4] == '-' and s[7] == '-':
-        return s[:10]
-    partes = s.split("/")
-    if len(partes) == 3 and len(partes[2]) == 4:
-        return f"{partes[2]}-{partes[1].zfill(2)}-{partes[0].zfill(2)}"
-    return None
+    id = Column(Integer, primary_key=True, index=True)
+    chamado = Column(String(50), unique=True, index=True, nullable=False)
+    data = Column(String(50), index=True)
+    cliente = Column(String(150), index=True)
+    local_interno = Column(String(150))
+    cidade = Column(String(100), index=True)
+    descricao = Column(String(255))
+    produto = Column(String(50), index=True)
+    data_transacao = Column(String(50))
+    hora_transacao = Column(String(20))
+    valor = Column(Numeric(10, 2), default=0.0)
+    nome_sobrenome = Column(String(150))
+    celular = Column(String(50))
+    problemas = Column(String(255))
+    forma_pgto = Column(String(100))
+    reembolso = Column(String(100))
+    pix = Column(String(150))
+    atendente = Column(String(100), index=True)
+    reembolso_realizado = Column(String(10), default="Não")
+    financeiro_responsavel = Column(String(100))
+    observacao = Column(Text)
+    data_hora_lancamento = Column(String(50))
 
-def buscar_primeira_coluna_texto(cur, tabela: str, colunas_preferenciais: list) -> list:
-    """Carrega dados para datalists de forma segura sem abortar a transação caso colunas mudem."""
-    try:
-        cur.execute(f"SELECT * FROM {tabela} LIMIT 0")
-        colunas_reais = [desc[0].lower() for desc in (cur.description or [])]
-        col_alvo = next((col for col in colunas_preferenciais if col.lower() in colunas_reais), None)
-        if not col_alvo and colunas_reais:
-            candidatos = [c for c in colunas_reais if c != 'id']
-            col_alvo = candidatos[0] if candidatos else colunas_reais[0]
-        if col_alvo:
-            cur.execute(f"SELECT DISTINCT {col_alvo} AS valor FROM {tabela} WHERE {col_alvo} IS NOT NULL AND TRIM({col_alvo}::text) <> '' ORDER BY 1 ASC")
-            return [str(r["valor"]).strip() for r in (cur.fetchall() or []) if str(r.get("valor", "")).strip()]
-    except Exception:
-        pass
-    return []
-
-@app.get("/", response_class=HTMLResponse)
-async def carregar_pagina_principal(request: Request):
-    logo_base64_src = obter_logo_base64()
-    
-    try:
-        usuarios = []
-        lista_clientes = []
-        formas_pgto = []
-        problemas = []
-        descricoes = []
-        chamados_raw = []
-
-        # autocommit=True evita que eventuais erros em consultas secundárias abortem o carregamento
-        with get_db_connection(autocommit=True) as conn:
-            with conn.cursor() as cur:
-                # 1. Usuários
-                try:
-                    cur.execute("SELECT nome, usuario, senha, acesso FROM usuarios")
-                    usuarios = [dict(u) for u in (cur.fetchall() or [])]
-                except Exception:
-                    usuarios = []
-                
-                # 2. Clientes
-                try:
-                    cur.execute("""
-                        SELECT id as linha, 
-                               COALESCE(cliente, '') as cliente, 
-                               COALESCE(local, '') as local, 
-                               COALESCE(local_interno, '') as "localInterno", 
-                               COALESCE(maquina, '') as maquina, 
-                               COALESCE(modelo_maquina, '') as "modeloMaquina", 
-                               COALESCE(filial_responsavel, '') as "filialResponsavel" 
-                        FROM clientes 
-                        ORDER BY cliente ASC
-                    """)
-                    lista_clientes = [dict(c) for c in (cur.fetchall() or [])]
-                except Exception:
-                    lista_clientes = []
-                
-                # 3. Listas dinâmicas a partir das tabelas dedicadas
-                descricoes = buscar_primeira_coluna_texto(cur, "produtos", ["descricao", "produto", "nome", "item"])
-                problemas = buscar_primeira_coluna_texto(cur, "problemas", ["problema", "descricao", "nome", "motivo"])
-                formas_pgto = buscar_primeira_coluna_texto(cur, "formas_pgt", ["forma_pgt", "forma", "descricao", "nome"])
-                
-                # 4. Chamados
-                cur.execute("""
-                    SELECT id as linha, 
-                           COALESCE(chamado, '') as chamado, 
-                           COALESCE(to_char(data, 'DD/MM/YYYY'), '') as data,
-                           COALESCE(cliente, '') as cliente, 
-                           COALESCE(local_interno, '') as "localInterno", 
-                           COALESCE(cidade, '') as cidade, 
-                           COALESCE(descricao, '') as descricao, 
-                           COALESCE(produto, '') as produto, 
-                           COALESCE(to_char(data_transacao, 'DD/MM/YYYY'), '') as "dataTransacao", 
-                           COALESCE(hora_transacao, '') as "horaTransacao", 
-                           COALESCE(valor, 0) as valor, 
-                           COALESCE(nome_sobrenome, '') as "nomeSobrenome", 
-                           COALESCE(celular, '') as celular, 
-                           COALESCE(problemas, '') as problemas, 
-                           COALESCE(forma_pgto, '') as "formaPgto", 
-                           COALESCE(reembolso, '') as reembolso, 
-                           COALESCE(pix, '') as pix, 
-                           COALESCE(atendente, '') as atendente, 
-                           COALESCE(data_hora_lancamento, '') as "dataHoraLancamento", 
-                           COALESCE(reembolso_realizado, 'Não') as "reembolsoRealizado", 
-                           COALESCE(financeiro_responsavel, '') as "financeiroResponsavel", 
-                           COALESCE(observacao, '') as observacao
-                    FROM chamados 
-                    ORDER BY id DESC
-                """)
-                chamados_raw = cur.fetchall() or []
-
-        # Fallbacks: se tabelas auxiliares estiverem vazias, preenche com histórico da tabela chamados
-        if not descricoes:
-            descricoes = sorted(list(set([str(c.get("descricao", "")).strip() for c in chamados_raw if str(c.get("descricao", "")).strip()])))
-        if not problemas:
-            problemas = sorted(list(set([str(c.get("problemas", "")).strip() for c in chamados_raw if str(c.get("problemas", "")).strip()])))
-        if not formas_pgto:
-            formas_pgto = sorted(list(set([str(c.get("formaPgto", "")).strip() for c in chamados_raw if str(c.get("formaPgto", "")).strip()])))
-
-        maior_sac_ano = {}
-        chamados_formatados = []
-        for c in chamados_raw:
-            item = dict(c)
-            item["valor"] = format_currency_br(item.get("valor", 0))
-            chamados_formatados.append(item)
-            
-            ch_str = str(item.get("chamado", ""))
-            if ch_str.startswith("SAC-"):
-                partes = ch_str.split("-")
-                if len(partes) == 3 and partes[2].isdigit():
-                    ano, seq = partes[1], int(partes[2])
-                    maior_sac_ano[ano] = max(maior_sac_ano.get(ano, 0), seq)
-
-        cidades = sorted(list(set([c["filialResponsavel"] for c in lista_clientes if c.get("filialResponsavel")])))
-        
-        dados_sac = {
-            "clientes": [{"cliente": c.get("cliente", ""), "local": c.get("localInterno", ""), "cidade": c.get("filialResponsavel", "")} for c in lista_clientes],
-            "cadastro_clientes": lista_clientes,
-            "formas_pagamento": sorted(list(set(formas_pgto))),
-            "formas_pgt": sorted(list(set(formas_pgto))),
-            "produtos": sorted(list(set(descricoes))),
-            "descricoes": sorted(list(set(descricoes))),
-            "problemas": sorted(list(set(problemas))),
-            "cidades": cidades,
-            "usuarios": usuarios,
-            "maior_sac_ano": maior_sac_ano,
-            "chamados": chamados_formatados
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "linha": self.id,
+            "chamado": self.chamado,
+            "data": self.data,
+            "cliente": self.cliente,
+            "local_interno": self.local_interno,
+            "localInterno": self.local_interno,
+            "cidade": self.cidade,
+            "descricao": self.descricao,
+            "produto": self.produto,
+            "data_transacao": self.data_transacao,
+            "dataTransacao": self.data_transacao,
+            "hora_transacao": self.hora_transacao,
+            "horaTransacao": self.hora_transacao,
+            "valor": float(self.valor) if self.valor is not None else 0.0,
+            "nome_sobrenome": self.nome_sobrenome,
+            "nomeSobrenome": self.nome_sobrenome,
+            "celular": self.celular,
+            "problemas": self.problemas,
+            "forma_pgto": self.forma_pgto,
+            "formaPgto": self.forma_pgto,
+            "reembolso": self.reembolso,
+            "pix": self.pix,
+            "atendente": self.atendente,
+            "reembolso_realizado": self.reembolso_realizado,
+            "reembolsoRealizado": self.reembolso_realizado,
+            "financeiro_responsavel": self.financeiro_responsavel,
+            "financeiroResponsavel": self.financeiro_responsavel,
+            "observacao": self.observacao,
+            "data_hora_lancamento": self.data_hora_lancamento,
+            "dataHoraLancamento": self.data_hora_lancamento
         }
+
+
+class ClienteModel(Base):
+    __tablename__ = "cadastro_clientes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    cliente = Column(String(150), nullable=False, index=True)
+    local = Column(String(150))
+    local_interno = Column(String(150))
+    maquina = Column(String(100))
+    modelo_maquina = Column(String(100))
+    filial_responsavel = Column(String(100), index=True)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "linha": self.id,
+            "cliente": self.cliente,
+            "local": self.local,
+            "localInterno": self.local_interno,
+            "local_interno": self.local_interno,
+            "maquina": self.maquina,
+            "modeloMaquina": self.modelo_maquina,
+            "modelo_maquina": self.modelo_maquina,
+            "filialResponsavel": self.filial_responsavel,
+            "filial_responsavel": self.filial_responsavel,
+            "cidade": self.filial_responsavel
+        }
+
+# ==============================================================================
+# PASSO 3: CRIAÇÃO E GARANTIA DOS ÍNDICES NO POSTGRESQL (SUPABASE)
+# ==============================================================================
+def criar_indices_de_alta_performance():
+    """Garante que as 11.000+ linhas utilizem indexação B-Tree para buscas em sub-segundos."""
+    queries_indices = [
+        "CREATE INDEX IF NOT EXISTS idx_chamados_cliente ON chamados (cliente);",
+        "CREATE INDEX IF NOT EXISTS idx_chamados_data ON chamados (data);",
+        "CREATE INDEX IF NOT EXISTS idx_chamados_atendente ON chamados (atendente);",
+        "CREATE INDEX IF NOT EXISTS idx_chamados_produto ON chamados (produto);",
+        "CREATE INDEX IF NOT EXISTS idx_chamados_cidade ON chamados (cidade);",
+        "CREATE INDEX IF NOT EXISTS idx_chamados_chamado ON chamados (chamado);"
+    ]
+    try:
+        # Cria as tabelas caso não existam
+        Base.metadata.create_all(bind=engine)
         
-        dados_sac_json = json.dumps(dados_sac, default=str, ensure_ascii=False)
-        total_chamados = len(chamados_formatados)
-        
+        # Executa a criação idempotente dos índices
+        with engine.begin() as conn:
+            for sql in queries_indices:
+                conn.execute(text(sql))
+        print("✅ [Passo 3 Concluído] Índices de performance verificados no Supabase.")
+    except Exception as e:
+        print(f"⚠️ Aviso na criação de índices: {e}")
+
+# Executa a validação dos índices no carregamento do módulo
+criar_indices_de_alta_performance()
+
+# ==============================================================================
+# INICIALIZAÇÃO FASTAPI & JINJA2 TEMPLATES
+# ==============================================================================
+app = FastAPI(title="Gestão SAC MasterCafé", version="2.1.0")
+
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+USUARIOS_SISTEMA = [
+    {"usuario": "admin", "senha": "123", "nome": "Administrador Geral", "acesso": "Geral"},
+    {"usuario": "atendente", "senha": "123", "nome": "Atendente SAC", "acesso": "Atendente"},
+    {"usuario": "thiago", "senha": "123", "nome": "Thiago Napoleão", "acesso": "Geral"}
+]
+
+# ==============================================================================
+# ROTA PRINCIPAL (INDEX COM LIMITE DE CARGA PARA PREVENIR TRAVAMENTOS)
+# ==============================================================================
+@app.get("/", response_class=HTMLResponse)
+def index_page(request: Request, db: Session = Depends(get_db)):
+    try:
+        # 1. Total real de chamados no banco (COUNT otimizado pelo índice)
+        total_chamados = db.query(func.count(ChamadoModel.id)).scalar() or 0
+
+        # 2. Busca apenas os últimos 300 chamados para não esgotar a memória do Render
+        chamados_recentes = (
+            db.query(ChamadoModel)
+            .order_by(desc(ChamadoModel.id))
+            .limit(300)
+            .all()
+        )
+        lista_chamados = [c.to_dict() for c in chamados_recentes]
+
+        # 3. Base cadastral de Clientes
+        clientes_db = db.query(ClienteModel).order_by(ClienteModel.cliente).all()
+        lista_clientes = [cli.to_dict() for cli in clientes_db]
+
+        # 4. Listagens de apoio aos seletores
+        descricoes_padrao = [
+            "Café Expresso", "Café com Leite", "Cappuccino", "Mocaccino",
+            "Chocolate Quente", "Chá", "Salgadinho", "Refrigerante", "Suco", "Água Mineral"
+        ]
+        problemas_padrao = [
+            "Não liberou produto", "Cobrou e não liberou", "Produto gelado/frio",
+            "Nota/Moeda presa", "Produto travado na mola", "Pagamento não reconhecido",
+            "Máquina sem energia", "Outro"
+        ]
+        formas_pgto_padrao = [
+            "Cartão de Débito", "Cartão de Crédito", "Pix", "Dinheiro/Moeda",
+            "Crédito Remoto", "Voucher"
+        ]
+
+        # 5. Sequencial de chamado automático para o ano corrente
+        ano_atual = datetime.now().year
+        maior_seq = 0
+        ultimo_chamado_ano = (
+            db.query(ChamadoModel.chamado)
+            .filter(ChamadoModel.chamado.like(f"SAC-{ano_atual}-%"))
+            .order_by(desc(ChamadoModel.chamado))
+            .first()
+        )
+        if ultimo_chamado_ano and ultimo_chamado_ano[0]:
+            try:
+                maior_seq = int(ultimo_chamado_ano[0].split("-")[-1])
+            except ValueError:
+                pass
+
+        dados_sac_payload = {
+            "chamados": lista_chamados,
+            "cadastro_clientes": lista_clientes,
+            "clientes": lista_clientes,
+            "usuarios": USUARIOS_SISTEMA,
+            "descricoes": descricoes_padrao,
+            "produtos": descricoes_padrao,
+            "problemas": problemas_padrao,
+            "formas_pgt": formas_pgto_padrao,
+            "formas_pagamento": formas_pgto_padrao,
+            "maior_sac_ano": {str(ano_atual): maior_seq}
+        }
+
         return templates.TemplateResponse(
-            request=request,
-            name="index.html",
-            context={
-                "logo_base64_src": logo_base64_src,
-                "dados_sac_json": dados_sac_json,
-                "total_chamados_carregados": total_chamados
+            "index.html",
+            {
+                "request": request,
+                "dados_sac_json": json.dumps(dados_sac_payload, default=str),
+                "total_chamados_carregados": total_chamados,
+                "logo_base64_src": ""
             }
         )
 
     except Exception as e:
-        tb = traceback.format_exc()
         return HTMLResponse(
             content=f"""
-            <div style="font-family: monospace; padding: 2rem; background: #0f172a; color: #f87171; min-height: 100vh;">
-                <h2 style="color: #ef4444; margin-top: 0;">Traceback do Erro:</h2>
-                <pre style="white-space: pre-wrap; word-break: break-all; font-size: 13px; line-height: 1.5;">{tb}</pre>
+            <div style="font-family: sans-serif; padding: 40px; text-align: center;">
+                <h2>Erro ao conectar com o banco de dados</h2>
+                <p style="color: #dc2626;">{str(e)}</p>
+                <button onclick="window.location.reload()" style="padding: 10px 20px; background: #0284c7; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    Tentar Novamente 🔄
+                </button>
             </div>
             """,
             status_code=500
         )
 
+# ==============================================================================
+# ROTA DE AÇÃO CENTRALIZADA (INSERT, EDIT, DELETE)
+# ==============================================================================
 @app.post("/api/action")
-async def processar_acao_api(payload: Dict[str, Any]):
-    acao = (payload.get("acao") or payload.get("action") or payload.get("tipo") or "").lower()
-    
-    conn = None
+async def handle_action(request: Request, db: Session = Depends(get_db)):
     try:
-        conn = get_db_connection(autocommit=False)
-        with conn.cursor() as cur:
-            
-            # =========================================================================
-            # 1. INSERIR OU EDITAR NA TABELA "chamados"
-            # =========================================================================
-            if acao in ["inserir", "editar"]:
-                chamado_num = str(payload.get("Chamado") or payload.get("chamado") or "").strip()
-                if not chamado_num:
-                    raise ValueError("O identificador do chamado é obrigatório.")
+        body: Dict[str, Any] = await request.json()
+    except Exception:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Payload JSON inválido."})
 
-                # Tratamento de datas
-                data_br = payload.get("Data") or payload.get("data")
-                data_sql = converter_para_data_iso(data_br) or datetime.now().strftime("%Y-%m-%d")
+    action = (body.get("action") or body.get("acao") or "").lower()
+    tipo = (body.get("tipo") or "").lower()
 
-                dt_tr = payload.get("Data da Transação") or payload.get("data_transacao") or payload.get("dataTransacao")
-                dt_transacao_sql = converter_para_data_iso(dt_tr)
+    try:
+        # ----------------------------------------------------------------------
+        # 1. EXCLUIR CHAMADO SAC
+        # ----------------------------------------------------------------------
+        if action == "excluir" or tipo == "excluir_sac":
+            num_chamado = body.get("chamado") or body.get("Chamado")
+            item_id = body.get("id") or body.get("linha")
 
-                hr_tr = payload.get("Hora da Transação") or payload.get("hora_transacao") or payload.get("horaTransacao")
-                hr_tr = str(hr_tr).strip() if hr_tr and str(hr_tr).strip() else None
+            chamado_obj = None
+            if item_id and str(item_id).isdigit():
+                chamado_obj = db.query(ChamadoModel).filter(ChamadoModel.id == int(item_id)).first()
+            if not chamado_obj and num_chamado:
+                chamado_obj = db.query(ChamadoModel).filter(ChamadoModel.chamado == num_chamado).first()
 
-                # Conversão de valores monetários
-                val_raw = payload.get("Valor") if "Valor" in payload else payload.get("valor", 0)
-                try:
-                    if isinstance(val_raw, str):
-                        val_raw = val_raw.replace("R$", "").replace(".", "").replace(",", ".").strip()
-                    valor_sql = float(val_raw) if val_raw else 0.0
-                except Exception:
-                    valor_sql = 0.0
+            if not chamado_obj:
+                return JSONResponse(status_code=404, content={"status": "error", "message": f"Chamado '{num_chamado}' não encontrado."})
 
-                # Dicionário normalizado
-                dados_registro = {
-                    "chamado": chamado_num,
-                    "data": data_sql,
-                    "cliente": payload.get("Cliente") or payload.get("cliente") or "",
-                    "local_interno": payload.get("Local Interno") or payload.get("local_interno") or payload.get("localInterno") or "",
-                    "cidade": payload.get("Cidade") or payload.get("cidade") or "",
-                    "descricao": payload.get("Descrição") or payload.get("descricao") or "",
-                    "produto": payload.get("Produto") or payload.get("produto") or "",
-                    "data_transacao": dt_transacao_sql,
-                    "hora_transacao": hr_tr,
-                    "valor": valor_sql,
-                    "nome_sobrenome": payload.get("Nome/Sobrenome") or payload.get("Nome Sobrenome") or payload.get("nome_sobrenome") or "",
-                    "celular": payload.get("Celular") or payload.get("celular") or "",
-                    "problemas": payload.get("Problemas") or payload.get("problemas") or "",
-                    "forma_pgto": payload.get("Forma de Pagamento") or payload.get("forma_pgto") or payload.get("formaPgto") or "",
-                    "reembolso": payload.get("Reembolso") or payload.get("reembolso") or "",
-                    "pix": payload.get("Pix - Reembolso") or payload.get("pix") or "",
-                    "atendente": payload.get("Atendente") or payload.get("atendente") or "",
-                    "data_hora_lancamento": payload.get("Data/Hora do lançamento") or payload.get("data_hora_lancamento") or datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                    "reembolso_realizado": payload.get("Reembolso Realizado") or payload.get("reembolso_realizado") or "Não",
-                    "financeiro_responsavel": payload.get("Financeiro Responsavel") or payload.get("financeiro_responsavel") or "",
-                    "observacao": payload.get("Observação") or payload.get("observacao") or ""
-                }
+            db.delete(chamado_obj)
+            db.commit()
+            return {"status": "success", "message": f"Chamado {num_chamado} excluído com sucesso."}
 
-                # Inspeciona as colunas existentes na tabela chamados
-                cur.execute("SELECT * FROM chamados LIMIT 0")
-                colunas_tabela = [desc[0] for desc in (cur.description or [])]
-                colunas_map = {c.lower(): c for c in colunas_tabela}
+        # ----------------------------------------------------------------------
+        # 2. INSERIR OU EDITAR CHAMADO SAC
+        # ----------------------------------------------------------------------
+        elif action in ["inserir", "editar"]:
+            num_chamado = (body.get("chamado") or body.get("Chamado") or "").strip()
+            item_id = body.get("id") or body.get("linha")
 
-                col_chamado = colunas_map.get("chamado", "chamado")
-                cur.execute(f'SELECT id FROM chamados WHERE "{col_chamado}" = %s', (chamado_num,))
-                ja_existe = cur.fetchone()
+            valor_bruto = body.get("valor") or body.get("Valor") or 0.0
+            try:
+                valor_float = float(str(valor_bruto).replace("R$", "").replace(".", "").replace(",", ".").strip())
+            except ValueError:
+                valor_float = 0.0
 
-                if acao == "inserir" and not ja_existe:
-                    cols_inserir = []
-                    valores_inserir = []
-                    placeholders = []
+            if action == "editar":
+                chamado_obj = None
+                if item_id and str(item_id).isdigit():
+                    chamado_obj = db.query(ChamadoModel).filter(ChamadoModel.id == int(item_id)).first()
+                if not chamado_obj and num_chamado:
+                    chamado_obj = db.query(ChamadoModel).filter(ChamadoModel.chamado == num_chamado).first()
 
-                    for k, val in dados_registro.items():
-                        if k in colunas_map:
-                            nome_real = colunas_map[k]
-                            cols_inserir.append(f'"{nome_real}"')
-                            valores_inserir.append(val)
-                            placeholders.append("%s")
+                if not chamado_obj:
+                    return JSONResponse(status_code=404, content={"status": "error", "message": f"Chamado '{num_chamado}' não encontrado para alteração."})
 
-                    query = f"""
-                        INSERT INTO chamados ({', '.join(cols_inserir)})
-                        VALUES ({', '.join(placeholders)})
-                    """
-                    cur.execute(query, tuple(valores_inserir))
-                else:
-                    sets = []
-                    valores_update = []
-                    for k, val in dados_registro.items():
-                        if k != "chamado" and k in colunas_map:
-                            nome_real = colunas_map[k]
-                            sets.append(f'"{nome_real}" = %s')
-                            valores_update.append(val)
+                chamado_obj.data = body.get("data") or body.get("Data") or chamado_obj.data
+                chamado_obj.cliente = body.get("cliente") or body.get("Cliente") or chamado_obj.cliente
+                chamado_obj.local_interno = body.get("local_interno") or body.get("Local Interno") or chamado_obj.local_interno
+                chamado_obj.cidade = body.get("cidade") or body.get("Cidade") or chamado_obj.cidade
+                chamado_obj.descricao = body.get("descricao") or body.get("Descrição") or chamado_obj.descricao
+                chamado_obj.produto = body.get("produto") or body.get("Produto") or chamado_obj.produto
+                chamado_obj.data_transacao = body.get("data_transacao") or body.get("Data da Transação") or chamado_obj.data_transacao
+                chamado_obj.hora_transacao = body.get("hora_transacao") or body.get("Hora da Transação") or chamado_obj.hora_transacao
+                chamado_obj.valor = valor_float
+                chamado_obj.nome_sobrenome = body.get("nome_sobrenome") or body.get("Nome/Sobrenome") or chamado_obj.nome_sobrenome
+                chamado_obj.celular = body.get("celular") or body.get("Celular") or chamado_obj.celular
+                chamado_obj.problemas = body.get("problemas") or body.get("Problemas") or chamado_obj.problemas
+                chamado_obj.forma_pgto = body.get("forma_pgto") or body.get("Forma de Pagamento") or chamado_obj.forma_pgto
+                chamado_obj.reembolso = body.get("reembolso") or body.get("Reembolso") or chamado_obj.reembolso
+                chamado_obj.pix = body.get("pix") or body.get("Pix - Reembolso") or chamado_obj.pix
+                chamado_obj.reembolso_realizado = body.get("reembolso_realizado") or body.get("Reembolso Realizado") or "Não"
+                chamado_obj.financeiro_responsavel = body.get("financeiro_responsavel") or body.get("Financeiro Responsavel") or ""
+                chamado_obj.observacao = body.get("observacao") or body.get("Observação") or ""
 
-                    valores_update.append(chamado_num)
-                    query = f"""
-                        UPDATE chamados SET {', '.join(sets)}
-                        WHERE "{col_chamado}" = %s
-                    """
-                    cur.execute(query, tuple(valores_update))
+                db.commit()
+                db.refresh(chamado_obj)
+                return {"status": "success", "message": "Chamado atualizado com sucesso.", "data": chamado_obj.to_dict()}
 
-                conn.commit()
-                return {"status": "success", "message": f"Chamado {chamado_num} gravado com sucesso."}
+            else:  # Inserção
+                if num_chamado:
+                    existe = db.query(ChamadoModel).filter(ChamadoModel.chamado == num_chamado).first()
+                    if existe:
+                        ano = datetime.now().year
+                        total_ano = db.query(func.count(ChamadoModel.id)).filter(ChamadoModel.chamado.like(f"SAC-{ano}-%")).scalar() or 0
+                        num_chamado = f"SAC-{ano}-{str(total_ano + 1).zfill(4)}"
 
-            # =========================================================================
-            # 2. EXCLUIR NA TABELA "chamados"
-            # =========================================================================
-            elif acao in ["excluir", "excluir_sac"]:
-                chamado_num = str(payload.get("Chamado") or payload.get("chamado") or "").strip()
-                if not chamado_num:
-                    raise ValueError("Número do chamado ausente para exclusão.")
+                novo_chamado = ChamadoModel(
+                    chamado=num_chamado,
+                    data=body.get("data") or body.get("Data") or datetime.now().strftime("%d/%m/%Y"),
+                    cliente=body.get("cliente") or body.get("Cliente") or "",
+                    local_interno=body.get("local_interno") or body.get("Local Interno") or "",
+                    cidade=body.get("cidade") or body.get("Cidade") or "",
+                    descricao=body.get("descricao") or body.get("Descrição") or "",
+                    produto=body.get("produto") or body.get("Produto") or "",
+                    data_transacao=body.get("data_transacao") or body.get("Data da Transação") or "",
+                    hora_transacao=body.get("hora_transacao") or body.get("Hora da Transação") or "",
+                    valor=valor_float,
+                    nome_sobrenome=body.get("nome_sobrenome") or body.get("Nome/Sobrenome") or "",
+                    celular=body.get("celular") or body.get("Celular") or "",
+                    problemas=body.get("problemas") or body.get("Problemas") or "",
+                    forma_pgto=body.get("forma_pgto") or body.get("Forma de Pagamento") or "",
+                    reembolso=body.get("reembolso") or body.get("Reembolso") or "",
+                    pix=body.get("pix") or body.get("Pix - Reembolso") or "",
+                    atendente=body.get("atendente") or body.get("Atendente") or "Operador",
+                    reembolso_realizado=body.get("reembolso_realizado") or body.get("Reembolso Realizado") or "Não",
+                    financeiro_responsavel=body.get("financeiro_responsavel") or body.get("Financeiro Responsavel") or "",
+                    observacao=body.get("observacao") or body.get("Observação") or "",
+                    data_hora_lancamento=body.get("data_hora_lancamento") or body.get("Data/Hora do lançamento") or datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                )
 
-                cur.execute("SELECT * FROM chamados LIMIT 0")
-                colunas_tabela = [desc[0] for desc in (cur.description or [])]
-                colunas_map = {c.lower(): c for c in colunas_tabela}
-                col_chamado = colunas_map.get("chamado", "chamado")
+                db.add(novo_chamado)
+                db.commit()
+                db.refresh(novo_chamado)
+                return {"status": "success", "message": "Chamado cadastrado com sucesso.", "data": novo_chamado.to_dict()}
 
-                cur.execute(f'DELETE FROM chamados WHERE "{col_chamado}" = %s', (chamado_num,))
-                conn.commit()
-                return {"status": "success", "message": f"Chamado {chamado_num} removido com sucesso."}
+        # ----------------------------------------------------------------------
+        # 3. CADASTRO DE CLIENTES (INSERT, EDIT, DELETE)
+        # ----------------------------------------------------------------------
+        elif action in ["inserir_cliente", "editar_cliente", "excluir_cliente"] or tipo == "cadastro_cliente":
+            if action == "excluir_cliente":
+                item_id = body.get("id") or body.get("linha")
+                cli_nome = body.get("Cliente") or body.get("cliente")
+                
+                cli_obj = None
+                if item_id and str(item_id).isdigit():
+                    cli_obj = db.query(ClienteModel).filter(ClienteModel.id == int(item_id)).first()
+                if not cli_obj and cli_nome:
+                    cli_obj = db.query(ClienteModel).filter(ClienteModel.cliente == cli_nome).first()
 
-            # =========================================================================
-            # 3. CLIENTES
-            # =========================================================================
-            elif acao in ["inserir_cliente", "editar_cliente"]:
-                cli = payload.get("Cliente")
-                loc = payload.get("Local")
-                loc_int = payload.get("Local interno") or payload.get("local_interno")
-                maq = payload.get("Máquina") or payload.get("maquina")
-                mod = payload.get("Modelo de máquina") or payload.get("modelo_maquina")
-                fil = payload.get("Filial Responsavel") or payload.get("filial_responsavel")
+                if not cli_obj:
+                    return JSONResponse(status_code=404, content={"status": "error", "message": "Cliente não localizado para exclusão."})
 
-                if acao == "inserir_cliente":
-                    cur.execute("""
-                        INSERT INTO clientes (cliente, local, local_interno, maquina, modelo_maquina, filial_responsavel)
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                    """, (cli, loc, loc_int, maq, mod, fil))
-                else:
-                    cur.execute("""
-                        UPDATE clientes SET cliente=%s, local=%s, local_interno=%s, maquina=%s, modelo_maquina=%s, filial_responsavel=%s
-                        WHERE id = %s
-                    """, (cli, loc, loc_int, maq, mod, fil, payload.get("linha")))
-                conn.commit()
-                return {"status": "success"}
+                db.delete(cli_obj)
+                db.commit()
+                return {"status": "success", "message": "Cliente excluído com sucesso."}
 
-            elif acao == "excluir_cliente":
-                linha_id = payload.get("linha")
-                if linha_id:
-                    cur.execute("DELETE FROM clientes WHERE id = %s", (linha_id,))
-                else:
-                    cur.execute("DELETE FROM clientes WHERE cliente = %s AND local_interno = %s", (payload.get("Cliente"), payload.get("Local interno")))
-                conn.commit()
-                return {"status": "success"}
+            elif action == "editar_cliente":
+                item_id = body.get("id") or body.get("linha")
+                cli_obj = db.query(ClienteModel).filter(ClienteModel.id == int(item_id)).first() if item_id else None
+
+                if not cli_obj:
+                    return JSONResponse(status_code=404, content={"status": "error", "message": "Registro de cliente não encontrado para edição."})
+
+                cli_obj.cliente = body.get("Cliente") or body.get("cliente") or cli_obj.cliente
+                cli_obj.local = body.get("Local") or body.get("local") or cli_obj.local
+                cli_obj.local_interno = body.get("Local interno") or body.get("local_interno") or cli_obj.local_interno
+                cli_obj.maquina = body.get("Máquina") or body.get("maquina") or cli_obj.maquina
+                cli_obj.modelo_maquina = body.get("Modelo de máquina") or body.get("modelo_maquina") or cli_obj.modelo_maquina
+                cli_obj.filial_responsavel = body.get("Filial Responsavel") or body.get("filial_responsavel") or cli_obj.filial_responsavel
+
+                db.commit()
+                db.refresh(cli_obj)
+                return {"status": "success", "message": "Cliente atualizado com sucesso.", "data": cli_obj.to_dict()}
+
+            else:  # Inserir cliente
+                novo_cli = ClienteModel(
+                    cliente=body.get("Cliente") or body.get("cliente") or "",
+                    local=body.get("Local") or body.get("local") or "",
+                    local_interno=body.get("Local interno") or body.get("local_interno") or "",
+                    maquina=body.get("Máquina") or body.get("maquina") or "",
+                    modelo_maquina=body.get("Modelo de máquina") or body.get("modelo_maquina") or "",
+                    filial_responsavel=body.get("Filial Responsavel") or body.get("filial_responsavel") or ""
+                )
+                db.add(novo_cli)
+                db.commit()
+                db.refresh(novo_cli)
+                return {"status": "success", "message": "Cliente cadastrado com sucesso.", "data": novo_cli.to_dict()}
+
+        else:
+            return JSONResponse(status_code=400, content={"status": "error", "message": f"Ação '{action}' não suportada."})
 
     except Exception as e:
-        if conn:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-        erro_detalhado = traceback.format_exc()
-        print(f"ERRO SQL /api/action: {erro_detalhado}")
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        if conn:
-            conn.close()
+        db.rollback()
+        return JSONResponse(status_code=500, content={"status": "error", "message": f"Erro interno do servidor: {str(e)}"})
 
-    return {"status": "ignored"}
+# ==============================================================================
+# ROTA DE HEALTHCHECK (MONITORAMENTO DO RENDER)
+# ==============================================================================
+@app.get("/health")
+def healthcheck(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database unreachable: {str(e)}")
+
+# ==============================================================================
+# EXECUÇÃO DO SERVIDOR
+# ==============================================================================
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
