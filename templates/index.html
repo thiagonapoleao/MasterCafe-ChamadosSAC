@@ -59,7 +59,7 @@
 
   <!-- MODAL DE PROCESSAMENTO -->
   <div id="modalLoadingAcao" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in duration-200">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
       <div id="modalIconContainer" class="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shadow-inner">
         <svg id="modalSpinner" class="animate-spin h-8 w-8 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -174,7 +174,6 @@
 
       <!-- PÁGINA 1: DASHBOARD SAC -->
       <div id="pageDashboardSAC" class="space-y-6">
-        <!-- FILTROS GERAIS -->
         <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -234,7 +233,7 @@
             </div>
             <div class="mt-3">
               <span id="kpiSACValorTotal" class="text-xl font-bold tracking-tight text-emerald-600">R$ 0,00</span>
-              <p class="text-[11px] text-slate-400 mt-0.5">Soma coluna J (Valor)</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Soma coluna Valor</p>
             </div>
           </div>
 
@@ -644,7 +643,7 @@
             </form>
           </section>
 
-          <!-- LISTA DE TODOS OS CHAMADOS REALIZADOS -->
+          <!-- LISTA DE TODOS OS CHAMADOS REALIZADOS (PAGINADA 50 EM 50) -->
           <section class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 overflow-hidden">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-slate-100">
               <div>
@@ -688,7 +687,7 @@
                 </thead>
                 <tbody id="tableSACChamadosBody" class="divide-y divide-slate-100">
                   <tr>
-                    <td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Carregando chamados...</td>
+                    <td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado ainda.</td>
                   </tr>
                 </tbody>
               </table>
@@ -715,7 +714,7 @@
         </div>
       </div>
 
-      <!-- PÁGINA 3: TODOS OS CHAMADOS ABERTOS -->
+      <!-- PÁGINA 3: TODOS OS CHAMADOS ABERTOS (PAGINADA 50 EM 50) -->
       <div id="pageChamadosAbertos" class="space-y-6 hidden">
         <section class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 overflow-hidden">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-slate-100">
@@ -727,7 +726,7 @@
                 <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                   Todos os Chamados Abertos
                 </h2>
-                <p class="text-xs text-slate-500">Lista paginada de 50 em 50 com status de reembolso, observações, financeiro responsável e edição SAC</p>
+                <p class="text-xs text-slate-500">Lista com status de reembolso, observações, financeiro responsável e edição SAC (50 por página)</p>
               </div>
             </div>
 
@@ -761,7 +760,7 @@
               </thead>
               <tbody id="tableChamadosAbertosBody" class="divide-y divide-slate-100">
                 <tr>
-                  <td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Carregando chamados...</td>
+                  <td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto encontrado.</td>
                 </tr>
               </tbody>
             </table>
@@ -816,21 +815,6 @@
             </button>
           </div>
 
-          <div id="alertCliSuccess" class="hidden p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm transition">
-            <div class="flex items-center gap-3">
-              <div id="alertCliIconBadge" class="p-2 bg-emerald-600 text-white rounded-xl">
-                <i id="alertCliLucideIcon" data-lucide="check-circle" class="w-5 h-5"></i>
-              </div>
-              <div>
-                <p id="alertCliSuccessTitle" class="text-sm font-bold">Ação realizada com sucesso!</p>
-                <p id="alertCliSuccessSub" class="text-xs text-emerald-700">O cadastro de clientes foi atualizado com sucesso.</p>
-              </div>
-            </div>
-            <button type="button" onclick="document.getElementById('alertCliSuccess').classList.add('hidden')" class="px-3 py-2 rounded-xl hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition cursor-pointer">
-              Fechar
-            </button>
-          </div>
-
           <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-slate-100 gap-4">
               <div class="flex items-center gap-3">
@@ -841,11 +825,6 @@
                   <h2 id="cliFormTitleText" class="text-base font-bold text-slate-900">Cadastro de Clientes e Pontos de Atendimento</h2>
                   <p class="text-xs text-slate-500">Gerenciamento de máquinas, locais e filiais responsáveis</p>
                 </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs px-3 py-1 rounded-lg bg-sky-50 text-sky-800 font-semibold border border-sky-200 flex items-center gap-1.5">
-                  <i data-lucide="database" class="w-3.5 h-3.5 text-sky-600"></i> Tabela Clientes
-                </span>
               </div>
             </div>
 
@@ -942,28 +921,23 @@
     Chart.register(ChartDataLabels);
 
     const BACKEND_API_URL = "/api/action";
-    const BACKEND_CHAMADOS_URL = "/api/chamados";
+    const BACKEND_PAGINACAO_URL = "/api/chamados";
     const dadosSAC = {{ dados_sac_json | safe }};
 
     // =========================================================================
-    // NORMALIZAÇÃO UTF-8 (CORREÇÃO DE ACENTOS, ~, ´, ^, ç, º, ª)
+    // NORMALIZAÇÃO UTF-8 (PRESERVAÇÃO DE ACENTOS: ~, ^, ´, ç, º, ª)
     // =========================================================================
     function normalizarCodificacaoTexto(valor) {
       if (valor === null || valor === undefined) return '';
       if (typeof valor !== 'string') return valor;
-
       let str = valor;
 
       if (/Ã[\x80-\xBF]|Â[\x80-\xBF]/.test(str)) {
         try {
           const bytes = new Uint8Array(str.length);
-          for (let i = 0; i < str.length; i++) {
-            bytes[i] = str.charCodeAt(i) & 0xff;
-          }
+          for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i) & 0xff;
           const decodificado = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
-          if (decodificado && !decodificado.includes('\uFFFD')) {
-            str = decodificado;
-          }
+          if (decodificado && !decodificado.includes('\uFFFD')) str = decodificado;
         } catch (e) {}
       }
 
@@ -973,10 +947,7 @@
         str = txtArea.value;
       }
 
-      try {
-        str = str.normalize('NFC');
-      } catch (e) {}
-
+      try { str = str.normalize('NFC'); } catch (e) {}
       return str;
     }
 
@@ -986,8 +957,7 @@
       if (obj && typeof obj === 'object') {
         const limpo = {};
         for (const [k, v] of Object.entries(obj)) {
-          const chaveLimpa = normalizarCodificacaoTexto(k);
-          limpo[chaveLimpa] = normalizarObjetoProfundo(v);
+          limpo[normalizarCodificacaoTexto(k)] = normalizarObjetoProfundo(v);
         }
         return limpo;
       }
@@ -999,13 +969,13 @@
       return normalizarCodificacaoTexto(String(val)).trim();
     }
 
-    // Normaliza toda a carga inicial vinda do banco SQL
     const dadosSACNormalizados = normalizarObjetoProfundo(dadosSAC);
     if (dadosSACNormalizados && typeof dadosSACNormalizados === 'object') {
       Object.assign(dadosSAC, dadosSACNormalizados);
     }
 
     let listaChamadosSAC = Array.isArray(dadosSAC.chamados) ? dadosSAC.chamados : [];
+    let totalGeralBanco = Number(dadosSAC.total_chamados || listaChamadosSAC.length || 0);
     let listaCadastroClientes = Array.isArray(dadosSAC.cadastro_clientes) ? dadosSAC.cadastro_clientes : [];
     let chamadoEmEdicao = null;
     let clienteEmEdicao = null;
@@ -1019,10 +989,10 @@
       atendenteSACLogado = normalizarCodificacaoTexto(sessionStorage.getItem('sac_atendente_conectado') || "");
       loginUsuarioConectado = normalizarCodificacaoTexto(sessionStorage.getItem('sac_usuario_login') || "");
       nivelAcessoLogado = normalizarCodificacaoTexto(sessionStorage.getItem('sac_nivel_acesso') || "");
-    } catch(e) {}
+    } catch (e) {}
 
     // =========================================================================
-    // FORMATAÇÃO DE DATAS E VALORES MONETÁRIOS
+    // DATAS E VALORES MONETÁRIOS
     // =========================================================================
     function dataIsoParaPtBr(isoStr) {
       if (!isoStr) return '';
@@ -1039,12 +1009,8 @@
       const s = String(ptBrStr).trim();
       const parts = s.split(/[/ -]/);
       if (parts.length === 3) {
-        if (parts[2].length === 4) {
-          return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-        }
-        if (parts[0].length === 4) {
-          return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-        }
+        if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
       }
       return '';
     }
@@ -1055,11 +1021,9 @@
       let s = String(v).trim().replace('R$', '').replace(/\s+/g, '');
       if (!s) return 0;
       if (s.includes(',') && s.includes('.')) {
-        if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
-          s = s.replace(/\./g, '').replace(',', '.');
-        } else {
-          s = s.replace(/,/g, '');
-        }
+        s = (s.lastIndexOf(',') > s.lastIndexOf('.'))
+          ? s.replace(/\./g, '').replace(',', '.')
+          : s.replace(/,/g, '');
       } else if (s.includes(',')) {
         s = s.replace(',', '.');
       }
@@ -1072,7 +1036,7 @@
     }
 
     // =========================================================================
-    // AUTENTICAÇÃO E PERMISSÕES
+    // AUTENTICAÇÃO E CONTROLE DE ACESSO
     // =========================================================================
     function verificarEstadoAutenticacao() {
       const loginScreen = document.getElementById('systemLoginScreen');
@@ -1097,7 +1061,7 @@
         let abaDesejada = 'dashboardSAC';
         try {
           abaDesejada = sessionStorage.getItem('aba_ativa_atual') || 'dashboardSAC';
-        } catch(e) {}
+        } catch (e) {}
 
         if (abaDesejada === 'cadastroClientes' && (nivelAcessoLogado || '').toLowerCase() !== 'geral') {
           abaDesejada = 'sac';
@@ -1114,8 +1078,8 @@
       const p = limparTextoEntrada(document.getElementById('globalLoginPass').value).toLowerCase();
       const erroBox = document.getElementById('globalLoginErro');
 
-      const userValido = (dadosSAC.usuarios || []).find(x => 
-        limparTextoEntrada(x.usuario).toLowerCase() === u && 
+      const userValido = (dadosSAC.usuarios || []).find(x =>
+        limparTextoEntrada(x.usuario).toLowerCase() === u &&
         limparTextoEntrada(x.senha).toLowerCase() === p
       );
 
@@ -1130,7 +1094,7 @@
           sessionStorage.setItem('sac_usuario_login', loginUsuarioConectado);
           sessionStorage.setItem('sac_nivel_acesso', nivelAcessoLogado);
           sessionStorage.setItem('aba_ativa_atual', 'dashboardSAC');
-        } catch(e) {}
+        } catch (e) {}
 
         verificarEstadoAutenticacao();
       } else {
@@ -1147,7 +1111,7 @@
         sessionStorage.removeItem('sac_usuario_login');
         sessionStorage.removeItem('sac_nivel_acesso');
         sessionStorage.removeItem('aba_ativa_atual');
-      } catch(e) {}
+      } catch (e) {}
       document.getElementById('globalLoginForm').reset();
       verificarEstadoAutenticacao();
     }
@@ -1188,6 +1152,9 @@
       }
     }
 
+    // =========================================================================
+    // FORMATAÇÃO DE TEXTOS E VALIDAÇÃO DE LISTAS
+    // =========================================================================
     function converterParaPrimeirasMaiusculas(texto) {
       if (!texto) return '';
       const textoNormalizado = normalizarCodificacaoTexto(texto.toString()).trim();
@@ -1196,9 +1163,7 @@
         .toLocaleLowerCase('pt-BR')
         .split(/\s+/)
         .map((palavra, index) => {
-          if (index > 0 && preposicoes.includes(palavra)) {
-            return palavra;
-          }
+          if (index > 0 && preposicoes.includes(palavra)) return palavra;
           const chars = Array.from(palavra);
           if (chars.length === 0) return '';
           chars[0] = chars[0].toLocaleUpperCase('pt-BR');
@@ -1225,12 +1190,11 @@
       if (!valor) return false;
 
       const opcoesValidas = obterValoresDeDatalist(datalistId);
-      if (opcoesValidas.length === 0) {
-        if (dispararCascataCliente) aoMudarClienteSAC();
-        return true;
-      }
+      if (opcoesValidas.length === 0) return true;
 
-      const achado = opcoesValidas.find(item => item.toLocaleLowerCase('pt-BR') === valor.toLocaleLowerCase('pt-BR'));
+      const achado = opcoesValidas.find(
+        item => item.toLocaleLowerCase('pt-BR') === valor.toLocaleLowerCase('pt-BR')
+      );
 
       if (!achado) {
         alert('⛔ Atenção no campo "' + nomeAmigavel + '":\nO valor "' + valor + '" não foi encontrado na lista padrão.\nPor favor, escolha uma opção disponível.');
@@ -1246,7 +1210,7 @@
     }
 
     // =========================================================================
-    // MODAIS E FEEDBACK VISUAL
+    // MODAIS E ALERTAS VISUAIS
     // =========================================================================
     function abrirModalLoading(titulo, subtitulo, tipoAcao = 'loading') {
       const modal = document.getElementById('modalLoadingAcao');
@@ -1314,14 +1278,13 @@
     }
 
     // =========================================================================
-    // COMUNICAÇÃO UTF-8 GARANTIDA COM BACKEND (/api/action)
+    // COMUNICAÇÃO COM O BACKEND FASTAPI + SUPABASE (UTF-8 PURO)
     // =========================================================================
     async function enviarParaBancoGarantido(payload) {
       try {
         const payloadUtf8 = normalizarObjetoProfundo(payload);
         const jsonString = JSON.stringify(payloadUtf8);
-        const encoder = new TextEncoder();
-        const bodyBytes = encoder.encode(jsonString);
+        const bodyBytes = new TextEncoder().encode(jsonString);
 
         const resp = await fetch(BACKEND_API_URL, {
           method: "POST",
@@ -1376,7 +1339,7 @@
         switchPage('sac');
         return;
       }
-      try { sessionStorage.setItem('aba_ativa_atual', page); } catch(e) {}
+      try { sessionStorage.setItem('aba_ativa_atual', page); } catch (e) {}
 
       const pages = {
         dashboardSAC: document.getElementById('pageDashboardSAC'),
@@ -1399,9 +1362,7 @@
         }
       });
 
-      if (pages[page]) {
-        pages[page].classList.remove('hidden');
-      }
+      if (pages[page]) pages[page].classList.remove('hidden');
       if (buttons[page]) {
         buttons[page].classList.add('active');
         buttons[page].classList.remove('inactive');
@@ -1454,62 +1415,27 @@
     }
 
     // =========================================================================
-    // VÍNCULO DE CLIENTE -> LOCAL INTERNO & FILIAL RESPONSÁVEL
+    // FORMULÁRIO SAC & VÍNCULO AUTOMÁTICO (CLIENTE -> LOCAL INTERNO -> FILIAL)
     // =========================================================================
-    function obterBaseUnificadaClientes() {
+    function obterBaseClientesUnificada() {
       const base = [];
-      const fontes = [
-        ...(Array.isArray(dadosSAC.cadastro_clientes) ? dadosSAC.cadastro_clientes : []),
-        ...(Array.isArray(dadosSAC.clientes) ? dadosSAC.clientes : []),
-        ...(Array.isArray(listaCadastroClientes) ? listaCadastroClientes : [])
-      ];
+      const adicionar = (obj) => {
+        if (!obj) return;
+        const cliente = limparTextoEntrada(obj.cliente || obj.Cliente);
+        const localInterno = limparTextoEntrada(
+          obj.localInterno || obj.local_interno || obj['Local interno'] || obj['Local Interno'] || obj.local || obj.Local
+        );
+        const filial = limparTextoEntrada(
+          obj.filialResponsavel || obj.filial_responsavel || obj['Filial Responsavel'] || obj.cidade || obj.Cidade
+        );
+        if (cliente) {
+          base.push({ cliente, localInterno, filial });
+        }
+      };
 
-      fontes.forEach(c => {
-        if (!c || typeof c !== 'object') return;
-        const nome = limparTextoEntrada(c.cliente || c.Cliente || '');
-        if (!nome) return;
-        const localInt = limparTextoEntrada(c.localInterno || c.local_interno || c['Local interno'] || c.local || c.Local || '');
-        const filial = limparTextoEntrada(c.filialResponsavel || c.filial_responsavel || c['Filial Responsavel'] || c.cidade || c.Cidade || '');
-        base.push({
-          cliente: nome,
-          localInterno: localInt,
-          filialResponsavel: filial
-        });
-      });
-
+      (listaCadastroClientes || []).forEach(adicionar);
+      (dadosSAC.clientes || []).forEach(adicionar);
       return base;
-    }
-
-    function atualizarListasAuxiliaresFormularioSAC() {
-      const baseClientes = obterBaseUnificadaClientes();
-
-      // 1. Clientes
-      const dlCli = document.getElementById('listaSACClientes');
-      if (dlCli) {
-        dlCli.innerHTML = '';
-        [...new Set(baseClientes.map(c => c.cliente).filter(Boolean))]
-          .sort((a, b) => a.localeCompare(b, 'pt-BR'))
-          .forEach(cli => {
-            const opt = document.createElement('option');
-            opt.value = cli;
-            dlCli.appendChild(opt);
-          });
-      }
-
-      // 2. Cidades / Filiais
-      const dlCid = document.getElementById('listaSACCidades');
-      if (dlCid) {
-        dlCid.innerHTML = '';
-        const cidadesSet = new Set([
-          ...(Array.isArray(dadosSAC.cidades) ? dadosSAC.cidades.map(limparTextoEntrada) : []),
-          ...baseClientes.map(c => c.filialResponsavel)
-        ].filter(Boolean));
-        [...cidadesSet].sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(cid => {
-          const opt = document.createElement('option');
-          opt.value = cid;
-          dlCid.appendChild(opt);
-        });
-      }
     }
 
     function inicializarFormularioSAC() {
@@ -1534,11 +1460,35 @@
       document.getElementById('sacObservacao').value = "";
       document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
 
-      atualizarListasAuxiliaresFormularioSAC();
+      const baseClientes = obterBaseClientesUnificada();
+
+      // 1. Clientes
+      const dlCli = document.getElementById('listaSACClientes');
+      dlCli.innerHTML = '';
+      [...new Set(baseClientes.map(c => c.cliente).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+        .forEach(cli => {
+          const opt = document.createElement('option');
+          opt.value = cli;
+          dlCli.appendChild(opt);
+        });
+
+      // 2. Cidades / Filiais
+      const dlCid = document.getElementById('listaSACCidades');
+      dlCid.innerHTML = '';
+      const cidadesSet = new Set([
+        ...(dadosSAC.cidades || []).map(limparTextoEntrada),
+        ...baseClientes.map(c => c.filial)
+      ]);
+      [...cidadesSet].filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(cid => {
+        const opt = document.createElement('option');
+        opt.value = cid;
+        dlCid.appendChild(opt);
+      });
 
       // 3. Descrição
       const listaProdutos = extrairListaTexto(
-        dadosSAC.produtos || dadosSAC.descricoes || [], 
+        dadosSAC.produtos || dadosSAC.descricoes || [],
         ['produto', 'descricao', 'nome', 'descricao_produto', 'item']
       );
       const dlDesc = document.getElementById('listaSACDescricoes');
@@ -1551,7 +1501,7 @@
 
       // 4. Problemas
       const listaProblemas = extrairListaTexto(
-        dadosSAC.problemas || [], 
+        dadosSAC.problemas || [],
         ['problema', 'problemas', 'descricao', 'motivo', 'nome']
       );
       const dlProb = document.getElementById('listaSACProblemas');
@@ -1564,7 +1514,7 @@
 
       // 5. Forma de Pagamento
       const listaFormasPgt = extrairListaTexto(
-        dadosSAC.formas_pgt || dadosSAC.formas_pagamento || [], 
+        dadosSAC.formas_pgt || dadosSAC.formas_pagamento || [],
         ['forma_pgt', 'forma_pagamento', 'forma', 'descricao', 'nome']
       );
       const dlPgto = document.getElementById('listaSACFormasPgto');
@@ -1580,10 +1530,13 @@
       const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
       if (!cli) {
         document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
+        document.getElementById('sacCidade').value = '';
         return;
       }
-      const baseClientes = obterBaseUnificadaClientes();
-      const existeExato = baseClientes.some(c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR'));
+      const baseClientes = obterBaseClientesUnificada();
+      const existeExato = baseClientes.some(
+        c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR')
+      );
       if (existeExato) {
         aoMudarClienteSAC();
       }
@@ -1595,9 +1548,12 @@
       const inputFilial = document.getElementById('sacCidade');
 
       selectLocal.innerHTML = '<option value="">Selecione o Local Interno...</option>';
-      if (!cli) return;
+      if (!cli) {
+        inputFilial.value = '';
+        return;
+      }
 
-      const baseClientes = obterBaseUnificadaClientes();
+      const baseClientes = obterBaseClientesUnificada();
       const registrosCliente = baseClientes.filter(
         c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR')
       );
@@ -1614,13 +1570,14 @@
         selectLocal.appendChild(opt);
       });
 
+      // Se houver apenas 1 local interno cadastrado, seleciona automaticamente
       if (locaisUnicos.length === 1) {
         selectLocal.value = locaisUnicos[0];
         aoMudarLocalInternoSAC();
       } else {
-        // Se todas as unidades desse cliente pertencem à mesma filial, já pré-preenche a filial
-        const filiaisUnicas = [...new Set(registrosCliente.map(r => r.filialResponsavel).filter(Boolean))];
-        if (filiaisUnicas.length === 1 && inputFilial) {
+        // Caso haja múltiplos locais, pré-preenche a filial se todos pertencerem à mesma filial
+        const filiaisUnicas = [...new Set(registrosCliente.map(r => r.filial).filter(Boolean))];
+        if (filiaisUnicas.length === 1) {
           inputFilial.value = filiaisUnicas[0];
         }
       }
@@ -1629,26 +1586,17 @@
     function aoMudarLocalInternoSAC() {
       const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
       const loc = limparTextoEntrada(document.getElementById('sacLocalInterno').value);
+      const inputFilial = document.getElementById('sacCidade');
       if (!cli) return;
 
-      const baseClientes = obterBaseUnificadaClientes();
-      let achado = null;
+      const baseClientes = obterBaseClientesUnificada();
+      const achado = baseClientes.find(
+        c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR') &&
+             (!loc || c.localInterno.toLocaleLowerCase('pt-BR') === loc.toLocaleLowerCase('pt-BR'))
+      );
 
-      if (loc) {
-        achado = baseClientes.find(
-          c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR') &&
-               c.localInterno.toLocaleLowerCase('pt-BR') === loc.toLocaleLowerCase('pt-BR')
-        );
-      }
-
-      if (!achado) {
-        achado = baseClientes.find(
-          c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR') && c.filialResponsavel
-        );
-      }
-
-      if (achado && achado.filialResponsavel) {
-        document.getElementById('sacCidade').value = achado.filialResponsavel;
+      if (achado && achado.filial) {
+        inputFilial.value = achado.filial;
       }
     }
 
@@ -1675,7 +1623,7 @@
       document.getElementById('alertSACEditMode').classList.add('hidden');
       document.getElementById('sacFormTitleText').innerText = "Lançamento de Ocorrências do SAC";
       document.getElementById('btnSalvarSACText').innerText = "Lançar Ocorrência SAC";
-      
+
       const anoAtual = new Date().getFullYear();
       document.getElementById('sacChamado').value = calcularPreviaProximoChamado(anoAtual);
       document.getElementById('sacData').value = new Date().toISOString().split('T')[0];
@@ -1688,14 +1636,14 @@
     // EDIÇÃO E EXCLUSÃO DE CHAMADO SAC
     // =========================================================================
     function editarChamadoSAC(numeroChamado, origem = 'sac') {
-      const busca = String(numeroChamado).trim().toUpperCase();
+      const alvo = String(numeroChamado).trim().toUpperCase();
       const item =
-        listaChamadosSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === busca) ||
-        itensPaginaSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === busca) ||
-        itensPaginaAbertos.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === busca);
+        listaChamadosSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === alvo) ||
+        itensPaginaSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === alvo) ||
+        itensPaginaAbertos.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === alvo);
 
       if (!item) {
-        alert('Chamado não localizado na listagem atual.');
+        alert('⚠️ Chamado ' + numeroChamado + ' não localizado na memória.');
         return;
       }
 
@@ -1714,7 +1662,9 @@
       const localVal = limparTextoEntrada(item.local_interno || item.localInterno || item['Local Interno'] || item.local || '');
       const selectLocal = document.getElementById('sacLocalInterno');
       if (localVal) {
-        const optExiste = Array.from(selectLocal.options).some(o => o.value.toLocaleLowerCase('pt-BR') === localVal.toLocaleLowerCase('pt-BR'));
+        const optExiste = Array.from(selectLocal.options).some(
+          o => o.value.toLocaleLowerCase('pt-BR') === localVal.toLocaleLowerCase('pt-BR')
+        );
         if (!optExiste) {
           const novaOpt = document.createElement('option');
           novaOpt.value = localVal;
@@ -1726,7 +1676,7 @@
 
       document.getElementById('sacCidade').value = limparTextoEntrada(item.cidade || item.Cidade || item.filial || '');
       document.getElementById('sacDescricao').value = limparTextoEntrada(item.descricao || item.Descricao || item['Descrição'] || '');
-      
+
       const prodVal = limparTextoEntrada(item.produto || item.Produto || '');
       const selectProduto = document.getElementById('sacProduto');
       if (prodVal.toLowerCase().includes('café') || prodVal.toLowerCase().includes('cafe')) {
@@ -1739,7 +1689,7 @@
 
       const dtTrans = limparTextoEntrada(item.data_transacao || item.dataTransacao || item['Data da Transação'] || '');
       document.getElementById('sacDataTransacao').value = dtTrans.includes('/') ? dataPtBrParaIso(dtTrans) : dtTrans;
-      
+
       let hrTrans = limparTextoEntrada(item.hora_transacao || item.horaTransacao || item['Hora da Transação'] || '');
       if (hrTrans && hrTrans.length > 5) hrTrans = hrTrans.substring(0, 5);
       document.getElementById('sacHoraTransacao').value = hrTrans;
@@ -1777,7 +1727,7 @@
       document.getElementById('sacFormTitleText').innerText = 'Edição da Ocorrência: ' + (item.chamado || item.Chamado);
       document.getElementById('btnSalvarSACText').innerText = 'Salvar Alterações';
       document.getElementById('sacForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      
+
       lucide.createIcons();
     }
 
@@ -1789,8 +1739,8 @@
     }
 
     async function excluirChamadoSAC(numeroChamado) {
-      if (!confirm('Deseja realmente excluir o chamado ' + numeroChamado + '? Esta ação removerá o registro do banco SQL.')) return;
-      
+      if (!confirm('Deseja realmente excluir o chamado ' + numeroChamado + '? Esta ação removerá o registro do banco Supabase.')) return;
+
       abrirModalLoading('Excluindo Ocorrência...', 'Removendo a ocorrência ' + numeroChamado + ' do banco de dados.', 'loading');
       const item =
         listaChamadosSAC.find(c => c.chamado === numeroChamado) ||
@@ -1798,13 +1748,13 @@
         itensPaginaAbertos.find(c => c.chamado === numeroChamado);
 
       const resultado = await enviarParaBancoGarantido({
-        "action": "excluir", 
-        "acao": "excluir", 
+        "action": "excluir",
+        "acao": "excluir",
         "tipo": "excluir_sac",
-        "Chamado": numeroChamado, 
+        "Chamado": numeroChamado,
         "chamado": numeroChamado,
         "id": item?.id || item?.linha || "",
-        "linha": item?.linha || item?.id || ""
+        "linha": item?.id || item?.linha || ""
       });
 
       if (resultado.status === "error") {
@@ -1814,6 +1764,10 @@
       }
 
       listaChamadosSAC = listaChamadosSAC.filter(c => c.chamado !== numeroChamado);
+      totalGeralBanco = Math.max(0, totalGeralBanco - 1);
+      const headerTotal = document.getElementById('headerTotalChamados');
+      if (headerTotal) headerTotal.innerText = totalGeralBanco;
+
       await carregarPaginaChamadosSAC(paginaAtualSAC);
       await carregarPaginaChamadosAbertos(paginaAtualAbertos);
       atualizarDashboardSAC();
@@ -1824,17 +1778,14 @@
 
       abrirModalLoading('Chamado Excluído!', 'A ocorrência ' + numeroChamado + ' foi removida da base com sucesso.', 'excluir');
       exibirMensagemTopo('🗑️ Chamado ' + numeroChamado + ' excluído!', 'A ocorrência foi removida do sistema e do banco de dados.', 'excluir');
-      
+
       setTimeout(fecharModalLoading, 1000);
     }
 
-    // =========================================================================
-    // SUBMISSÃO DE NOVO CHAMADO OU EDIÇÃO (PERSISTÊNCIA GARANTIDA)
-    // =========================================================================
     async function handleSACSubmit(e) {
       e.preventDefault();
-      
-      if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente')) return;
+
+      if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)) return;
       const selectLocal = document.getElementById('sacLocalInterno');
       if (!selectLocal.value) { alert('⛔ Selecione um Local Interno.'); selectLocal.focus(); return; }
       if (!validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')) return;
@@ -1857,4 +1808,1174 @@
       const cidade = limparTextoEntrada(document.getElementById('sacCidade').value);
       const descricao = limparTextoEntrada(document.getElementById('sacDescricao').value);
       const produto = limparTextoEntrada(document.getElementById('sacProduto').value);
-      const dataTransacaoIso = document.getElementById('sacData
+      const dataTransacaoIso = document.getElementById('sacDataTransacao').value;
+      const dataTransacao = dataIsoParaPtBr(dataTransacaoIso);
+      const horaTransacao = limparTextoEntrada(document.getElementById('sacHoraTransacao').value);
+      const valor = parseFloat(document.getElementById('sacValor').value) || 0;
+      const nomeSobrenome = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('sacNome').value));
+      const celular = limparTextoEntrada(document.getElementById('sacCelular').value);
+      const problemas = limparTextoEntrada(document.getElementById('sacProblema').value);
+      const formaPgto = limparTextoEntrada(document.getElementById('sacFormaPgto').value);
+      const reembolso = limparTextoEntrada(document.getElementById('sacReembolso').value);
+      const pix = limparTextoEntrada(document.getElementById('sacPix').value);
+      const reembolsoRealizado = limparTextoEntrada(document.getElementById('sacReembolsoRealizado').value) || "Não";
+      const observacao = limparTextoEntrada(document.getElementById('sacObservacao').value);
+
+      const atendente = ehEdicao && chamadoEmEdicao?.atendente
+        ? limparTextoEntrada(chamadoEmEdicao.atendente)
+        : limparTextoEntrada(atendenteSACLogado || document.getElementById('sacAtendente').value);
+
+      const dataHoraLancamento = ehEdicao && (chamadoEmEdicao?.data_hora_lancamento || chamadoEmEdicao?.dataHoraLancamento)
+        ? limparTextoEntrada(chamadoEmEdicao.data_hora_lancamento || chamadoEmEdicao.dataHoraLancamento)
+        : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
+
+      const financeiroResponsavel = (reembolsoRealizado === "Sim")
+        ? limparTextoEntrada(atendenteSACLogado || chamadoEmEdicao?.financeiro_responsavel || chamadoEmEdicao?.financeiroResponsavel || "")
+        : limparTextoEntrada(chamadoEmEdicao?.financeiro_responsavel || chamadoEmEdicao?.financeiroResponsavel || "");
+
+      const registroId = ehEdicao ? (chamadoEmEdicao.id || chamadoEmEdicao.linha || "") : "";
+
+      const payloadSAC = {
+        "acao": ehEdicao ? "editar" : "inserir",
+        "action": ehEdicao ? "editar" : "inserir",
+        "id": registroId,
+        "linha": registroId,
+        "chamado": chamado,
+        "Chamado": chamado,
+        "data": data,
+        "Data": data,
+        "cliente": cliente,
+        "Cliente": cliente,
+        "local_interno": localInterno,
+        "Local Interno": localInterno,
+        "cidade": cidade,
+        "Cidade": cidade,
+        "descricao": descricao,
+        "Descrição": descricao,
+        "produto": produto,
+        "Produto": produto,
+        "data_transacao": dataTransacao,
+        "Data da Transação": dataTransacao,
+        "hora_transacao": horaTransacao,
+        "Hora da Transação": horaTransacao,
+        "valor": valor,
+        "Valor": valor,
+        "nome_sobrenome": nomeSobrenome,
+        "Nome/Sobrenome": nomeSobrenome,
+        "celular": celular,
+        "Celular": celular,
+        "problemas": problemas,
+        "Problemas": problemas,
+        "forma_pgto": formaPgto,
+        "Forma de Pagamento": formaPgto,
+        "reembolso": reembolso,
+        "Reembolso": reembolso,
+        "pix": pix,
+        "Pix - Reembolso": pix,
+        "atendente": atendente,
+        "Atendente": atendente,
+        "data_hora_lancamento": dataHoraLancamento,
+        "Data/Hora do lançamento": dataHoraLancamento,
+        "reembolso_realizado": reembolsoRealizado,
+        "Reembolso Realizado": reembolsoRealizado,
+        "financeiro_responsavel": financeiroResponsavel,
+        "Financeiro Responsavel": financeiroResponsavel,
+        "observacao": observacao,
+        "Observação": observacao
+      };
+
+      abrirModalLoading(
+        ehEdicao ? 'Atualizando Ocorrência...' : 'Lançando no Sistema...',
+        ehEdicao ? 'Gravando alterações do chamado ' + chamado + ' no Supabase.' : 'Registrando a ocorrência ' + chamado + ' no Supabase.',
+        'loading'
+      );
+
+      const btnSalvar = document.getElementById('btnSalvarSAC');
+      if (btnSalvar) btnSalvar.disabled = true;
+
+      const resultado = await enviarParaBancoGarantido(payloadSAC);
+
+      if (btnSalvar) btnSalvar.disabled = false;
+
+      if (resultado.status === "error") {
+        fecharModalLoading();
+        alert('❌ Falha ao gravar chamado no banco de dados:\n' + resultado.message);
+        return;
+      }
+
+      const registroBanco = (resultado.data && resultado.data.data) ? resultado.data.data : null;
+      if (registroBanco && registroBanco.chamado) {
+        chamado = limparTextoEntrada(registroBanco.chamado);
+      } else if (resultado.data && resultado.data.chamado) {
+        chamado = limparTextoEntrada(resultado.data.chamado);
+      }
+
+      const novoItem = registroBanco || {
+        id: ehEdicao ? registroId : (resultado.data?.linha || Date.now()),
+        linha: ehEdicao ? registroId : (resultado.data?.linha || Date.now()),
+        chamado,
+        data,
+        cliente,
+        local_interno: localInterno,
+        localInterno: localInterno,
+        cidade,
+        descricao,
+        produto,
+        data_transacao: dataTransacao,
+        dataTransacao: dataTransacao,
+        hora_transacao: horaTransacao,
+        horaTransacao: horaTransacao,
+        valor,
+        nome_sobrenome: nomeSobrenome,
+        nomeSobrenome: nomeSobrenome,
+        celular,
+        problemas,
+        forma_pgto: formaPgto,
+        formaPgto: formaPgto,
+        reembolso,
+        pix,
+        atendente,
+        data_hora_lancamento: dataHoraLancamento,
+        dataHoraLancamento: dataHoraLancamento,
+        reembolso_realizado: reembolsoRealizado,
+        reembolsoRealizado: reembolsoRealizado,
+        financeiro_responsavel: financeiroResponsavel,
+        financeiroResponsavel: financeiroResponsavel,
+        observacao,
+        obs: observacao
+      };
+
+      if (ehEdicao) {
+        listaChamadosSAC = listaChamadosSAC.map(c => c.chamado === chamado ? novoItem : c);
+      } else {
+        listaChamadosSAC.unshift(novoItem);
+        totalGeralBanco += 1;
+        const headerTotal = document.getElementById('headerTotalChamados');
+        if (headerTotal) headerTotal.innerText = totalGeralBanco;
+
+        paginaAtualSAC = 1;
+        paginaAtualAbertos = 1;
+        if (document.getElementById('searchSACChamados')) document.getElementById('searchSACChamados').value = '';
+        if (document.getElementById('searchAbertos')) document.getElementById('searchAbertos').value = '';
+      }
+
+      const m = chamado.match(/SAC-(\d{4})-(\d+)/i);
+      if (m) {
+        if (!dadosSAC.maior_sac_ano) dadosSAC.maior_sac_ano = {};
+        dadosSAC.maior_sac_ano[m[1]] = Math.max(dadosSAC.maior_sac_ano[m[1]] || 0, parseInt(m[2], 10));
+      }
+
+      const destinoAposSalvar = (ehEdicao && origemEdicaoSAC === 'chamadosAbertos') ? 'chamadosAbertos' : 'sac';
+      limparFormSAC();
+      await carregarPaginaChamadosSAC(paginaAtualSAC);
+      await carregarPaginaChamadosAbertos(paginaAtualAbertos);
+      atualizarDashboardSAC();
+      origemEdicaoSAC = 'sac';
+
+      abrirModalLoading(ehEdicao ? 'Ocorrência Atualizada!' : 'Lançamento Concluído!', 'Ocorrência gravada no Supabase com sucesso.', 'sucesso');
+      if (destinoAposSalvar === 'chamadosAbertos') switchPage('chamadosAbertos');
+      exibirMensagemTopo('✅ Ocorrência ' + chamado + ' gravada no Supabase!', 'Valor: ' + formatCurrency(valor) + ' · Forma Pgto: ' + (formaPgto || '-'));
+
+      setTimeout(fecharModalLoading, 1000);
+    }
+
+    // =========================================================================
+    // PAGINAÇÃO SERVER-SIDE DE 50 EM 50 (LANÇAMENTO SAC & CHAMADOS ABERTOS)
+    // =========================================================================
+    const ITENS_POR_PAGINA = 50;
+
+    let paginaAtualSAC = 1;
+    let totalPaginasSAC = 1;
+    let itensPaginaSAC = [];
+    let debounceTimerSAC = null;
+
+    let paginaAtualAbertos = 1;
+    let totalPaginasAbertos = 1;
+    let itensPaginaAbertos = [];
+    let debounceTimerAbertos = null;
+
+    async function consultarChamadosPaginadosAPI(page, search, aba) {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(ITENS_POR_PAGINA),
+        search: search || '',
+        aba: aba || 'todos'
+      });
+
+      const resp = await fetch(`${BACKEND_PAGINACAO_URL}?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json; charset=UTF-8' }
+      });
+
+      const buffer = await resp.arrayBuffer();
+      const texto = new TextDecoder('utf-8').decode(buffer);
+      return normalizarObjetoProfundo(JSON.parse(texto));
+    }
+
+    function filtrarChamadosSAC() {
+      clearTimeout(debounceTimerSAC);
+      debounceTimerSAC = setTimeout(() => {
+        paginaAtualSAC = 1;
+        carregarPaginaChamadosSAC(1);
+      }, 280);
+    }
+
+    function mudarPaginaSAC(delta) {
+      const novaPagina = paginaAtualSAC + delta;
+      if (novaPagina >= 1 && novaPagina <= totalPaginasSAC) {
+        carregarPaginaChamadosSAC(novaPagina);
+      }
+    }
+
+    async function carregarPaginaChamadosSAC(pagina = 1) {
+      const tbody = document.getElementById('tableSACChamadosBody');
+      const badge = document.getElementById('badgeContadorSAC');
+      const termo = limparTextoEntrada(document.getElementById('searchSACChamados')?.value || '');
+
+      try {
+        const res = await consultarChamadosPaginadosAPI(pagina, termo, 'sac');
+        if (res && res.status === 'success') {
+          paginaAtualSAC = res.page || 1;
+          totalPaginasSAC = res.total_pages || 1;
+          itensPaginaSAC = Array.isArray(res.items) ? res.items : [];
+          const totalRegistros = res.total || 0;
+
+          if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
+          renderizarLinhasTabelaSAC(itensPaginaSAC, totalRegistros, paginaAtualSAC, totalPaginasSAC);
+          return;
+        }
+      } catch (err) {
+        console.warn('Fallback local na paginação SAC:', err);
+      }
+
+      // Fallback local caso a API esteja indisponível
+      const filtrados = termo
+        ? listaChamadosSAC.filter(c => Object.values(c).some(v => normalizarCodificacaoTexto(String(v || '')).toLocaleLowerCase('pt-BR').includes(termo.toLocaleLowerCase('pt-BR'))))
+        : listaChamadosSAC;
+
+      totalPaginasSAC = Math.max(1, Math.ceil(filtrados.length / ITENS_POR_PAGINA));
+      paginaAtualSAC = Math.min(Math.max(1, pagina), totalPaginasSAC);
+      const ini = (paginaAtualSAC - 1) * ITENS_POR_PAGINA;
+      itensPaginaSAC = filtrados.slice(ini, ini + ITENS_POR_PAGINA);
+      if (badge) badge.innerText = filtrados.length.toLocaleString('pt-BR') + ' chamado(s)';
+      renderizarLinhasTabelaSAC(itensPaginaSAC, filtrados.length, paginaAtualSAC, totalPaginasSAC);
+    }
+
+    function renderizarLinhasTabelaSAC(listaPaginada, totalRegistros, pagina, totalPaginas) {
+      const tbody = document.getElementById('tableSACChamadosBody');
+      if (!tbody) return;
+
+      if (!listaPaginada || listaPaginada.length === 0 || totalRegistros === 0) {
+        tbody.innerHTML = '<tr><td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhuma ocorrência encontrada.</td></tr>';
+        atualizarControlesPaginacaoSAC(0, 0, 0, 1, 1);
+        return;
+      }
+
+      const indiceInicio = (pagina - 1) * ITENS_POR_PAGINA;
+      const indiceFim = indiceInicio + listaPaginada.length;
+
+      tbody.innerHTML = listaPaginada.map(c => {
+        const rVal = limparTextoEntrada(c.reembolso_realizado || c.reembolsoRealizado || 'Não').toLowerCase();
+        const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
+        const badgePago = pago 
+          ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
+          : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
+
+        const numChamado = limparTextoEntrada(c.chamado || c.Chamado || '');
+        const dtChamado = limparTextoEntrada(c.data || c.Data || '-');
+        const nomeCliente = limparTextoEntrada(c.cliente || c.Cliente || '-');
+        const localInt = limparTextoEntrada(c.local_interno || c.localInterno || c['Local Interno'] || c.local || '-');
+        const filialCid = limparTextoEntrada(c.cidade || c.Cidade || '-');
+        const prod = limparTextoEntrada(c.produto || c.Produto || '-');
+        const valFormatado = formatCurrency(parseValorNumerico(c.valor || c.Valor));
+        const contatoNome = limparTextoEntrada(c.nome_sobrenome || c.nomeSobrenome || c['Nome/Sobrenome'] || '-');
+        const formaPag = limparTextoEntrada(c.forma_pgto || c.formaPgto || c['Forma de Pagamento'] || '-');
+        const tipoReembolso = limparTextoEntrada(c.reembolso || c.Reembolso || '-');
+        const finResp = limparTextoEntrada(c.financeiro_responsavel || c.financeiroResponsavel || c['Financeiro Responsavel'] || '-');
+        const obs = limparTextoEntrada(c.observacao || c.Observação || c.obs || '-');
+        const atend = limparTextoEntrada(c.atendente || c.Atendente || '-');
+
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="text-center whitespace-nowrap">
+              <div class="inline-flex items-center gap-1 justify-center">
+                <button type="button" onclick="editarChamadoSAC('${numChamado}', 'sac')" title="Editar chamado ${numChamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
+                  <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" onclick="excluirChamadoSAC('${numChamado}')" title="Excluir chamado ${numChamado}" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </td>
+            <td class="font-mono font-bold text-sky-700 truncate" title="${numChamado}">${numChamado}</td>
+            <td class="truncate" title="${dtChamado}">${dtChamado}</td>
+            <td class="font-semibold text-slate-800 truncate" title="${nomeCliente}">${nomeCliente}</td>
+            <td class="text-slate-600 truncate" title="${localInt}">${localInt}</td>
+            <td class="text-slate-600 truncate" title="${filialCid}">${filialCid}</td>
+            <td class="font-medium text-slate-700 truncate" title="${prod}">${prod}</td>
+            <td class="text-right font-bold text-emerald-700 truncate" title="${valFormatado}">${valFormatado}</td>
+            <td class="font-medium text-slate-800 truncate" title="${contatoNome}">${contatoNome}</td>
+            <td class="text-slate-700 font-medium truncate" title="${formaPag}">${formaPag}</td>
+            <td class="text-sky-900 font-semibold truncate" title="${tipoReembolso}">${tipoReembolso}</td>
+            <td class="text-center whitespace-nowrap">${badgePago}</td>
+            <td class="font-semibold text-emerald-800 truncate" title="${finResp}">${finResp}</td>
+            <td class="text-slate-600 truncate" title="${obs}">${obs}</td>
+            <td class="font-medium text-slate-600 truncate" title="${atend}">${atend}</td>
+          </tr>
+        `;
+      }).join('');
+
+      atualizarControlesPaginacaoSAC(indiceInicio + 1, indiceFim, totalRegistros, pagina, totalPaginas);
+      lucide.createIcons();
+    }
+
+    function atualizarControlesPaginacaoSAC(de, ate, total, pagina, totalPaginas) {
+      const info = document.getElementById('infoPaginacaoSAC');
+      const badge = document.getElementById('badgePaginaSAC');
+      const btnAnt = document.getElementById('btnPagAntSAC');
+      const btnProx = document.getElementById('btnPagProxSAC');
+
+      if (info) info.innerText = `Exibindo ${de.toLocaleString('pt-BR')} a ${ate.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} chamados`;
+      if (badge) badge.innerText = `Página ${pagina} de ${totalPaginas}`;
+      if (btnAnt) btnAnt.disabled = (pagina <= 1);
+      if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
+    }
+
+    // --- PAGINAÇÃO ABA: CHAMADOS ABERTOS ---
+    function filtrarChamadosAbertos() {
+      clearTimeout(debounceTimerAbertos);
+      debounceTimerAbertos = setTimeout(() => {
+        paginaAtualAbertos = 1;
+        carregarPaginaChamadosAbertos(1);
+      }, 280);
+    }
+
+    function mudarPaginaAbertos(delta) {
+      const novaPagina = paginaAtualAbertos + delta;
+      if (novaPagina >= 1 && novaPagina <= totalPaginasAbertos) {
+        carregarPaginaChamadosAbertos(novaPagina);
+      }
+    }
+
+    async function carregarPaginaChamadosAbertos(pagina = 1) {
+      const badge = document.getElementById('badgeContadorAbertos');
+      const termo = limparTextoEntrada(document.getElementById('searchAbertos')?.value || '');
+
+      try {
+        const res = await consultarChamadosPaginadosAPI(pagina, termo, 'abertos');
+        if (res && res.status === 'success') {
+          paginaAtualAbertos = res.page || 1;
+          totalPaginasAbertos = res.total_pages || 1;
+          itensPaginaAbertos = Array.isArray(res.items) ? res.items : [];
+          const totalRegistros = res.total || 0;
+
+          if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
+          renderizarLinhasTabelaAbertos(itensPaginaAbertos, totalRegistros, paginaAtualAbertos, totalPaginasAbertos);
+          return;
+        }
+      } catch (err) {
+        console.warn('Fallback local na paginação Chamados Abertos:', err);
+      }
+
+      const filtrados = termo
+        ? listaChamadosSAC.filter(c => Object.values(c).some(v => normalizarCodificacaoTexto(String(v || '')).toLocaleLowerCase('pt-BR').includes(termo.toLocaleLowerCase('pt-BR'))))
+        : listaChamadosSAC;
+
+      totalPaginasAbertos = Math.max(1, Math.ceil(filtrados.length / ITENS_POR_PAGINA));
+      paginaAtualAbertos = Math.min(Math.max(1, pagina), totalPaginasAbertos);
+      const ini = (paginaAtualAbertos - 1) * ITENS_POR_PAGINA;
+      itensPaginaAbertos = filtrados.slice(ini, ini + ITENS_POR_PAGINA);
+      if (badge) badge.innerText = filtrados.length.toLocaleString('pt-BR') + ' chamado(s)';
+      renderizarLinhasTabelaAbertos(itensPaginaAbertos, filtrados.length, paginaAtualAbertos, totalPaginasAbertos);
+    }
+
+    function renderizarLinhasTabelaAbertos(listaPaginada, totalRegistros, pagina, totalPaginas) {
+      const tbody = document.getElementById('tableChamadosAbertosBody');
+      if (!tbody) return;
+
+      if (!listaPaginada || listaPaginada.length === 0 || totalRegistros === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto encontrado.</td></tr>';
+        atualizarControlesPaginacaoAbertos(0, 0, 0, 1, 1);
+        return;
+      }
+
+      const indiceInicio = (pagina - 1) * ITENS_POR_PAGINA;
+      const indiceFim = indiceInicio + listaPaginada.length;
+
+      tbody.innerHTML = listaPaginada.map(c => {
+        const rVal = limparTextoEntrada(c.reembolso_realizado || c.reembolsoRealizado || 'Não').toLowerCase();
+        const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
+        const badgePago = pago 
+          ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
+          : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
+
+        const numChamado = limparTextoEntrada(c.chamado || c.Chamado || '');
+        const dtChamado = limparTextoEntrada(c.data || c.Data || '-');
+        const nomeCliente = limparTextoEntrada(c.cliente || c.Cliente || '-');
+        const valFormatado = formatCurrency(parseValorNumerico(c.valor || c.Valor));
+        const contatoNome = limparTextoEntrada(c.nome_sobrenome || c.nomeSobrenome || c['Nome/Sobrenome'] || '-');
+        const formaPag = limparTextoEntrada(c.forma_pgto || c.formaPgto || c['Forma de Pagamento'] || '-');
+        const chavePix = limparTextoEntrada(c.pix || c.Pix || c['Pix - Reembolso'] || '-');
+        const finResp = limparTextoEntrada(c.financeiro_responsavel || c.financeiroResponsavel || c['Financeiro Responsavel'] || '-');
+        const obs = limparTextoEntrada(c.observacao || c.Observação || c.obs || '-');
+
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="font-mono font-bold text-sky-700 truncate" title="${numChamado}">${numChamado}</td>
+            <td class="text-slate-700 truncate" title="${dtChamado}">${dtChamado}</td>
+            <td class="font-semibold text-slate-800 truncate" title="${nomeCliente}">${nomeCliente}</td>
+            <td class="text-right font-bold text-emerald-700 truncate" title="${valFormatado}">${valFormatado}</td>
+            <td class="font-medium text-slate-800 truncate" title="${contatoNome}">${contatoNome}</td>
+            <td class="text-slate-700 font-semibold truncate" title="${formaPag}">${formaPag}</td>
+            <td class="font-mono text-slate-600 truncate" title="${chavePix}">${chavePix}</td>
+            <td class="text-center whitespace-nowrap">${badgePago}</td>
+            <td class="font-semibold text-emerald-800 truncate" title="${finResp}">${finResp}</td>
+            <td class="text-slate-600 truncate" title="${obs}">${obs}</td>
+            <td class="text-center whitespace-nowrap">
+              <button type="button" onclick="editarChamadoSAC('${numChamado}', 'chamadosAbertos')" title="Editar chamado ${numChamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer inline-flex items-center justify-center">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      atualizarControlesPaginacaoAbertos(indiceInicio + 1, indiceFim, totalRegistros, pagina, totalPaginas);
+      lucide.createIcons();
+    }
+
+    function atualizarControlesPaginacaoAbertos(de, ate, total, pagina, totalPaginas) {
+      const info = document.getElementById('infoPaginacaoAbertos');
+      const badge = document.getElementById('badgePaginaAbertos');
+      const btnAnt = document.getElementById('btnPagAntAbertos');
+      const btnProx = document.getElementById('btnPagProxAbertos');
+
+      if (info) info.innerText = `Exibindo ${de.toLocaleString('pt-BR')} a ${ate.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} chamados`;
+      if (badge) badge.innerText = `Página ${pagina} de ${totalPaginas}`;
+      if (btnAnt) btnAnt.disabled = (pagina <= 1);
+      if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
+    }
+
+    // =========================================================================
+    // CADASTRO DE CLIENTES (CRUD)
+    // =========================================================================
+    function limparFormCliente() {
+      clienteEmEdicao = null;
+      document.getElementById('clienteForm').reset();
+      document.getElementById('alertCliEditMode').classList.add('hidden');
+      document.getElementById('cliFormTitleText').innerText = "Cadastro de Clientes e Pontos de Atendimento";
+      document.getElementById('btnSalvarClienteText').innerText = "Cadastrar Cliente";
+      lucide.createIcons();
+    }
+
+    function cancelarEdicaoCliente() { 
+      limparFormCliente(); 
+    }
+
+    function editarCliente(index) {
+      if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
+        alert('⛔ Operação não permitida: Apenas usuários com perfil Geral podem editar clientes.');
+        return;
+      }
+      const item = listaCadastroClientes[index];
+      if (!item) return;
+
+      clienteEmEdicao = { ...item, indexOriginal: index };
+      document.getElementById('cadCliCliente').value = converterParaPrimeirasMaiusculas(item.cliente || '');
+      document.getElementById('cadCliLocal').value = converterParaPrimeirasMaiusculas(item.local || '');
+      document.getElementById('cadCliLocalInterno').value = converterParaPrimeirasMaiusculas(item.localInterno || item.local_interno || item.local || '');
+      document.getElementById('cadCliMaquina').value = converterParaPrimeirasMaiusculas(item.maquina || '');
+      document.getElementById('cadCliModeloMaquina').value = converterParaPrimeirasMaiusculas(item.modeloMaquina || item.modelo_maquina || '');
+      document.getElementById('cadCliFilial').value = converterParaPrimeirasMaiusculas(item.filialResponsavel || item.filial_responsavel || '');
+
+      document.getElementById('alertCliEditMode').classList.remove('hidden');
+      document.getElementById('labelCliEditNome').innerText = limparTextoEntrada(item.cliente) + ' (' + limparTextoEntrada(item.localInterno || item.local || '') + ')';
+      document.getElementById('cliFormTitleText').innerText = 'Edição de Ponto: ' + limparTextoEntrada(item.cliente);
+      document.getElementById('btnSalvarClienteText').innerText = 'Salvar Alterações';
+      document.getElementById('clienteForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      lucide.createIcons();
+    }
+
+    async function excluirCliente(index) {
+      if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
+        alert('⛔ Operação não permitida: Apenas usuários com perfil Geral podem excluir clientes.');
+        return;
+      }
+      const item = listaCadastroClientes[index];
+      if (!item) return;
+      const descr = limparTextoEntrada(item.cliente) + ' - ' + limparTextoEntrada(item.localInterno || item.local || '');
+      if (!confirm('Deseja realmente excluir o cadastro de "' + descr + '"?')) return;
+
+      abrirModalLoading('Excluindo Cliente...', 'Removendo o ponto "' + descr + '" do banco de dados.', 'loading');
+
+      const resultado = await enviarParaBancoGarantido({
+        "action": "excluir_cliente",
+        "acao": "excluir_cliente",
+        "tipo": "excluir_cliente",
+        "id": item.id || item.linha || "",
+        "linha": item.id || item.linha || "",
+        "Cliente": limparTextoEntrada(item.cliente),
+        "Local": limparTextoEntrada(item.local),
+        "Local interno": limparTextoEntrada(item.localInterno || item.local_interno),
+        "Máquina": limparTextoEntrada(item.maquina),
+        "Modelo de máquina": limparTextoEntrada(item.modeloMaquina || item.modelo_maquina),
+        "Filial Responsavel": limparTextoEntrada(item.filialResponsavel || item.filial_responsavel)
+      });
+
+      if (resultado.status === "error") {
+        fecharModalLoading();
+        alert('❌ Falha ao excluir cliente:\n' + resultado.message);
+        return;
+      }
+
+      listaCadastroClientes.splice(index, 1);
+      renderizarTabelaClientes();
+      inicializarFormularioSAC();
+      if (clienteEmEdicao && clienteEmEdicao.indexOriginal === index) limparFormCliente();
+
+      abrirModalLoading('Cliente Excluído!', 'O cadastro foi removido com sucesso.', 'excluir');
+      setTimeout(fecharModalLoading, 1000);
+    }
+
+    function filtrarClientesCadastrados() {
+      const termo = limparTextoEntrada(document.getElementById('searchClientesCadastrados')?.value || '').toLocaleLowerCase('pt-BR');
+      if (!termo) { renderizarTabelaClientes(listaCadastroClientes); return; }
+      const filtrados = listaCadastroClientes.filter(c => Object.values(c).some(val => normalizarCodificacaoTexto(String(val || '')).toLocaleLowerCase('pt-BR').includes(termo)));
+      renderizarTabelaClientes(filtrados);
+    }
+
+    function renderizarTabelaClientes(lista = listaCadastroClientes) {
+      const tbody = document.getElementById('tableClientesBody');
+      const badge = document.getElementById('badgeContadorClientes');
+      if (badge) badge.innerText = lista.length + ' cliente(s)';
+      if (!tbody) return;
+      if (!lista || lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 font-semibold">Nenhum cliente carregado.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = lista.map((c, idx) => `
+        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+          <td class="text-center whitespace-nowrap">
+            <div class="inline-flex items-center gap-1 justify-center">
+              <button type="button" onclick="editarCliente(${idx})" title="Editar cadastro" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+              </button>
+              <button type="button" onclick="excluirCliente(${idx})" title="Excluir cadastro" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </td>
+          <td class="font-bold text-slate-800 truncate" title="${limparTextoEntrada(c.cliente)}">${limparTextoEntrada(c.cliente) || '-'}</td>
+          <td class="text-slate-600 truncate" title="${limparTextoEntrada(c.local)}">${limparTextoEntrada(c.local) || '-'}</td>
+          <td class="text-slate-700 font-medium truncate" title="${limparTextoEntrada(c.localInterno || c.local_interno)}">${limparTextoEntrada(c.localInterno || c.local_interno) || '-'}</td>
+          <td class="text-slate-600 font-mono truncate" title="${limparTextoEntrada(c.maquina)}">${limparTextoEntrada(c.maquina) || '-'}</td>
+          <td class="text-slate-600 truncate" title="${limparTextoEntrada(c.modeloMaquina || c.modelo_maquina)}">${limparTextoEntrada(c.modeloMaquina || c.modelo_maquina) || '-'}</td>
+          <td class="font-semibold text-sky-800 truncate" title="${limparTextoEntrada(c.filialResponsavel || c.filial_responsavel)}">${limparTextoEntrada(c.filialResponsavel || c.filial_responsavel) || '-'}</td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    async function handleClienteSubmit(e) {
+      e.preventDefault();
+      if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
+        alert('⛔ Apenas perfil Geral pode cadastrar clientes.'); return;
+      }
+      const cliente = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliCliente').value));
+      const local = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliLocal').value));
+      const localInterno = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliLocalInterno').value));
+      const maquina = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliMaquina').value));
+      const modeloMaquina = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliModeloMaquina').value));
+      const filialResponsavel = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliFilial').value));
+      if (!cliente || !local || !localInterno || !maquina || !modeloMaquina || !filialResponsavel) {
+        alert('Preencha todos os campos obrigatórios.'); return;
+      }
+
+      const ehEdicao = (clienteEmEdicao !== null);
+      abrirModalLoading(ehEdicao ? 'Atualizando Cliente...' : 'Cadastrando Cliente...', 'Gravando no banco Supabase...', 'loading');
+
+      const btnSalvarCli = document.getElementById('btnSalvarCliente');
+      if (btnSalvarCli) btnSalvarCli.disabled = true;
+
+      const cliId = ehEdicao ? (clienteEmEdicao.id || clienteEmEdicao.linha || "") : "";
+
+      const resultado = await enviarParaBancoGarantido({
+        "acao": ehEdicao ? "editar_cliente" : "inserir_cliente",
+        "action": ehEdicao ? "editar_cliente" : "inserir_cliente",
+        "tipo": "cadastro_cliente",
+        "id": cliId,
+        "linha": cliId,
+        "Cliente": cliente,
+        "Local": local,
+        "Local interno": localInterno,
+        "Máquina": maquina,
+        "Modelo de máquina": modeloMaquina,
+        "Filial Responsavel": filialResponsavel
+      });
+
+      if (btnSalvarCli) btnSalvarCli.disabled = false;
+
+      if (resultado.status === "error") {
+        fecharModalLoading();
+        alert('❌ Falha ao salvar cliente:\n' + resultado.message);
+        return;
+      }
+
+      const novoItem = {
+        id: ehEdicao ? cliId : (resultado.data?.linha || Date.now()),
+        linha: ehEdicao ? cliId : (resultado.data?.linha || Date.now()),
+        cliente,
+        local,
+        localInterno,
+        local_interno: localInterno,
+        maquina,
+        modeloMaquina,
+        modelo_maquina: modeloMaquina,
+        filialResponsavel,
+        filial_responsavel: filialResponsavel,
+        cidade: filialResponsavel
+      };
+
+      if (ehEdicao) listaCadastroClientes[clienteEmEdicao.indexOriginal] = novoItem;
+      else listaCadastroClientes.unshift(novoItem);
+
+      if (!dadosSAC.clientes) dadosSAC.clientes = [];
+      dadosSAC.clientes.push(novoItem);
+      limparFormCliente();
+      renderizarTabelaClientes();
+      inicializarFormularioSAC();
+
+      abrirModalLoading('Cliente Salvo!', 'Registro gravado com sucesso no Supabase.', 'sucesso');
+      setTimeout(fecharModalLoading, 1000);
+    }
+
+    // =========================================================================
+    // GRÁFICOS E INDICADORES DO DASHBOARD SAC
+    // =========================================================================
+    function getHorizontalSACBarOptions() {
+      const textColor = '#475569';
+      const gridColor = 'rgba(226, 232, 240, 0.7)';
+      return {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { right: 40, left: 10, top: 10, bottom: 10 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#ffffff', titleColor: '#0f172a', bodyColor: '#334155',
+            borderColor: '#e2e8f0', borderWidth: 1, padding: 10,
+            callbacks: { label: (c) => 'Ocorrências: ' + c.raw.toLocaleString('pt-BR') }
+          },
+          datalabels: {
+            anchor: 'end', align: 'right', offset: 4, color: '#0f172a',
+            font: { family: 'Inter', weight: 'bold', size: 10 },
+            formatter: (v) => v ? v.toLocaleString('pt-BR') : ''
+          }
+        },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 } }, beginAtZero: true },
+          y: { grid: { display: false }, ticks: { color: textColor, font: { size: 10, weight: '600' } } }
+        }
+      };
+    }
+
+    const filterSACCliente = document.getElementById('filterSACCliente');
+    const filterSACProduto = document.getElementById('filterSACProduto');
+    const filterSACAtendente = document.getElementById('filterSACAtendente');
+
+    const chartTopProblemasSAC = new Chart(document.getElementById('chartTopProblemasSAC').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6 }] },
+      options: getHorizontalSACBarOptions()
+    });
+
+    const chartAtendentesSAC = new Chart(document.getElementById('chartAtendentesSAC').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6 }] },
+      options: getHorizontalSACBarOptions()
+    });
+
+    const chartLocaisAnterior = new Chart(document.getElementById('chartLocaisAnterior').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(100, 116, 139, 0.85)', borderRadius: 6 }] },
+      options: getHorizontalSACBarOptions()
+    });
+
+    const chartLocaisAtual = new Chart(document.getElementById('chartLocaisAtual').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(79, 70, 229, 0.85)', borderRadius: 6 }] },
+      options: getHorizontalSACBarOptions()
+    });
+
+    const chartMesesQtd = new Chart(document.getElementById('chartMesesQtd').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Quantidade', data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6 }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 20 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => 'Chamados: ' + c.raw.toLocaleString('pt-BR') } },
+          datalabels: {
+            anchor: 'end', align: 'top', offset: 2, color: '#0284c7',
+            font: { family: 'Inter', weight: 'bold', size: 10 },
+            formatter: (v) => v ? v.toLocaleString('pt-BR') : ''
+          }
+        },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+
+    const chartMesesVal = new Chart(document.getElementById('chartMesesVal').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Valor Ressarcido',
+          data: [],
+          backgroundColor: 'rgba(16, 185, 129, 0.85)',
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 22 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => 'Ressarcido: ' + formatCurrency(c.raw) } },
+          datalabels: {
+            anchor: 'end', align: 'top', offset: 2, color: '#047857',
+            font: { family: 'Inter', weight: 'bold', size: 9 },
+            formatter: (v) => v ? 'R$' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : ''
+          }
+        },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } }
+        }
+      }
+    });
+
+    const chartDiasQtd = new Chart(document.getElementById('chartDiasQtd').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Quantidade', data: [], backgroundColor: 'rgba(14, 165, 233, 0.85)', borderRadius: 4 }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 20 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => 'Chamados: ' + c.raw } },
+          datalabels: {
+            anchor: 'end', align: 'top', offset: 2, color: '#0369a1',
+            font: { family: 'Inter', weight: 'bold', size: 10 },
+            formatter: (v) => v ? v : ''
+          }
+        },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+
+    const chartDiasVal = new Chart(document.getElementById('chartDiasVal').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Valor (R$)',
+          data: [],
+          backgroundColor: 'rgba(245, 158, 11, 0.85)',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 22 } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => 'Valor: ' + formatCurrency(c.raw) } },
+          datalabels: {
+            anchor: 'end', align: 'top', offset: 2, color: '#b45309',
+            font: { family: 'Inter', weight: 'bold', size: 9 },
+            formatter: (v) => v ? 'R$' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : ''
+          }
+        },
+        scales: {
+          x: { ticks: { font: { size: 10 } } },
+          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: (v) => 'R$' + v.toLocaleString('pt-BR') } }
+        }
+      }
+    });
+
+    const chartTop10Semana = new Chart(document.getElementById('chartTop10Semana').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(225, 29, 72, 0.85)', borderRadius: 6 }] },
+      options: getHorizontalSACBarOptions()
+    });
+
+    const chartTop3Filial = new Chart(document.getElementById('chartTop3Filial').getContext('2d'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(217, 119, 6, 0.85)', borderRadius: 6 }] },
+      options: getHorizontalSACBarOptions()
+    });
+
+    function parseDateToYMD(dStr) {
+      if (!dStr) return '';
+      dStr = dStr.trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(dStr)) return dStr.substring(0, 10);
+      const parts = dStr.split(/[/ -]/);
+      if (parts.length === 3) {
+        if (parts[2].length === 4) return parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
+        if (parts[0].length === 4) return parts[0] + '-' + parts[1].padStart(2, '0') + '-' + parts[2].padStart(2, '0');
+      }
+      return '';
+    }
+
+    function atualizarGraficoLocaisAnterior() {
+      const mesAntInput = document.getElementById('filterMesLocaisAnterior')?.value;
+      if (!mesAntInput) return;
+      const cont = {};
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd && ymd.startsWith(mesAntInput)) {
+          const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
+          cont[loc] = (cont[loc] || 0) + 1;
+        }
+      });
+      const truncar = (t, max = 22) => t.length > max ? t.substring(0, max) + '...' : t;
+      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 5);
+      chartLocaisAnterior.data.labels = top5.map(t => truncar(t.nome));
+      chartLocaisAnterior.data.datasets[0].data = top5.map(t => t.qt);
+      chartLocaisAnterior.update();
+    }
+
+    function atualizarGraficoLocaisAtual() {
+      const mesAtualInput = document.getElementById('filterMesLocaisAtual')?.value;
+      if (!mesAtualInput) return;
+      const cont = {};
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd && ymd.startsWith(mesAtualInput)) {
+          const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
+          cont[loc] = (cont[loc] || 0) + 1;
+        }
+      });
+      const truncar = (t, max = 22) => t.length > max ? t.substring(0, max) + '...' : t;
+      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 5);
+      chartLocaisAtual.data.labels = top5.map(t => truncar(t.nome));
+      chartLocaisAtual.data.datasets[0].data = top5.map(t => t.qt);
+      chartLocaisAtual.update();
+    }
+
+    function atualizarGraficoMesesQtd() {
+      const selAno = document.getElementById('filterAnoMesesQtd')?.value || new Date().getFullYear();
+      const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const contQtd = Array(12).fill(0);
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd && ymd.startsWith(String(selAno))) {
+          const mIdx = parseInt(ymd.substring(5, 7), 10) - 1;
+          if (mIdx >= 0 && mIdx < 12) contQtd[mIdx]++;
+        }
+      });
+      chartMesesQtd.data.labels = mesesNomes;
+      chartMesesQtd.data.datasets[0].data = contQtd;
+      chartMesesQtd.update();
+    }
+
+    function atualizarGraficoMesesVal() {
+      const selAno = document.getElementById('filterAnoMesesVal')?.value || new Date().getFullYear();
+      const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const somaVal = Array(12).fill(0);
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd && ymd.startsWith(String(selAno))) {
+          const mIdx = parseInt(ymd.substring(5, 7), 10) - 1;
+          if (mIdx >= 0 && mIdx < 12) somaVal[mIdx] += parseValorNumerico(c.valor);
+        }
+      });
+      chartMesesVal.data.labels = mesesNomes;
+      chartMesesVal.data.datasets[0].data = somaVal;
+      chartMesesVal.update();
+    }
+
+    function atualizarGraficoDiasQtd() {
+      const mesDiasInput = document.getElementById('filterMesDiasQtd')?.value;
+      let anoRef, mesRef;
+      if (mesDiasInput) {
+        const parts = mesDiasInput.split('-');
+        anoRef = parseInt(parts[0], 10);
+        mesRef = parseInt(parts[1], 10);
+      } else {
+        const hoje = new Date();
+        anoRef = hoje.getFullYear();
+        mesRef = hoje.getMonth() + 1;
+      }
+      const pad = (n) => String(n).padStart(2, '0');
+      const strAnoMes = anoRef + '-' + pad(mesRef);
+      const contagemPorDia = {};
+
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd && ymd.startsWith(strAnoMes)) {
+          const dia = ymd.substring(8, 10);
+          contagemPorDia[dia] = (contagemPorDia[dia] || 0) + 1;
+        }
+      });
+
+      const diasPreenchidos = Object.keys(contagemPorDia).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+      chartDiasQtd.data.labels = diasPreenchidos.map(d => 'Dia ' + d);
+      chartDiasQtd.data.datasets[0].data = diasPreenchidos.map(d => contagemPorDia[d]);
+      chartDiasQtd.update();
+    }
+
+    function atualizarGraficoDiasVal() {
+      const mesDiasInput = document.getElementById('filterMesDiasVal')?.value;
+      let anoRef, mesRef;
+      if (mesDiasInput) {
+        const parts = mesDiasInput.split('-');
+        anoRef = parseInt(parts[0], 10);
+        mesRef = parseInt(parts[1], 10);
+      } else {
+        const hoje = new Date();
+        anoRef = hoje.getFullYear();
+        mesRef = hoje.getMonth() + 1;
+      }
+      const pad = (n) => String(n).padStart(2, '0');
+      const strAnoMes = anoRef + '-' + pad(mesRef);
+      const somaPorDia = {};
+
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd && ymd.startsWith(strAnoMes)) {
+          const dia = ymd.substring(8, 10);
+          const v = parseValorNumerico(c.valor);
+          if (v > 0 || !(dia in somaPorDia)) {
+            somaPorDia[dia] = (somaPorDia[dia] || 0) + v;
+          }
+        }
+      });
+
+      const diasPreenchidos = Object.keys(somaPorDia).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+      chartDiasVal.data.labels = diasPreenchidos.map(d => 'Dia ' + d);
+      chartDiasVal.data.datasets[0].data = diasPreenchidos.map(d => somaPorDia[d]);
+      chartDiasVal.update();
+    }
+
+    function atualizarGraficoTopSemana() {
+      const dtIni = document.getElementById('filterTopSemanaDtIni')?.value;
+      const dtFim = document.getElementById('filterTopSemanaDtFim')?.value;
+      const cont = {};
+
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (!ymd) return;
+        if (dtIni && ymd < dtIni) return;
+        if (dtFim && ymd > dtFim) return;
+        const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
+        cont[loc] = (cont[loc] || 0) + 1;
+      });
+
+      const truncar = (t, max = 26) => t.length > max ? t.substring(0, max) + '...' : t;
+      const top10 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 10);
+      chartTop10Semana.data.labels = top10.map(t => truncar(t.nome));
+      chartTop10Semana.data.datasets[0].data = top10.map(t => t.qt);
+      chartTop10Semana.update();
+    }
+
+    function atualizarGraficoTopFilial() {
+      const filial = document.getElementById('filterTopFilialSelect')?.value || 'ALL';
+      const dtIni = document.getElementById('filterTopFilialDtIni')?.value;
+      const dtFim = document.getElementById('filterTopFilialDtFim')?.value;
+      const cont = {};
+
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (!ymd) return;
+        if (dtIni && ymd < dtIni) return;
+        if (dtFim && ymd > dtFim) return;
+        if (filial !== 'ALL' && limparTextoEntrada(c.cidade).toLocaleLowerCase('pt-BR') !== filial.toLocaleLowerCase('pt-BR')) return;
+        const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
+        cont[loc] = (cont[loc] || 0) + 1;
+      });
+
+      const truncar = (t, max = 26) => t.length > max ? t.substring(0, max) + '...' : t;
+      const top3 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 3);
+      chartTop3Filial.data.labels = top3.map(t => truncar(t.nome));
+      chartTop3Filial.data.datasets[0].data = top3.map(t => t.qt);
+      chartTop3Filial.update();
+    }
+
+    function inicializarFiltrosDashboardSAC() {
+      const clientesUnicos = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.cliente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      filterSACCliente.innerHTML = '<option value="ALL">Todos os Clientes</option>';
+      clientesUnicos.forEach(cli => {
+        const opt = document.createElement('option'); opt.value = cli; opt.textContent = cli;
+        filterSACCliente.appendChild(opt);
+      });
+
+      const atendentesUnicos = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.atendente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      filterSACAtendente.innerHTML = '<option value="ALL">Todos os Atendentes</option>';
+      atendentesUnicos.forEach(a => {
+        const opt = document.createElement('option'); opt.value = a; opt.textContent = a;
+        filterSACAtendente.appendChild(opt);
+      });
+
+      const anosUnicos = [...new Set(listaChamadosSAC.map(c => {
+        const ymd = parseDateToYMD(c.data);
+        return ymd ? ymd.substring(0, 4) : '';
+      }).filter(Boolean))].sort().reverse();
+      const anoAtual = String(new Date().getFullYear());
+      if (!anosUnicos.length) anosUnicos.push(anoAtual);
+
+      const selAnoQtd = document.getElementById('filterAnoMesesQtd');
+      const selAnoVal = document.getElementById('filterAnoMesesVal');
+      selAnoQtd.innerHTML = '';
+      selAnoVal.innerHTML = '';
+      anosUnicos.forEach(a => {
+        const opt1 = document.createElement('option'); opt1.value = a; opt1.textContent = a; selAnoQtd.appendChild(opt1);
+        const opt2 = document.createElement('option'); opt2.value = a; opt2.textContent = a; selAnoVal.appendChild(opt2);
+      });
+      selAnoQtd.value = anosUnicos.includes(anoAtual) ? anoAtual : anosUnicos[0];
+      selAnoVal.value = anosUnicos.includes(anoAtual) ? anoAtual : anosUnicos[0];
+
+      const hoje = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const anoHoje = hoje.getFullYear();
+      const mesHoje = hoje.getMonth() + 1;
+      const strMesAtual = anoHoje + '-' + pad(mesHoje);
+
+      let mesAnt = mesHoje - 1;
+      let anoAnt = anoHoje;
+      if (mesAnt === 0) { mesAnt = 12; anoAnt--; }
+      const strMesAnt = anoAnt + '-' + pad(mesAnt);
+
+      const elLocAnt = document.getElementById('filterMesLocaisAnterior');
+      if (elLocAnt) elLocAnt.value = strMesAnt;
+
+      const elLocAtu = document.getElementById('filterMesLocaisAtual');
+      if (elLocAtu) elLocAtu.value = strMesAtual;
+
+      const elDiasQtd = document.getElementById('filterMesDiasQtd');
+      if (elDiasQtd) elDiasQtd.value = strMesAtual;
+
+      const elDiasVal = document.getElementById('filterMesDiasVal');
+      if (elDiasVal) elDiasVal.value = strMesAtual;
+
+      const dFim = hoje.toISOString().split('T')[0];
+      const dIniDate = new Date();
+      dIniDate.setDate(dIniDate.getDate() - 7);
+      const dIni = dIniDate.toISOString().split('T')[0];
+
+      const sDtIni = document.getElementById('filterTopSemanaDtIni');
+      const sDtFim = document.getElementById('filterTopSemanaDtFim');
+      if (sDtIni) sDtIni.value = dIni;
+      if (sDtFim) sDtFim.value = dFim;
+
+      const fDtIni = document.getElementById('filterTopFilialDtIni');
+      const fDtFim = document.getElementById('filterTopFilialDtFim');
+      if (fDtIni) fDtIni.value = dIni;
+      if (fDtFim) fDtFim.value = dFim;
+
+      const selFilial = document.getElementById('filterTopFilialSelect');
+      selFilial.innerHTML = '<option value="ALL">Todas as Filiais</option>';
+      const filiais = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.cidade)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      filiais.forEach(f => {
+        const opt = document.createElement('option'); opt.value = f; opt.textContent = f;
+        selFilial.appendChild(opt);
+      });
+    }
+    inicializarFiltrosDashboardSAC();
+
+    function atualizarDashboardSAC() {
+      const cliVal = filterSACCliente.value;
+      const prodVal = filterSACProduto.value;
+      const atendVal = filterSACAtendente.value;
+
+      const filtrados = listaChamadosSAC.filter(item => {
+        const matchCli = (cliVal === 'ALL' || (item.cliente && limparTextoEntrada(item.cliente).toLocaleLowerCase('pt-BR') === cliVal.toLocaleLowerCase('pt-BR')));
+        const matchProd = (prodVal === 'ALL' || (item.produto && limparTextoEntrada(item.produto).toLocaleLowerCase('pt-BR') === prodVal.toLocaleLowerCase('pt-BR')));
+        const matchAtend = (atendVal === 'ALL' || (item.atendente && limparTextoEntrada(item.atendente).toLocaleLowerCase('pt-BR') === atendVal.toLocaleLowerCase('pt-BR')));
+        return matchCli && matchProd && matchAtend;
+      });
+
+      document.getElementById('badgeFiltroSAC').innerText = 'Filtrando: Cliente [' + cliVal + '] · Produto [' + prodVal + '] · Atendente [' + atendVal + ']';
+
+      const totalChamados = filtrados.length;
+      let somaValor = 0;
+      let chamadosCafe = 0;
+      let chamadosSnaky = 0;
+
+      filtrados.forEach(c => {
+        somaValor += parseValorNumerico(c.valor);
+        const pLower = limparTextoEntrada(c.produto).toLowerCase();
+        if (pLower.includes('café') || pLower.includes('cafe')) chamadosCafe++;
+        else if (pLower.includes('snaky') || pLower.includes('snack')) chamadosSnaky++;
+      });
+
+      const pctCafe = totalChamados > 0 ? Math.round((chamadosCafe / totalChamados) * 100) : 0;
+      const pctSnaky = totalChamados > 0 ? Math.round((chamadosSnaky / totalChamados) * 100) : 0;
+      const ticketMedio = totalChamados > 0 ? (somaValor / totalChamados) : 0;
+
+      document.getElementById('kpiSACTotal').innerText = totalChamados.toLocaleString('pt-BR');
+      document.getElementById('kpiSACTotalSub').innerText = totalChamados + ' ocorrências (amostra recente)';
+      document.getElementById('kpiSACValorTotal').innerText = formatCurrency(somaValor);
+      document.getElementById('kpiSACCafé').innerText = chamadosCafe.toLocaleString('pt-BR');
+      document.getElementById('kpiSACCaféPct').innerText = pctCafe + '%';
+      document.getElementById('kpiSACSnaky').innerText = chamadosSnaky.toLocaleString('pt-BR');
+      document.getElementById('kpiSACSnakyPct').innerText = pctSnaky + '%';
+      document.getElementById('kpiSACClientes').innerText = new Set(filtrados.map(c => limparTextoEntrada(c.cliente))).size;
+      document.getElementById('kpiSACTicketMedio').innerText = formatCurrency(ticketMedio);
+
+      const probContagem = {};
+      filtrados.forEach(c => {
+        const p = limparTextoEntrada(c.problemas || 'Outros');
+        probContagem[p] = (probContagem[p] || 0) + 1;
+      });
+      const truncar = (t, max = 28) => t.length > max ? t.substring(0, max) + '...' : t;
+      const top10Problemas = Object.entries(probContagem).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 10);
+      chartTopProblemasSAC.data.labels = top10Problemas.map(p => truncar(p.nome));
+      chartTopProblemasSAC.data.datasets[0].data = top10Problemas.map(p => p.qt);
+      chartTopProblemasSAC.update();
+
+      const atendContagem = {};
+      filtrados.forEach(c => {
+        const a = limparTextoEntrada(c.atendente || 'Não Informado');
+        atendContagem[a] = (atendContagem[a] || 0) + 1;
+      });
+      const topAtendentes = Object.entries(atendContagem).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 10);
+      chartAtendentesSAC.data.labels = topAtendentes.map(a => truncar(a.nome));
+      chartAtendentesSAC.data.datasets[0].data = topAtendentes.map(a => a.qt);
+      chartAtendentesSAC.update();
+
+      atualizarGraficoLocaisAnterior();
+      atualizarGraficoLocaisAtual();
+      atualizarGraficoMesesQtd();
+      atualizarGraficoMesesVal();
+      atualizarGraficoDiasQtd();
+      atualizarGraficoDiasVal();
+      atualizarGraficoTopSemana();
+      atualizarGraficoTopFilial();
+    }
+
+    [filterSACCliente, filterSACProduto, filterSACAtendente].forEach(el => el.addEventListener('change', atualizarDashboardSAC));
+    document.getElementById('btnLimparFiltrosSAC').addEventListener('click', () => {
+      filterSACCliente.value = 'ALL';
+      filterSACProduto.value = 'ALL';
+      filterSACAtendente.value = 'ALL';
+      atualizarDashboardSAC();
+    });
+
+    verificarEstadoAutenticacao();
+  </script>
+</body>
+</html>
