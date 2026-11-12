@@ -2,6 +2,7 @@ import os
 import json
 from datetime import datetime
 from typing import Optional, Dict, Any, List
+from fastapi.staticfiles import StaticFiles
 
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -9,30 +10,20 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from sqlalchemy import (
-    create_engine, Column, Integer, String, Numeric,
+    create_engine, Column, Integer, String, Numeric, 
     Text, func, desc, text, Index
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
-
-# ==============================================================================
-# INICIALIZAÇÃO FASTAPI, STATIC FILES & JINJA2 TEMPLATES
-# ==============================================================================
-app = FastAPI(title="Dashboard Executivo - Gestão SAC")
-
-if os.path.isdir("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-
-templates = Jinja2Templates(directory="templates")
 
 # ==============================================================================
 # CONFIGURAÇÃO DE BANCO DE DADOS (SUPABASE POSTGRESQL POOLER)
 # ==============================================================================
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres.asptoykwjnpxwvnixslw:napoleao140205@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+    "postgresql+psycopg://postgres.asptoykwjnpxwvnixslw:napoleao140205@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
 )
 
-# Adequação de driver para psycopg (v3) se fornecido apenas postgresql://
+# Adequação de driver se fornecido apenas postgresql://
 if DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
@@ -42,10 +33,7 @@ engine = create_engine(
     pool_recycle=300,        # Recicla conexões a cada 5 minutos
     pool_size=5,             # Respeita o teto de 512 MB de RAM do Render
     max_overflow=10,
-    connect_args={
-        "connect_timeout": 30,
-        "prepare_threshold": None  # Evita erro de prepared statements na porta 6543
-    }
+    connect_args={"connect_timeout": 30}
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -157,7 +145,10 @@ def criar_indices_de_alta_performance():
         "CREATE INDEX IF NOT EXISTS idx_chamados_chamado ON chamados (chamado);"
     ]
     try:
+        # Cria as tabelas caso não existam
         Base.metadata.create_all(bind=engine)
+        
+        # Executa a criação idempotente dos índices
         with engine.begin() as conn:
             for sql in queries_indices:
                 conn.execute(text(sql))
@@ -165,7 +156,21 @@ def criar_indices_de_alta_performance():
     except Exception as e:
         print(f"⚠️ Aviso na criação de índices: {e}")
 
+# Executa a validação dos índices no carregamento do módulo
 criar_indices_de_alta_performance()
+
+
+
+# ==============================================================================
+# INICIALIZAÇÃO FASTAPI & JINJA2 TEMPLATES
+# ==============================================================================
+
+app = FastAPI(title="Gestão SAC MasterCafé", version="2.1.0")
+
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
 
 def get_db():
     db = SessionLocal()
@@ -186,8 +191,10 @@ USUARIOS_SISTEMA = [
 @app.get("/", response_class=HTMLResponse)
 def index_page(request: Request, db: Session = Depends(get_db)):
     try:
+        # 1. Total real de chamados no banco (COUNT otimizado pelo índice)
         total_chamados = db.query(func.count(ChamadoModel.id)).scalar() or 0
 
+        # 2. Busca apenas os últimos 300 chamados para não esgotar a memória do Render
         chamados_recentes = (
             db.query(ChamadoModel)
             .order_by(desc(ChamadoModel.id))
@@ -196,9 +203,11 @@ def index_page(request: Request, db: Session = Depends(get_db)):
         )
         lista_chamados = [c.to_dict() for c in chamados_recentes]
 
+        # 3. Base cadastral de Clientes
         clientes_db = db.query(ClienteModel).order_by(ClienteModel.cliente).all()
         lista_clientes = [cli.to_dict() for cli in clientes_db]
 
+        # 4. Listagens de apoio aos seletores
         descricoes_padrao = [
             "Café Expresso", "Café com Leite", "Cappuccino", "Mocaccino",
             "Chocolate Quente", "Chá", "Salgadinho", "Refrigerante", "Suco", "Água Mineral"
@@ -213,6 +222,7 @@ def index_page(request: Request, db: Session = Depends(get_db)):
             "Crédito Remoto", "Voucher"
         ]
 
+        # 5. Sequencial de chamado automático para o ano corrente
         ano_atual = datetime.now().year
         maior_seq = 0
         ultimo_chamado_ano = (
