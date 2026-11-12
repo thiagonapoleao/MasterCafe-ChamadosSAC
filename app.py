@@ -24,7 +24,6 @@ def normalizar_utf8(valor: Any) -> Any:
         return valor
 
     texto = valor
-    # Tenta reverter leitura equivocada de UTF-8 como Latin-1 / Windows-1252
     if any(seq in texto for seq in ("Ã", "Â", "â€")):
         try:
             reparado = texto.encode("latin-1").decode("utf-8")
@@ -76,15 +75,17 @@ def parse_valor_monetario(valor_bruto: Any) -> float:
 # ==============================================================================
 # CONFIGURAÇÃO DE BANCO DE DADOS (SUPABASE POSTGRESQL POOLER)
 # ==============================================================================
-DATABASE_URL = os.getenv(
+RAW_DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+psycopg://postgres.asptoykwjnpxwvnixslw:napoleao140205@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
-)
+    "postgresql://postgres.asptoykwjnpxwvnixslw:napoleao140205@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
+).strip()
 
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
-elif DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+if RAW_DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = RAW_DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif RAW_DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = RAW_DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+else:
+    DATABASE_URL = RAW_DATABASE_URL
 
 engine = create_engine(
     DATABASE_URL,
@@ -243,7 +244,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
-app = FastAPI(title="Gestão SAC MasterCafé", version="2.2.1")
+app = FastAPI(title="Gestão SAC MasterCafé", version="2.2.2")
 
 if os.path.isdir(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -371,9 +372,9 @@ def index_page(request: Request, db: Session = Depends(get_db)):
         }
 
         return templates.TemplateResponse(
-            "index.html",
-            {
-                "request": request,
+            request=request,
+            name="index.html",
+            context={
                 "dados_sac_json": json.dumps(dados_sac_payload, ensure_ascii=False, default=str),
                 "total_chamados_carregados": total_chamados,
                 "logo_base64_src": ""
