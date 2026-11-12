@@ -1075,13 +1075,14 @@
     function realizarLoginGlobal(e) {
       e.preventDefault();
       const u = limparTextoEntrada(document.getElementById('globalLoginUser').value).toLowerCase();
-      const p = limparTextoEntrada(document.getElementById('globalLoginPass').value).toLowerCase();
+      const p = limparTextoEntrada(document.getElementById('globalLoginPass').value);
       const erroBox = document.getElementById('globalLoginErro');
 
-      const userValido = (dadosSAC.usuarios || []).find(x =>
-        limparTextoEntrada(x.usuario).toLowerCase() === u &&
-        limparTextoEntrada(x.senha).toLowerCase() === p
-      );
+      const userValido = (dadosSAC.usuarios || []).find(x => {
+        const loginBanco = limparTextoEntrada(x.usuario || x.login).toLowerCase();
+        const senhaBanco = limparTextoEntrada(x.senha);
+        return loginBanco === u && (senhaBanco === p || senhaBanco.toLowerCase() === p.toLowerCase());
+      });
 
       if (userValido) {
         erroBox.classList.add('hidden');
