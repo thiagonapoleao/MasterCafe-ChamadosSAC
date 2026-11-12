@@ -244,7 +244,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
-app = FastAPI(title="Gestão SAC MasterCafé", version="2.2.2")
+app = FastAPI(title="Gestão SAC MasterCafé", version="2.3.0")
 
 if os.path.isdir(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -266,6 +266,43 @@ USUARIOS_PADRAO = [
     {"usuario": "atendente", "senha": "123", "nome": "Atendente SAC", "acesso": "Atendente"},
     {"usuario": "thiago", "senha": "123", "nome": "Thiago Napoleão", "acesso": "Geral"}
 ]
+
+
+def carregar_usuarios_banco(db: Session) -> List[Dict[str, str]]:
+    """Lê os usuários cadastrados no Supabase e mescla com os usuários padrão."""
+    usuarios_final = {u["usuario"].lower(): u for u in USUARIOS_PADRAO}
+    try:
+        insp = inspect(db.bind)
+        for nome_tabela in ["usuarios", "usuario", "atendentes", "acessos", "login", "users"]:
+            if not insp.has_table(nome_tabela):
+                continue
+            rows = db.execute(text(f"SELECT * FROM {nome_tabela}")).mappings().all()
+            for r in rows:
+                r_norm = {str(k).lower().strip(): v for k, v in r.items()}
+                user_login = normalizar_utf8(
+                    str(r_norm.get("usuario") or r_norm.get("login") or r_norm.get("user") or r_norm.get("username") or "")
+                ).lower()
+                user_senha = normalizar_utf8(
+                    str(r_norm.get("senha") or r_norm.get("password") or r_norm.get("pass") or "")
+                )
+                user_nome = normalizar_utf8(
+                    str(r_norm.get("nome") or r_norm.get("atendente") or r_norm.get("funcionario") or user_login)
+                )
+                user_acesso = normalizar_utf8(
+                    str(r_norm.get("acesso") or r_norm.get("nivel") or r_norm.get("perfil") or r_norm.get("role") or "Atendente")
+                )
+
+                if user_login and user_senha:
+                    usuarios_final[user_login] = {
+                        "usuario": user_login,
+                        "senha": user_senha,
+                        "nome": user_nome,
+                        "acesso": user_acesso
+                    }
+    except Exception as e:
+        print(f"⚠️ Aviso ao carregar usuários do banco: {e}")
+
+    return list(usuarios_final.values())
 
 
 def carregar_tabela_auxiliar(db: Session, nome_tabela: str, colunas_candidatas: List[str]) -> List[str]:
@@ -327,6 +364,9 @@ def index_page(request: Request, db: Session = Depends(get_db)):
         clientes_db = db.query(ClienteModel).order_by(ClienteModel.cliente, ClienteModel.local_interno).all()
         lista_clientes = [cli.to_dict() for cli in clientes_db]
 
+        # Usuários cadastrados no Supabase + fallback padrão
+        lista_usuarios = carregar_usuarios_banco(db)
+
         # Listagens auxiliares (tenta ler do banco; se não existir tabela, usa padrão)
         descricoes_db = carregar_tabela_auxiliar(db, "produtos", ["descricao", "produto", "nome"])
         descricoes_padrao = descricoes_db or [
@@ -362,7 +402,7 @@ def index_page(request: Request, db: Session = Depends(get_db)):
             "cadastro_clientes": lista_clientes,
             "clientes": lista_clientes,
             "cidades": lista_cidades,
-            "usuarios": USUARIOS_PADRAO,
+            "usuarios": lista_usuarios,
             "descricoes": descricoes_padrao,
             "produtos": descricoes_padrao,
             "problemas": problemas_padrao,
