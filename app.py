@@ -32,21 +32,18 @@ RAW_DB_URL = os.getenv(
     "postgresql://postgres.asptoykwjnpxwvnixslw:napoleao140205@aws-1-us-east-1.pooler.supabase.com:6543/postgres"
 ).strip()
 
-# Garante prefixo padrão antes de escolher o driver
 if RAW_DB_URL.startswith("postgres://"):
     RAW_DB_URL = RAW_DB_URL.replace("postgres://", "postgresql://", 1)
 
-# Detecta automaticamente qual driver está instalado no requirements.txt
 try:
     import psycopg  # psycopg v3
     DATABASE_URL = RAW_DB_URL.replace("postgresql://", "postgresql+psycopg://", 1)
     CONNECT_ARGS = {
         "connect_timeout": 30,
         "sslmode": "require",
-        "prepare_threshold": None  # Obrigatório para Transaction Pooler (porta 6543)
+        "prepare_threshold": None
     }
 except ImportError:
-    # Fallback automático para psycopg2-binary
     DATABASE_URL = RAW_DB_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
     CONNECT_ARGS = {
         "connect_timeout": 30,
@@ -55,9 +52,9 @@ except ImportError:
 
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,      # Evita conexões mortas no pooler do Supabase
-    pool_recycle=300,        # Recicla conexões a cada 5 minutos
-    pool_size=5,             # Respeita o teto de 512 MB de RAM do Render
+    pool_pre_ping=True,
+    pool_recycle=300,
+    pool_size=5,
     max_overflow=10,
     connect_args=CONNECT_ARGS
 )
@@ -200,10 +197,8 @@ USUARIOS_SISTEMA = [
 @app.get("/", response_class=HTMLResponse)
 def index_page(request: Request, db: Session = Depends(get_db)):
     try:
-        # 1. Total real de chamados no banco (COUNT otimizado pelo índice)
         total_chamados = db.query(func.count(ChamadoModel.id)).scalar() or 0
 
-        # 2. Busca apenas os últimos 300 chamados para não esgotar a memória do Render
         chamados_recentes = (
             db.query(ChamadoModel)
             .order_by(desc(ChamadoModel.id))
@@ -212,11 +207,9 @@ def index_page(request: Request, db: Session = Depends(get_db)):
         )
         lista_chamados = [c.to_dict() for c in chamados_recentes]
 
-        # 3. Base cadastral de Clientes
         clientes_db = db.query(ClienteModel).order_by(ClienteModel.cliente).all()
         lista_clientes = [cli.to_dict() for cli in clientes_db]
 
-        # 4. Listagens de apoio aos seletores
         descricoes_padrao = [
             "Café Expresso", "Café com Leite", "Cappuccino", "Mocaccino",
             "Chocolate Quente", "Chá", "Salgadinho", "Refrigerante", "Suco", "Água Mineral"
@@ -231,7 +224,6 @@ def index_page(request: Request, db: Session = Depends(get_db)):
             "Crédito Remoto", "Voucher"
         ]
 
-        # 5. Sequencial de chamado automático para o ano corrente
         ano_atual = datetime.now().year
         maior_seq = 0
         ultimo_chamado_ano = (
@@ -260,9 +252,9 @@ def index_page(request: Request, db: Session = Depends(get_db)):
         }
 
         return templates.TemplateResponse(
-            "index.html",
-            {
-                "request": request,
+            request=request,
+            name="index.html",
+            context={
                 "dados_sac_json": json.dumps(dados_sac_payload, default=str),
                 "total_chamados_carregados": total_chamados,
                 "logo_base64_src": ""
@@ -273,7 +265,7 @@ def index_page(request: Request, db: Session = Depends(get_db)):
         return HTMLResponse(
             content=f"""
             <div style="font-family: sans-serif; padding: 40px; text-align: center;">
-                <h2>Erro ao conectar com o banco de dados</h2>
+                <h2>Erro ao carregar a aplicação</h2>
                 <p style="color: #dc2626;">{str(e)}</p>
                 <button onclick="window.location.reload()" style="padding: 10px 20px; background: #0284c7; color: white; border: none; border-radius: 8px; cursor: pointer;">
                     Tentar Novamente 🔄
