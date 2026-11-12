@@ -1562,10 +1562,11 @@
       }
     }
 
-    function aoMudarClienteSAC() {
+   function aoMudarClienteSAC() {
       const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
       const selectLocal = document.getElementById('sacLocalInterno');
       const inputFilial = document.getElementById('sacCidade');
+      const valorAnterior = limparTextoEntrada(selectLocal.value);
 
       selectLocal.innerHTML = '<option value="">Selecione o Local Interno...</option>';
       if (!cli) {
@@ -1590,7 +1591,15 @@
         selectLocal.appendChild(opt);
       });
 
-      if (locaisUnicos.length === 1) {
+      // Preserva a seleção anterior se ela pertencer ao mesmo cliente
+      const matchAnterior = locaisUnicos.find(
+        loc => loc.toLocaleLowerCase('pt-BR') === valorAnterior.toLocaleLowerCase('pt-BR')
+      );
+
+      if (matchAnterior) {
+        selectLocal.value = matchAnterior;
+        aoMudarLocalInternoSAC();
+      } else if (locaisUnicos.length === 1) {
         selectLocal.value = locaisUnicos[0];
         aoMudarLocalInternoSAC();
       } else {
@@ -1803,7 +1812,7 @@
     async function handleSACSubmit(e) {
       e.preventDefault();
 
-      if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)) return;
+   if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', false)) return;
       const selectLocal = document.getElementById('sacLocalInterno');
       if (!selectLocal.value) { alert('⛔ Selecione um Local Interno.'); selectLocal.focus(); return; }
       if (!validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')) return;
