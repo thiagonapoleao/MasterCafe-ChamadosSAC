@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import unicodedata
 from datetime import datetime
@@ -16,21 +17,47 @@ from sqlalchemy import (
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 # ==============================================================================
-# UTILITÁRIOS DE CODIFICAÇÃO UTF-8 E SANITIZAÇÃO DE ACENTOS (~, ^, ´, ç, º, ª)
+# UTILITÁRIOS DE CODIFICAÇÃO UTF-8 E REPARO DE ACENTOS (~, ^, ´, ç, º, ª)
 # ==============================================================================
+MAPA_REPARO_MOJIBAKE = {
+    "Ã¡": "á", "Ã ": "à", "Ã¢": "â", "Ã£": "ã", "Ã¤": "ä",
+    "Ã": "Á", "Ã€": "À", "Ã‚": "Â", "Ãƒ": "Ã", "Ã„": "Ä",
+    "Ã©": "é", "Ã¨": "è", "Ãª": "ê", "Ã«": "ë",
+    "Ã‰": "É", "Ãˆ": "È", "ÃŠ": "Ê", "Ã‹": "Ë",
+    "Ã­": "í", "Ã¬": "ì", "Ã®": "î", "Ã¯": "ï",
+    "Ã": "Í", "ÃŒ": "Ì", "ÃŽ": "Î", "Ã": "Ï",
+    "Ã³": "ó", "Ã²": "ò", "Ã´": "ô", "Ãµ": "õ", "Ã¶": "ö",
+    "Ã“": "Ó", "Ã’": "Ò", "Ã”": "Ô", "Ã•": "Õ", "Ã–": "Ö",
+    "Ãº": "ú", "Ã¹": "ù", "Ã»": "û", "Ã¼": "ü",
+    "Ãš": "Ú", "Ã™": "Ù", "Ã›": "Û", "Ãœ": "Ü",
+    "Ã§": "ç", "Ã‡": "Ç", "Ã±": "ñ", "Ã‘": "Ñ",
+    "Âº": "º", "Âª": "ª", "Â°": "°", "â€“": "–", "â€”": "—"
+}
+
+
 def normalizar_utf8(valor: Any) -> Any:
-    """Corrige eventuais falhas de codificação (mojibake) e normaliza strings em NFC UTF-8."""
+    """Corrige falhas de codificação (UTF-8 lido como Latin-1/CP1252) e normaliza em NFC."""
     if valor is None or not isinstance(valor, str):
         return valor
 
     texto = valor
+
+    # 1. Tenta decodificação reversa binária (cp1252 e latin-1 -> utf-8)
     if any(seq in texto for seq in ("Ã", "Â", "â€")):
-        try:
-            reparado = texto.encode("latin-1").decode("utf-8")
-            if "\ufffd" not in reparado:
-                texto = reparado
-        except (UnicodeEncodeError, UnicodeDecodeError):
-            pass
+        for enc in ("cp1252", "latin-1"):
+            try:
+                reparado = texto.encode(enc).decode("utf-8")
+                if "\ufffd" not in reparado:
+                    texto = reparado
+                    break
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                continue
+
+        # 2. Varredura residual para pares mojibake mistos na mesma string
+        if any(seq in texto for seq in ("Ã", "Â", "â€")):
+            for errado, certo in MAPA_REPARO_MOJIBAKE.items():
+                if errado in texto:
+                    texto = texto.replace(errado, certo)
 
     return unicodedata.normalize("NFC", texto).strip()
 
@@ -178,39 +205,6 @@ class ChamadoModel(Base):
         }
 
 
-class ClienteModel(Base):
-    __tablename__ = "cadastro_clientes"
-
-    id = Column(Integer, primary_key=True, index=True)
-    cliente = Column(String(150), nullable=False, index=True)
-    local = Column(String(150))
-    local_interno = Column(String(150))
-    maquina = Column(String(100))
-    modelo_maquina = Column(String(100))
-    filial_responsavel = Column(String(100), index=True)
-
-    def to_dict(self) -> Dict[str, Any]:
-        cli_nome = normalizar_utf8(self.cliente or "")
-        loc_geral = normalizar_utf8(self.local or "")
-        loc_int = normalizar_utf8(self.local_interno or self.local or "")
-        filial = normalizar_utf8(self.filial_responsavel or "")
-
-        return {
-            "id": self.id,
-            "linha": self.id,
-            "cliente": cli_nome,
-            "local": loc_geral or loc_int,
-            "localInterno": loc_int,
-            "local_interno": loc_int,
-            "maquina": normalizar_utf8(self.maquina or ""),
-            "modeloMaquina": normalizar_utf8(self.modelo_maquina or ""),
-            "modelo_maquina": normalizar_utf8(self.modelo_maquina or ""),
-            "filialResponsavel": filial,
-            "filial_responsavel": filial,
-            "cidade": filial
-        }
-
-
 # ==============================================================================
 # CRIAÇÃO E GARANTIA DOS ÍNDICES NO POSTGRESQL (SUPABASE)
 # ==============================================================================
@@ -221,8 +215,7 @@ def criar_indices_de_alta_performance():
         "CREATE INDEX IF NOT EXISTS idx_chamados_atendente ON chamados (atendente);",
         "CREATE INDEX IF NOT EXISTS idx_chamados_produto ON chamados (produto);",
         "CREATE INDEX IF NOT EXISTS idx_chamados_cidade ON chamados (cidade);",
-        "CREATE INDEX IF NOT EXISTS idx_chamados_chamado ON chamados (chamado);",
-        "CREATE INDEX IF NOT EXISTS idx_clientes_cliente ON cadastro_clientes (cliente);"
+        "CREATE INDEX IF NOT EXISTS idx_chamados_chamado ON chamados (chamado);"
     ]
     try:
         Base.metadata.create_all(bind=engine)
@@ -244,7 +237,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
-app = FastAPI(title="Gestão SAC MasterCafé", version="2.3.0")
+app = FastAPI(title="Gestão SAC MasterCafé", version="2.4.0")
 
 if os.path.isdir(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -268,6 +261,138 @@ USUARIOS_PADRAO = [
 ]
 
 
+def descobrir_tabela_clientes(db: Session) -> str:
+    """Identifica dinamicamente se a tabela no Supabase se chama 'clientes' ou 'cadastro_clientes'."""
+    try:
+        insp = inspect(db.bind)
+        if insp.has_table("clientes"):
+            return "clientes"
+        if insp.has_table("cadastro_clientes"):
+            return "cadastro_clientes"
+        # Cria tabela 'clientes' caso nenhuma exista ainda
+        with db.bind.begin() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS clientes (
+                    id SERIAL PRIMARY KEY,
+                    cliente VARCHAR(150) NOT NULL,
+                    local VARCHAR(150),
+                    local_interno VARCHAR(150),
+                    maquina VARCHAR(100),
+                    modelo_maquina VARCHAR(100),
+                    filial_responsavel VARCHAR(100)
+                );
+            """))
+        return "clientes"
+    except Exception:
+        return "clientes"
+
+
+def normalizar_chave_coluna(col: str) -> str:
+    """Remove acentos e espaços para mapear qualquer nome de coluna do PostgreSQL."""
+    s = normalizar_utf8(str(col)).lower()
+    s = "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn")
+    return re.sub(r"[^a-z0-9]+", "_", s).strip("_")
+
+
+def carregar_clientes_banco(db: Session) -> List[Dict[str, Any]]:
+    """Lê todos os registros da tabela 'clientes' (ou 'cadastro_clientes') no Supabase com UTF-8."""
+    tabela = descobrir_tabela_clientes(db)
+    lista_final: List[Dict[str, Any]] = []
+    try:
+        rows = db.execute(text(f"SELECT * FROM {tabela}")).mappings().all()
+        for r in rows:
+            m = {normalizar_chave_coluna(k): v for k, v in r.items()}
+            item_id = m.get("id") or m.get("linha") or len(lista_final) + 1
+            cli_nome = normalizar_utf8(str(m.get("cliente") or m.get("nome_cliente") or m.get("empresa") or ""))
+            loc_geral = normalizar_utf8(str(m.get("local") or m.get("unidade") or ""))
+            loc_int = normalizar_utf8(
+                str(m.get("local_interno") or m.get("localinterno") or m.get("ponto") or m.get("setor") or loc_geral)
+            )
+            filial = normalizar_utf8(
+                str(m.get("filial_responsavel") or m.get("filialresponsavel") or m.get("filial") or m.get("cidade") or "")
+            )
+            maquina = normalizar_utf8(str(m.get("maquina") or m.get("equipamento") or ""))
+            modelo = normalizar_utf8(str(m.get("modelo_maquina") or m.get("modelomaquina") or m.get("modelo") or ""))
+
+            if cli_nome:
+                lista_final.append({
+                    "id": item_id,
+                    "linha": item_id,
+                    "cliente": cli_nome,
+                    "local": loc_geral or loc_int,
+                    "localInterno": loc_int,
+                    "local_interno": loc_int,
+                    "maquina": maquina,
+                    "modeloMaquina": modelo,
+                    "modelo_maquina": modelo,
+                    "filialResponsavel": filial,
+                    "filial_responsavel": filial,
+                    "cidade": filial
+                })
+
+        lista_final.sort(key=lambda x: (x["cliente"].lower(), x["localInterno"].lower()))
+    except Exception as e:
+        print(f"⚠️ Erro ao ler tabela '{tabela}': {e}")
+
+    return lista_final
+
+
+def carregar_produtos_banco(db: Session) -> List[str]:
+    """Lê todos os registros da tabela 'produtos' no Supabase para preencher Descrição *."""
+    itens: List[str] = []
+    try:
+        insp = inspect(db.bind)
+        for nome_tabela in ["produtos", "produto", "descricoes"]:
+            if not insp.has_table(nome_tabela):
+                continue
+            rows = db.execute(text(f"SELECT * FROM {nome_tabela}")).mappings().all()
+            for r in rows:
+                m = {normalizar_chave_coluna(k): v for k, v in r.items()}
+                val = (
+                    m.get("descricao")
+                    or m.get("produto")
+                    or m.get("nome")
+                    or m.get("descricao_produto")
+                    or m.get("item")
+                )
+                if not val:
+                    # Fallback: pega a primeira coluna textual não-id da linha
+                    for k_orig, v_orig in r.items():
+                        if normalizar_chave_coluna(k_orig) != "id" and isinstance(v_orig, str) and v_orig.strip():
+                            val = v_orig
+                            break
+                if val:
+                    texto_limpo = normalizar_utf8(str(val))
+                    if texto_limpo:
+                        itens.append(texto_limpo)
+            if itens:
+                break
+    except Exception as e:
+        print(f"⚠️ Erro ao ler tabela 'produtos': {e}")
+
+    return sorted(list(set(itens)), key=lambda s: s.lower())
+
+
+def carregar_tabela_auxiliar(db: Session, nome_tabela: str, colunas_candidatas: List[str]) -> List[str]:
+    """Lê tabelas auxiliares no Supabase (problemas, formas_pgt) com sanitização UTF-8."""
+    try:
+        insp = inspect(db.bind)
+        if not insp.has_table(nome_tabela):
+            return []
+        rows = db.execute(text(f"SELECT * FROM {nome_tabela}")).mappings().all()
+        itens = []
+        for r in rows:
+            m = {normalizar_chave_coluna(k): v for k, v in r.items()}
+            for col in colunas_candidatas:
+                col_norm = normalizar_chave_coluna(col)
+                if col_norm in m and m[col_norm]:
+                    itens.append(normalizar_utf8(str(m[col_norm])))
+                    break
+        return sorted(list(set(filter(None, itens))), key=lambda s: s.lower())
+    except Exception:
+        return []
+
+
 def carregar_usuarios_banco(db: Session) -> List[Dict[str, str]]:
     """Lê os usuários cadastrados no Supabase e mescla com os usuários padrão."""
     usuarios_final = {u["usuario"].lower(): u for u in USUARIOS_PADRAO}
@@ -278,7 +403,7 @@ def carregar_usuarios_banco(db: Session) -> List[Dict[str, str]]:
                 continue
             rows = db.execute(text(f"SELECT * FROM {nome_tabela}")).mappings().all()
             for r in rows:
-                r_norm = {str(k).lower().strip(): v for k, v in r.items()}
+                r_norm = {normalizar_chave_coluna(k): v for k, v in r.items()}
                 user_login = normalizar_utf8(
                     str(r_norm.get("usuario") or r_norm.get("login") or r_norm.get("user") or r_norm.get("username") or "")
                 ).lower()
@@ -303,24 +428,6 @@ def carregar_usuarios_banco(db: Session) -> List[Dict[str, str]]:
         print(f"⚠️ Aviso ao carregar usuários do banco: {e}")
 
     return list(usuarios_final.values())
-
-
-def carregar_tabela_auxiliar(db: Session, nome_tabela: str, colunas_candidatas: List[str]) -> List[str]:
-    """Lê tabelas auxiliares opcionais no Supabase (produtos, problemas, formas_pgt) com segurança."""
-    try:
-        insp = inspect(db.bind)
-        if not insp.has_table(nome_tabela):
-            return []
-        rows = db.execute(text(f"SELECT * FROM {nome_tabela}")).mappings().all()
-        itens = []
-        for r in rows:
-            for col in colunas_candidatas:
-                if col in r and r[col]:
-                    itens.append(normalizar_utf8(str(r[col])))
-                    break
-        return sorted(list(set(filter(None, itens))))
-    except Exception:
-        return []
 
 
 def gerar_proximo_numero_chamado(db: Session, ano: Optional[int] = None) -> str:
@@ -360,20 +467,20 @@ def index_page(request: Request, db: Session = Depends(get_db)):
         )
         lista_chamados = [c.to_dict() for c in chamados_recentes]
 
-        # Base cadastral completa de clientes (para vínculo automático de Local Interno e Filial)
-        clientes_db = db.query(ClienteModel).order_by(ClienteModel.cliente, ClienteModel.local_interno).all()
-        lista_clientes = [cli.to_dict() for cli in clientes_db]
+        # 1. Busca base cadastral diretamente na tabela "clientes" do Supabase
+        lista_clientes = carregar_clientes_banco(db)
 
-        # Usuários cadastrados no Supabase + fallback padrão
-        lista_usuarios = carregar_usuarios_banco(db)
-
-        # Listagens auxiliares (tenta ler do banco; se não existir tabela, usa padrão)
-        descricoes_db = carregar_tabela_auxiliar(db, "produtos", ["descricao", "produto", "nome"])
-        descricoes_padrao = descricoes_db or [
+        # 2. Busca descrições diretamente na tabela "produtos" do Supabase
+        produtos_db = carregar_produtos_banco(db)
+        descricoes_padrao = produtos_db or [
             "Café Expresso", "Café com Leite", "Cappuccino", "Mocaccino",
             "Chocolate Quente", "Chá", "Salgadinho", "Refrigerante", "Suco", "Água Mineral"
         ]
 
+        # 3. Usuários cadastrados no Supabase + fallback padrão
+        lista_usuarios = carregar_usuarios_banco(db)
+
+        # 4. Tabelas auxiliares de problemas e formas de pagamento
         problemas_db = carregar_tabela_auxiliar(db, "problemas", ["problema", "problemas", "descricao", "nome"])
         problemas_padrao = problemas_db or [
             "Não liberou produto", "Cobrou e não liberou", "Produto gelado/frio",
@@ -387,10 +494,10 @@ def index_page(request: Request, db: Session = Depends(get_db)):
             "Crédito Remoto", "Voucher"
         ]
 
-        # Cidades / Filiais únicas a partir do cadastro de clientes e chamados
+        # 5. Cidades / Filiais únicas a partir da tabela "clientes" e chamados
         cidades_clientes = {c["filialResponsavel"] for c in lista_clientes if c.get("filialResponsavel")}
         cidades_chamados = {c["cidade"] for c in lista_chamados if c.get("cidade")}
-        lista_cidades = sorted(list(cidades_clientes.union(cidades_chamados)))
+        lista_cidades = sorted(list(cidades_clientes.union(cidades_chamados)), key=lambda s: s.lower())
 
         ano_atual = datetime.now().year
         proximo_sac = gerar_proximo_numero_chamado(db, ano_atual)
@@ -693,31 +800,35 @@ async def handle_action(request: Request, db: Session = Depends(get_db)):
                 )
 
         # ----------------------------------------------------------------------
-        # 3. CADASTRO DE CLIENTES (INSERT, EDIT, DELETE)
+        # 3. CADASTRO DE CLIENTES (TABELA "clientes" NO SUPABASE)
         # ----------------------------------------------------------------------
         elif action in ["inserir_cliente", "editar_cliente", "excluir_cliente"] or tipo in ["cadastro_cliente", "excluir_cliente"]:
+            tabela_cli = descobrir_tabela_clientes(db)
+            insp = inspect(db.bind)
+            colunas_tabela = {c["name"] for c in insp.get_columns(tabela_cli)}
+
+            cli_val = normalizar_utf8(body.get("Cliente") or body.get("cliente") or "")
+            loc_val = normalizar_utf8(body.get("Local") or body.get("local") or "")
+            loc_int_val = normalizar_utf8(
+                body.get("Local interno") or body.get("localInterno") or body.get("local_interno") or ""
+            )
+            maq_val = normalizar_utf8(body.get("Máquina") or body.get("maquina") or "")
+            mod_val = normalizar_utf8(
+                body.get("Modelo de máquina") or body.get("modeloMaquina") or body.get("modelo_maquina") or ""
+            )
+            fil_val = normalizar_utf8(
+                body.get("Filial Responsavel") or body.get("filialResponsavel") or body.get("filial_responsavel") or ""
+            )
+
             if action == "excluir_cliente" or tipo == "excluir_cliente":
                 item_id = body.get("id") or body.get("linha")
-                cli_nome = normalizar_utf8(body.get("Cliente") or body.get("cliente") or "")
-                loc_int = normalizar_utf8(body.get("Local interno") or body.get("local_interno") or "")
-
-                cli_obj = None
-                if item_id is not None and str(item_id).strip().isdigit():
-                    cli_obj = db.query(ClienteModel).filter(ClienteModel.id == int(item_id)).first()
-                if not cli_obj and cli_nome:
-                    q = db.query(ClienteModel).filter(ClienteModel.cliente == cli_nome)
-                    if loc_int:
-                        q = q.filter(ClienteModel.local_interno == loc_int)
-                    cli_obj = q.first()
-
-                if not cli_obj:
-                    return JSONResponse(
-                        status_code=404,
-                        content={"status": "error", "message": "Cliente não localizado para exclusão."},
-                        media_type="application/json; charset=utf-8"
+                if item_id is not None and str(item_id).strip().isdigit() and "id" in colunas_tabela:
+                    db.execute(text(f"DELETE FROM {tabela_cli} WHERE id = :id"), {"id": int(item_id)})
+                else:
+                    db.execute(
+                        text(f"DELETE FROM {tabela_cli} WHERE cliente = :cli AND local_interno = :loc"),
+                        {"cli": cli_val, "loc": loc_int_val}
                     )
-
-                db.delete(cli_obj)
                 db.commit()
                 return JSONResponse(
                     content={"status": "success", "message": "Cliente excluído com sucesso."},
@@ -726,70 +837,64 @@ async def handle_action(request: Request, db: Session = Depends(get_db)):
 
             elif action == "editar_cliente":
                 item_id = body.get("id") or body.get("linha")
-                cli_obj = (
-                    db.query(ClienteModel).filter(ClienteModel.id == int(item_id)).first()
-                    if item_id is not None and str(item_id).strip().isdigit()
-                    else None
-                )
-
-                if not cli_obj:
+                if item_id is None or not str(item_id).strip().isdigit():
                     return JSONResponse(
-                        status_code=404,
-                        content={"status": "error", "message": "Registro de cliente não encontrado para edição."},
+                        status_code=400,
+                        content={"status": "error", "message": "ID do cliente inválido para edição."},
                         media_type="application/json; charset=utf-8"
                     )
 
-                cli_obj.cliente = normalizar_utf8(body.get("Cliente") or body.get("cliente") or cli_obj.cliente)
-                cli_obj.local = normalizar_utf8(body.get("Local") or body.get("local") or cli_obj.local)
-                cli_obj.local_interno = normalizar_utf8(
-                    body.get("Local interno") or body.get("localInterno") or body.get("local_interno") or cli_obj.local_interno
-                )
-                cli_obj.maquina = normalizar_utf8(body.get("Máquina") or body.get("maquina") or cli_obj.maquina)
-                cli_obj.modelo_maquina = normalizar_utf8(
-                    body.get("Modelo de máquina") or body.get("modeloMaquina") or body.get("modelo_maquina") or cli_obj.modelo_maquina
-                )
-                cli_obj.filial_responsavel = normalizar_utf8(
-                    body.get("Filial Responsavel") or body.get("filialResponsavel") or body.get("filial_responsavel") or cli_obj.filial_responsavel
-                )
+                campos_map = {
+                    "cliente": cli_val,
+                    "local": loc_val,
+                    "local_interno": loc_int_val,
+                    "maquina": maq_val,
+                    "modelo_maquina": mod_val,
+                    "filial_responsavel": fil_val
+                }
+                sets = [f"{k} = :{k}" for k in campos_map if k in colunas_tabela]
+                params = {k: v for k, v in campos_map.items() if k in colunas_tabela}
+                params["id"] = int(item_id)
 
-                db.commit()
-                db.refresh(cli_obj)
-                dados_cli = cli_obj.to_dict()
+                if sets:
+                    db.execute(text(f"UPDATE {tabela_cli} SET {', '.join(sets)} WHERE id = :id"), params)
+                    db.commit()
+
                 return JSONResponse(
                     content={
                         "status": "success",
                         "message": "Cliente atualizado com sucesso.",
-                        "linha": dados_cli["id"],
-                        "data": dados_cli
+                        "linha": int(item_id)
                     },
                     media_type="application/json; charset=utf-8"
                 )
 
             else:  # Inserir cliente
-                novo_cli = ClienteModel(
-                    cliente=normalizar_utf8(body.get("Cliente") or body.get("cliente") or ""),
-                    local=normalizar_utf8(body.get("Local") or body.get("local") or ""),
-                    local_interno=normalizar_utf8(
-                        body.get("Local interno") or body.get("localInterno") or body.get("local_interno") or ""
-                    ),
-                    maquina=normalizar_utf8(body.get("Máquina") or body.get("maquina") or ""),
-                    modelo_maquina=normalizar_utf8(
-                        body.get("Modelo de máquina") or body.get("modeloMaquina") or body.get("modelo_maquina") or ""
-                    ),
-                    filial_responsavel=normalizar_utf8(
-                        body.get("Filial Responsavel") or body.get("filialResponsavel") or body.get("filial_responsavel") or ""
-                    )
+                campos_map = {
+                    "cliente": cli_val,
+                    "local": loc_val,
+                    "local_interno": loc_int_val,
+                    "maquina": maq_val,
+                    "modelo_maquina": mod_val,
+                    "filial_responsavel": fil_val
+                }
+                cols_validas = [k for k in campos_map if k in colunas_tabela]
+                vals_validas = [f":{k}" for k in cols_validas]
+                params = {k: campos_map[k] for k in cols_validas}
+
+                returning = " RETURNING id" if "id" in colunas_tabela else ""
+                res = db.execute(
+                    text(f"INSERT INTO {tabela_cli} ({', '.join(cols_validas)}) VALUES ({', '.join(vals_validas)}){returning}"),
+                    params
                 )
-                db.add(novo_cli)
+                novo_id = res.scalar() if returning else None
                 db.commit()
-                db.refresh(novo_cli)
-                dados_cli = novo_cli.to_dict()
+
                 return JSONResponse(
                     content={
                         "status": "success",
                         "message": "Cliente cadastrado com sucesso.",
-                        "linha": dados_cli["id"],
-                        "data": dados_cli
+                        "linha": novo_id
                     },
                     media_type="application/json; charset=utf-8"
                 )
