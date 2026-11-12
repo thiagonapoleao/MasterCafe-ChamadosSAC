@@ -2,7 +2,6 @@ import os
 import json
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from fastapi.staticfiles import StaticFiles
 
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -159,12 +158,9 @@ def criar_indices_de_alta_performance():
 # Executa a validação dos índices no carregamento do módulo
 criar_indices_de_alta_performance()
 
-
-
 # ==============================================================================
 # INICIALIZAÇÃO FASTAPI & JINJA2 TEMPLATES
 # ==============================================================================
-
 app = FastAPI(title="Gestão SAC MasterCafé", version="2.1.0")
 
 if os.path.exists("static"):
