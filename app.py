@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 
 from sqlalchemy import (
     create_engine, Column, Integer, String, Numeric,
-    Text, func, desc, text, Index
+    Text, func, desc, text, inspect
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
@@ -63,7 +63,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # ==============================================================================
-# MODELOS DE DADOS COM ÍNDICES INTEGRADOS (PASSO 3)
+# MODELOS DE DADOS
 # ==============================================================================
 class ChamadoModel(Base):
     __tablename__ = "chamados"
@@ -154,11 +154,47 @@ class ClienteModel(Base):
             "cidade": self.filial_responsavel
         }
 
+
+class UsuarioModel(Base):
+    __tablename__ = "usuarios"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario = Column(String(100), unique=True, index=True, nullable=False)
+    senha = Column(String(100), nullable=False)
+    nome = Column(String(150), nullable=False)
+    acesso = Column(String(50), default="Atendente")
+
+    def to_dict(self) -> Dict[str, Any]:
+        u = (self.usuario or "").strip()
+        s = (self.senha or "").strip()
+        n = (self.nome or "").strip()
+        a = (self.acesso or "Atendente").strip()
+        return {
+            "id": self.id,
+            "usuario": u,
+            "Usuario": u,
+            "login": u,
+            "senha": s,
+            "Senha": s,
+            "nome": n,
+            "Nome": n,
+            "acesso": a,
+            "Acesso": a,
+            "perfil": a,
+            "Perfil": a
+        }
+
 # ==============================================================================
-# PASSO 3: CRIAÇÃO E GARANTIA DOS ÍNDICES NO POSTGRESQL (SUPABASE)
+# INICIALIZAÇÃO DE TABELAS, ÍNDICES E USUÁRIOS PADRÃO
 # ==============================================================================
-def criar_indices_de_alta_performance():
-    """Garante que as 11.000+ linhas utilizem indexação B-Tree para buscas em sub-segundos."""
+USUARIOS_FALLBACK = [
+    {"usuario": "admin", "senha": "123", "nome": "Administrador Geral", "acesso": "Geral"},
+    {"usuario": "atendente", "senha": "123", "nome": "Atendente SAC", "acesso": "Atendente"},
+    {"usuario": "thiago", "senha": "123", "nome": "Thiago Napoleão", "acesso": "Geral"}
+]
+
+def inicializar_banco():
+    """Cria tabelas, garante índices de performance e popula usuários iniciais se a tabela estiver vazia."""
     queries_indices = [
         "CREATE INDEX IF NOT EXISTS idx_chamados_cliente ON chamados (cliente);",
         "CREATE INDEX IF NOT EXISTS idx_chamados_data ON chamados (data);",
@@ -172,11 +208,22 @@ def criar_indices_de_alta_performance():
         with engine.begin() as conn:
             for sql in queries_indices:
                 conn.execute(text(sql))
-        print("✅ [Passo 3 Concluído] Índices de performance verificados no Supabase.")
-    except Exception as e:
-        print(f"⚠️ Aviso na criação de índices: {e}")
 
-criar_indices_de_alta_performance()
+        # Popula tabela de usuários caso esteja vazia
+        db = SessionLocal()
+        try:
+            if db.query(func.count(UsuarioModel.id)).scalar() == 0:
+                for u in USUARIOS_FALLBACK:
+                    db.add(UsuarioModel(**u))
+                db.commit()
+        finally:
+            db.close()
+
+        print("✅ Banco de dados, índices e usuários verificados com sucesso.")
+    except Exception as e:
+        print(f"⚠️ Aviso na inicialização do banco: {e}")
+
+inicializar_banco()
 
 def get_db():
     db = SessionLocal()
@@ -185,14 +232,28 @@ def get_db():
     finally:
         db.close()
 
-USUARIOS_SISTEMA = [
-    {"usuario": "admin", "senha": "123", "nome": "Administrador Geral", "acesso": "Geral"},
-    {"usuario": "atendente", "senha": "123", "nome": "Atendente SAC", "acesso": "Atendente"},
-    {"usuario": "thiago", "senha": "123", "nome": "Thiago Napoleão", "acesso": "Geral"}
-]
+def carregar_lista_usuarios(db: Session) -> List[Dict[str, Any]]:
+    """Busca usuários da tabela 'usuarios' no Supabase e garante fallback seguro."""
+    try:
+        usuarios_db = db.query(UsuarioModel).all()
+        if usuarios_db:
+            return [u.to_dict() for u in usuarios_db]
+    except Exception as e:
+        print(f"⚠️ Erro ao ler tabela usuarios (usando fallback): {e}")
+
+    return [
+        {
+            "usuario": u["usuario"], "Usuario": u["usuario"], "login": u["usuario"],
+            "senha": u["senha"], "Senha": u["senha"],
+            "nome": u["nome"], "Nome": u["nome"],
+            "acesso": u["acesso"], "Acesso": u["acesso"],
+            "perfil": u["acesso"], "Perfil": u["acesso"]
+        }
+        for u in USUARIOS_FALLBACK
+    ]
 
 # ==============================================================================
-# ROTA PRINCIPAL (INDEX COM LIMITE DE CARGA PARA PREVENIR TRAVAMENTOS)
+# ROTA PRINCIPAL
 # ==============================================================================
 @app.get("/", response_class=HTMLResponse)
 def index_page(request: Request, db: Session = Depends(get_db)):
@@ -209,6 +270,8 @@ def index_page(request: Request, db: Session = Depends(get_db)):
 
         clientes_db = db.query(ClienteModel).order_by(ClienteModel.cliente).all()
         lista_clientes = [cli.to_dict() for cli in clientes_db]
+
+        lista_usuarios = carregar_lista_usuarios(db)
 
         descricoes_padrao = [
             "Café Expresso", "Café com Leite", "Cappuccino", "Mocaccino",
@@ -242,7 +305,7 @@ def index_page(request: Request, db: Session = Depends(get_db)):
             "chamados": lista_chamados,
             "cadastro_clientes": lista_clientes,
             "clientes": lista_clientes,
-            "usuarios": USUARIOS_SISTEMA,
+            "usuarios": lista_usuarios,
             "descricoes": descricoes_padrao,
             "produtos": descricoes_padrao,
             "problemas": problemas_padrao,
@@ -276,7 +339,32 @@ def index_page(request: Request, db: Session = Depends(get_db)):
         )
 
 # ==============================================================================
-# ROTA DE AÇÃO CENTRALIZADA (INSERT, EDIT, DELETE)
+# ROTA DEDICADA DE LOGIN (CASO O FRONTEND FAÇA POST /api/login)
+# ==============================================================================
+@app.post("/api/login")
+async def login_endpoint(request: Request, db: Session = Depends(get_db)):
+    try:
+        body: Dict[str, Any] = await request.json()
+    except Exception:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "Payload JSON inválido."})
+
+    login_input = (body.get("usuario") or body.get("Usuario") or body.get("login") or "").strip().lower()
+    senha_input = str(body.get("senha") or body.get("Senha") or body.get("password") or "").strip()
+
+    usuarios = carregar_lista_usuarios(db)
+    for u in usuarios:
+        if u["usuario"].lower() == login_input and str(u["senha"]).strip() == senha_input:
+            return {
+                "status": "success",
+                "message": "Login realizado com sucesso.",
+                "user": u,
+                "data": u
+            }
+
+    return JSONResponse(status_code=401, content={"status": "error", "message": "Usuário ou senha incorretos!"})
+
+# ==============================================================================
+# ROTA DE AÇÃO CENTRALIZADA (LOGIN, CHAMADOS, CLIENTES E USUÁRIOS)
 # ==============================================================================
 @app.post("/api/action")
 async def handle_action(request: Request, db: Session = Depends(get_db)):
@@ -285,14 +373,28 @@ async def handle_action(request: Request, db: Session = Depends(get_db)):
     except Exception:
         return JSONResponse(status_code=400, content={"status": "error", "message": "Payload JSON inválido."})
 
-    action = (body.get("action") or body.get("acao") or "").lower()
-    tipo = (body.get("tipo") or "").lower()
+    action = (body.get("action") or body.get("acao") or "").lower().strip()
+    tipo = (body.get("tipo") or "").lower().strip()
 
     try:
         # ----------------------------------------------------------------------
+        # 0. LOGIN VIA /api/action
+        # ----------------------------------------------------------------------
+        if action == "login" or tipo == "login":
+            login_input = (body.get("usuario") or body.get("Usuario") or body.get("login") or "").strip().lower()
+            senha_input = str(body.get("senha") or body.get("Senha") or body.get("password") or "").strip()
+
+            usuarios = carregar_lista_usuarios(db)
+            for u in usuarios:
+                if u["usuario"].lower() == login_input and str(u["senha"]).strip() == senha_input:
+                    return {"status": "success", "message": "Login realizado com sucesso.", "user": u, "data": u}
+
+            return JSONResponse(status_code=401, content={"status": "error", "message": "Usuário ou senha incorretos!"})
+
+        # ----------------------------------------------------------------------
         # 1. EXCLUIR CHAMADO SAC
         # ----------------------------------------------------------------------
-        if action == "excluir" or tipo == "excluir_sac":
+        elif action == "excluir" or tipo == "excluir_sac":
             num_chamado = body.get("chamado") or body.get("Chamado")
             item_id = body.get("id") or body.get("linha")
 
@@ -444,6 +546,68 @@ async def handle_action(request: Request, db: Session = Depends(get_db)):
                 db.commit()
                 db.refresh(novo_cli)
                 return {"status": "success", "message": "Cliente cadastrado com sucesso.", "data": novo_cli.to_dict()}
+
+        # ----------------------------------------------------------------------
+        # 4. CADASTRO DE USUÁRIOS (INSERT, EDIT, DELETE)
+        # ----------------------------------------------------------------------
+        elif action in ["inserir_usuario", "editar_usuario", "excluir_usuario"] or tipo == "usuario":
+            if action == "excluir_usuario":
+                item_id = body.get("id")
+                user_login = (body.get("usuario") or body.get("Usuario") or "").strip().lower()
+                u_obj = None
+                if item_id and str(item_id).isdigit():
+                    u_obj = db.query(UsuarioModel).filter(UsuarioModel.id == int(item_id)).first()
+                if not u_obj and user_login:
+                    u_obj = db.query(UsuarioModel).filter(func.lower(UsuarioModel.usuario) == user_login).first()
+
+                if not u_obj:
+                    return JSONResponse(status_code=404, content={"status": "error", "message": "Usuário não encontrado."})
+
+                db.delete(u_obj)
+                db.commit()
+                return {"status": "success", "message": "Usuário excluído com sucesso."}
+
+            elif action == "editar_usuario":
+                item_id = body.get("id")
+                user_login = (body.get("usuario") or body.get("Usuario") or "").strip().lower()
+                u_obj = None
+                if item_id and str(item_id).isdigit():
+                    u_obj = db.query(UsuarioModel).filter(UsuarioModel.id == int(item_id)).first()
+                if not u_obj and user_login:
+                    u_obj = db.query(UsuarioModel).filter(func.lower(UsuarioModel.usuario) == user_login).first()
+
+                if not u_obj:
+                    return JSONResponse(status_code=404, content={"status": "error", "message": "Usuário não encontrado para edição."})
+
+                u_obj.nome = (body.get("nome") or body.get("Nome") or u_obj.nome).strip()
+                u_obj.usuario = (body.get("usuario") or body.get("Usuario") or u_obj.usuario).strip().lower()
+                if body.get("senha") or body.get("Senha"):
+                    u_obj.senha = str(body.get("senha") or body.get("Senha")).strip()
+                u_obj.acesso = (body.get("acesso") or body.get("Acesso") or u_obj.acesso).strip()
+
+                db.commit()
+                db.refresh(u_obj)
+                return {"status": "success", "message": "Usuário atualizado com sucesso.", "data": u_obj.to_dict()}
+
+            else:  # Inserir usuário
+                novo_login = (body.get("usuario") or body.get("Usuario") or "").strip().lower()
+                if not novo_login:
+                    return JSONResponse(status_code=400, content={"status": "error", "message": "Login de usuário obrigatório."})
+
+                existente = db.query(UsuarioModel).filter(func.lower(UsuarioModel.usuario) == novo_login).first()
+                if existente:
+                    return JSONResponse(status_code=400, content={"status": "error", "message": f"O usuário '{novo_login}' já existe."})
+
+                novo_u = UsuarioModel(
+                    usuario=novo_login,
+                    senha=str(body.get("senha") or body.get("Senha") or "123").strip(),
+                    nome=(body.get("nome") or body.get("Nome") or novo_login).strip(),
+                    acesso=(body.get("acesso") or body.get("Acesso") or "Atendente").strip()
+                )
+                db.add(novo_u)
+                db.commit()
+                db.refresh(novo_u)
+                return {"status": "success", "message": "Usuário cadastrado com sucesso.", "data": novo_u.to_dict()}
 
         else:
             return JSONResponse(status_code=400, content={"status": "error", "message": f"Ação '{action}' não suportada."})
