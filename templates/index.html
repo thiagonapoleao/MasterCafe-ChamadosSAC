@@ -130,7 +130,7 @@
             <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               Painel Executivo de Gestão & SAC
             </h1>
-            <p class="text-xs text-slate-500">Controle Operacional, Atendimento & Análises · {{ total_chamados_carregados }} chamados registrados</p>
+            <p class="text-xs text-slate-500">Controle Operacional, Atendimento & Análises · <span id="headerTotalChamados">{{ total_chamados_carregados }}</span> chamados registrados</p>
           </div>
         </div>
         
@@ -541,7 +541,7 @@
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Cliente *</label>
-                  <input list="listaSACClientes" id="sacCliente" placeholder="Selecione o cliente..." required onchange="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" onblur="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACClientes" id="sacCliente" placeholder="Selecione o cliente..." required oninput="aoDigitarOuSelecionarClienteSAC()" onchange="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" onblur="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACClientes"></datalist>
                 </div>
                 <div>
@@ -652,7 +652,7 @@
                   <i data-lucide="list-checks" class="w-4 h-4 text-sky-600"></i>
                   Chamados Realizados no SAC
                 </h2>
-                <p class="text-xs text-slate-500">Histórico completo de ocorrências registradas no banco de dados</p>
+                <p class="text-xs text-slate-500">Histórico completo de ocorrências registradas no banco de dados (50 por página)</p>
               </div>
               <div class="flex items-center gap-3">
                 <div class="relative">
@@ -688,7 +688,7 @@
                 </thead>
                 <tbody id="tableSACChamadosBody" class="divide-y divide-slate-100">
                   <tr>
-                    <td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado ainda.</td>
+                    <td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Carregando chamados...</td>
                   </tr>
                 </tbody>
               </table>
@@ -700,7 +700,7 @@
               <div class="flex items-center gap-2">
                 <button type="button" id="btnPagAntSAC" onclick="mudarPaginaSAC(-1)" disabled class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
                   <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-                  Anterior
+                  Anterior (-50)
                 </button>
                 <span id="badgePaginaSAC" class="px-3 py-1.5 rounded-xl bg-sky-50 text-sky-800 font-bold border border-sky-200">
                   Página 1 de 1
@@ -727,7 +727,7 @@
                 <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                   Todos os Chamados Abertos
                 </h2>
-                <p class="text-xs text-slate-500">Lista com status de reembolso, observações, financeiro responsável e edição SAC</p>
+                <p class="text-xs text-slate-500">Lista paginada de 50 em 50 com status de reembolso, observações, financeiro responsável e edição SAC</p>
               </div>
             </div>
 
@@ -761,7 +761,7 @@
               </thead>
               <tbody id="tableChamadosAbertosBody" class="divide-y divide-slate-100">
                 <tr>
-                  <td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto encontrado.</td>
+                  <td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Carregando chamados...</td>
                 </tr>
               </tbody>
             </table>
@@ -773,7 +773,7 @@
             <div class="flex items-center gap-2">
               <button type="button" id="btnPagAntAbertos" onclick="mudarPaginaAbertos(-1)" disabled class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
                 <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-                Anterior
+                Anterior (-50)
               </button>
               <span id="badgePaginaAbertos" class="px-3 py-1.5 rounded-xl bg-sky-50 text-sky-800 font-bold border border-sky-200">
                 Página 1 de 1
@@ -942,10 +942,11 @@
     Chart.register(ChartDataLabels);
 
     const BACKEND_API_URL = "/api/action";
+    const BACKEND_CHAMADOS_URL = "/api/chamados";
     const dadosSAC = {{ dados_sac_json | safe }};
 
     // =========================================================================
-    // INÍCIO: normalizarCodificacaoTexto (CORREÇÃO DE ACENTOS, ~, ´, ^, ç, º, ª)
+    // NORMALIZAÇÃO UTF-8 (CORREÇÃO DE ACENTOS, ~, ´, ^, ç, º, ª)
     // =========================================================================
     function normalizarCodificacaoTexto(valor) {
       if (valor === null || valor === undefined) return '';
@@ -953,7 +954,6 @@
 
       let str = valor;
 
-      // 1. Repara mojibake clássico UTF-8 lido como ISO-8859-1 / Windows-1252 (ex: Ã§ -> ç, Ã£ -> ã, Âº -> º)
       if (/Ã[\x80-\xBF]|Â[\x80-\xBF]/.test(str)) {
         try {
           const bytes = new Uint8Array(str.length);
@@ -967,14 +967,12 @@
         } catch (e) {}
       }
 
-      // 2. Decodifica entidades HTML numéricas ou nomeadas caso venham escapadas do banco/Jinja
       if (/&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);/.test(str)) {
         const txtArea = document.createElement('textarea');
         txtArea.innerHTML = str;
         str = txtArea.value;
       }
 
-      // 3. Normaliza para forma canônica composta NFC (evita til/acento separado da vogal)
       try {
         str = str.normalize('NFC');
       } catch (e) {}
@@ -1000,11 +998,8 @@
       if (val === null || val === undefined) return '';
       return normalizarCodificacaoTexto(String(val)).trim();
     }
-    // =========================================================================
-    // TÉRMINO: normalizarCodificacaoTexto
-    // =========================================================================
 
-    // Normaliza toda a carga inicial vinda do banco SQL antes de popular telas e listas
+    // Normaliza toda a carga inicial vinda do banco SQL
     const dadosSACNormalizados = normalizarObjetoProfundo(dadosSAC);
     if (dadosSACNormalizados && typeof dadosSACNormalizados === 'object') {
       Object.assign(dadosSAC, dadosSACNormalizados);
@@ -1015,7 +1010,7 @@
     let chamadoEmEdicao = null;
     let clienteEmEdicao = null;
     let origemEdicaoSAC = 'sac';
-    
+
     let atendenteSACLogado = "";
     let loginUsuarioConectado = "";
     let nivelAcessoLogado = "";
@@ -1027,7 +1022,7 @@
     } catch(e) {}
 
     // =========================================================================
-    // INÍCIO: dataIsoParaPtBr
+    // FORMATAÇÃO DE DATAS E VALORES MONETÁRIOS
     // =========================================================================
     function dataIsoParaPtBr(isoStr) {
       if (!isoStr) return '';
@@ -1038,13 +1033,7 @@
       }
       return s;
     }
-    // =========================================================================
-    // TÉRMINO: dataIsoParaPtBr
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: dataPtBrParaIso
-    // =========================================================================
     function dataPtBrParaIso(ptBrStr) {
       if (!ptBrStr) return '';
       const s = String(ptBrStr).trim();
@@ -1059,15 +1048,10 @@
       }
       return '';
     }
-    // =========================================================================
-    // TÉRMINO: dataPtBrParaIso
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: parseValorNumerico
-    // =========================================================================
     function parseValorNumerico(v) {
       if (v === null || v === undefined) return 0;
+      if (typeof v === 'number') return isNaN(v) ? 0 : v;
       let s = String(v).trim().replace('R$', '').replace(/\s+/g, '');
       if (!s) return 0;
       if (s.includes(',') && s.includes('.')) {
@@ -1082,22 +1066,13 @@
       const n = parseFloat(s);
       return isNaN(n) ? 0 : n;
     }
-    // =========================================================================
-    // TÉRMINO: parseValorNumerico
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: formatCurrency
-    // =========================================================================
     function formatCurrency(val) {
       return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
-    // =========================================================================
-    // TÉRMINO: formatCurrency
-    // =========================================================================
 
     // =========================================================================
-    // INÍCIO: verificarEstadoAutenticacao
+    // AUTENTICAÇÃO E PERMISSÕES
     // =========================================================================
     function verificarEstadoAutenticacao() {
       const loginScreen = document.getElementById('systemLoginScreen');
@@ -1116,8 +1091,8 @@
 
         aplicarRegrasDeAcesso();
         inicializarFormularioSAC();
-        renderizarTabelaChamadosSAC();
-        renderizarTabelaChamadosAbertos();
+        carregarPaginaChamadosSAC(1);
+        carregarPaginaChamadosAbertos(1);
 
         let abaDesejada = 'dashboardSAC';
         try {
@@ -1132,13 +1107,7 @@
       }
       lucide.createIcons();
     }
-    // =========================================================================
-    // TÉRMINO: verificarEstadoAutenticacao
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: realizarLoginGlobal
-    // =========================================================================
     function realizarLoginGlobal(e) {
       e.preventDefault();
       const u = limparTextoEntrada(document.getElementById('globalLoginUser').value).toLowerCase();
@@ -1168,13 +1137,7 @@
         erroBox.classList.remove('hidden');
       }
     }
-    // =========================================================================
-    // TÉRMINO: realizarLoginGlobal
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: realizarLogoutGlobal
-    // =========================================================================
     function realizarLogoutGlobal() {
       atendenteSACLogado = "";
       loginUsuarioConectado = "";
@@ -1188,13 +1151,7 @@
       document.getElementById('globalLoginForm').reset();
       verificarEstadoAutenticacao();
     }
-    // =========================================================================
-    // TÉRMINO: realizarLogoutGlobal
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: aplicarRegrasDeAcesso
-    // =========================================================================
     function aplicarRegrasDeAcesso() {
       const btnCadastro = document.getElementById('navCadastroClientes');
       const badgeAcesso = document.getElementById('badgeNivelAcesso');
@@ -1230,13 +1187,7 @@
         }
       }
     }
-    // =========================================================================
-    // TÉRMINO: aplicarRegrasDeAcesso
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: converterParaPrimeirasMaiusculas
-    // =========================================================================
     function converterParaPrimeirasMaiusculas(texto) {
       if (!texto) return '';
       const textoNormalizado = normalizarCodificacaoTexto(texto.toString()).trim();
@@ -1248,7 +1199,6 @@
           if (index > 0 && preposicoes.includes(palavra)) {
             return palavra;
           }
-          // Mantém sinais ordinais (º, ª) e letras acentuadas intactas
           const chars = Array.from(palavra);
           if (chars.length === 0) return '';
           chars[0] = chars[0].toLocaleUpperCase('pt-BR');
@@ -1256,68 +1206,47 @@
         })
         .join(' ');
     }
-    // =========================================================================
-    // TÉRMINO: converterParaPrimeirasMaiusculas
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: formatarNomeProprio
-    // =========================================================================
     function formatarNomeProprio(input) {
       if (!input || !input.value) return;
       input.value = converterParaPrimeirasMaiusculas(input.value);
     }
-    // =========================================================================
-    // TÉRMINO: formatarNomeProprio
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: obterValoresDeDatalist
-    // =========================================================================
     function obterValoresDeDatalist(datalistId) {
       const dl = document.getElementById(datalistId);
       if (!dl) return [];
       return Array.from(dl.options).map(opt => limparTextoEntrada(opt.value));
     }
-    // =========================================================================
-    // TÉRMINO: obterValoresDeDatalist
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: validarInputComLista (CORRIGIDO: NÃO LIMPA O CAMPO EM CASO DE ERRO)
-    // =========================================================================
     function validarInputComLista(inputId, datalistId, nomeAmigavel, dispararCascataCliente = false) {
       const input = document.getElementById(inputId);
       if (!input) return false;
       const valor = limparTextoEntrada(input.value);
-      if (!valor) return false; // Campo vazio já é pego pelo required
+      if (!valor) return false;
 
       const opcoesValidas = obterValoresDeDatalist(datalistId);
-      
-      // Se o datalist ainda estiver vazio (ex: carregando do backend), permite o valor atual
-      if (opcoesValidas.length === 0) return true;
+      if (opcoesValidas.length === 0) {
+        if (dispararCascataCliente) aoMudarClienteSAC();
+        return true;
+      }
 
       const achado = opcoesValidas.find(item => item.toLocaleLowerCase('pt-BR') === valor.toLocaleLowerCase('pt-BR'));
 
       if (!achado) {
         alert('⛔ Atenção no campo "' + nomeAmigavel + '":\nO valor "' + valor + '" não foi encontrado na lista padrão.\nPor favor, escolha uma opção disponível.');
-        // NÃO limpa o input.value para o usuário não perder o que estava preenchido
         setTimeout(() => { input.focus(); }, 50);
         return false;
       } else {
-        input.value = achado; // Normaliza com a grafia oficial da lista
+        input.value = achado;
         if (dispararCascataCliente) {
           aoMudarClienteSAC();
         }
         return true;
       }
     }
-    // =========================================================================
-    // TÉRMINO: validarInputComLista
-    // =========================================================================
 
     // =========================================================================
-    // INÍCIO: abrirModalLoading
+    // MODAIS E FEEDBACK VISUAL
     // =========================================================================
     function abrirModalLoading(titulo, subtitulo, tipoAcao = 'loading') {
       const modal = document.getElementById('modalLoadingAcao');
@@ -1350,24 +1279,12 @@
       modal.classList.remove('hidden');
       lucide.createIcons();
     }
-    // =========================================================================
-    // TÉRMINO: abrirModalLoading
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: fecharModalLoading
-    // =========================================================================
     function fecharModalLoading() {
       const modal = document.getElementById('modalLoadingAcao');
       if (modal) modal.classList.add('hidden');
     }
-    // =========================================================================
-    // TÉRMINO: fecharModalLoading
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: exibirMensagemTopo
-    // =========================================================================
     function exibirMensagemTopo(titulo, subtitulo, tipo = 'sucesso') {
       const alertBox = document.getElementById('alertSACSuccess');
       const alertTitle = document.getElementById('alertSACSuccessTitle');
@@ -1395,12 +1312,9 @@
       alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       lucide.createIcons();
     }
-    // =========================================================================
-    // TÉRMINO: exibirMensagemTopo
-    // =========================================================================
 
     // =========================================================================
-    // INÍCIO: enviarParaBancoGarantido (ENVIO GARANTIDO EM UTF-8 PURO)
+    // COMUNICAÇÃO UTF-8 GARANTIDA COM BACKEND (/api/action)
     // =========================================================================
     async function enviarParaBancoGarantido(payload) {
       try {
@@ -1418,7 +1332,6 @@
           body: bodyBytes
         });
 
-        // Lê os bytes crus e decodifica explicitamente em UTF-8 para evitar corrupção na resposta
         const buffer = await resp.arrayBuffer();
         const textoResposta = new TextDecoder('utf-8').decode(buffer);
         let dadosResposta = null;
@@ -1452,23 +1365,11 @@
         };
       }
     }
-    // =========================================================================
-    // TÉRMINO: enviarParaBancoGarantido
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: executarRefresh
-    // =========================================================================
     function executarRefresh() {
       window.location.reload();
     }
-    // =========================================================================
-    // TÉRMINO: executarRefresh
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: switchPage
-    // =========================================================================
     function switchPage(page) {
       if (page === 'cadastroClientes' && (nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
         alert('⛔ Acesso Restrito:\nSeu perfil não tem permissão para cadastrar ou gerenciar clientes.');
@@ -1509,22 +1410,16 @@
       if (page === 'dashboardSAC') {
         atualizarDashboardSAC();
       } else if (page === 'chamadosAbertos') {
-        renderizarTabelaChamadosAbertos();
+        carregarPaginaChamadosAbertos(paginaAtualAbertos);
       } else if (page === 'sac') {
-        renderizarTabelaChamadosSAC();
+        carregarPaginaChamadosSAC(paginaAtualSAC);
       } else if (page === 'cadastroClientes') {
         aplicarRegrasDeAcesso();
         renderizarTabelaClientes();
       }
       lucide.createIcons();
     }
-    // =========================================================================
-    // TÉRMINO: switchPage
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: calcularPreviaProximoChamado
-    // =========================================================================
     function calcularPreviaProximoChamado(ano) {
       let maior = (dadosSAC.maior_sac_ano && dadosSAC.maior_sac_ano[ano]) || 0;
       listaChamadosSAC.forEach(c => {
@@ -1538,13 +1433,7 @@
       });
       return 'SAC-' + ano + '-' + String(maior + 1).padStart(4, '0');
     }
-    // =========================================================================
-    // TÉRMINO: calcularPreviaProximoChamado
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: extrairListaTexto
-    // =========================================================================
     function extrairListaTexto(fonte, propriedadesChave = []) {
       if (!Array.isArray(fonte)) return [];
       const resultado = [];
@@ -1563,13 +1452,66 @@
       });
       return [...new Set(resultado)].sort((a, b) => a.localeCompare(b, 'pt-BR'));
     }
-    // =========================================================================
-    // TÉRMINO: extrairListaTexto
-    // =========================================================================
 
     // =========================================================================
-    // INÍCIO: inicializarFormularioSAC
+    // VÍNCULO DE CLIENTE -> LOCAL INTERNO & FILIAL RESPONSÁVEL
     // =========================================================================
+    function obterBaseUnificadaClientes() {
+      const base = [];
+      const fontes = [
+        ...(Array.isArray(dadosSAC.cadastro_clientes) ? dadosSAC.cadastro_clientes : []),
+        ...(Array.isArray(dadosSAC.clientes) ? dadosSAC.clientes : []),
+        ...(Array.isArray(listaCadastroClientes) ? listaCadastroClientes : [])
+      ];
+
+      fontes.forEach(c => {
+        if (!c || typeof c !== 'object') return;
+        const nome = limparTextoEntrada(c.cliente || c.Cliente || '');
+        if (!nome) return;
+        const localInt = limparTextoEntrada(c.localInterno || c.local_interno || c['Local interno'] || c.local || c.Local || '');
+        const filial = limparTextoEntrada(c.filialResponsavel || c.filial_responsavel || c['Filial Responsavel'] || c.cidade || c.Cidade || '');
+        base.push({
+          cliente: nome,
+          localInterno: localInt,
+          filialResponsavel: filial
+        });
+      });
+
+      return base;
+    }
+
+    function atualizarListasAuxiliaresFormularioSAC() {
+      const baseClientes = obterBaseUnificadaClientes();
+
+      // 1. Clientes
+      const dlCli = document.getElementById('listaSACClientes');
+      if (dlCli) {
+        dlCli.innerHTML = '';
+        [...new Set(baseClientes.map(c => c.cliente).filter(Boolean))]
+          .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+          .forEach(cli => {
+            const opt = document.createElement('option');
+            opt.value = cli;
+            dlCli.appendChild(opt);
+          });
+      }
+
+      // 2. Cidades / Filiais
+      const dlCid = document.getElementById('listaSACCidades');
+      if (dlCid) {
+        dlCid.innerHTML = '';
+        const cidadesSet = new Set([
+          ...(Array.isArray(dadosSAC.cidades) ? dadosSAC.cidades.map(limparTextoEntrada) : []),
+          ...baseClientes.map(c => c.filialResponsavel)
+        ].filter(Boolean));
+        [...cidadesSet].sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(cid => {
+          const opt = document.createElement('option');
+          opt.value = cid;
+          dlCid.appendChild(opt);
+        });
+      }
+    }
+
     function inicializarFormularioSAC() {
       if (chamadoEmEdicao) return;
       const anoAtual = new Date().getFullYear();
@@ -1592,21 +1534,9 @@
       document.getElementById('sacObservacao').value = "";
       document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
 
-      // 1. Clientes
-      const dlCli = document.getElementById('listaSACClientes');
-      dlCli.innerHTML = '';
-      [...new Set((dadosSAC.clientes || []).map(c => limparTextoEntrada(c.cliente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(cli => {
-        const opt = document.createElement('option'); opt.value = cli; dlCli.appendChild(opt);
-      });
+      atualizarListasAuxiliaresFormularioSAC();
 
-      // 2. Cidades / Filiais
-      const dlCid = document.getElementById('listaSACCidades');
-      dlCid.innerHTML = '';
-      (dadosSAC.cidades?.length ? dadosSAC.cidades.map(limparTextoEntrada) : [...new Set((dadosSAC.clientes || []).map(c => limparTextoEntrada(c.cidade)).filter(Boolean))]).sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(cid => {
-        const opt = document.createElement('option'); opt.value = cid; dlCid.appendChild(opt);
-      });
-
-      // 3. Descrição * -> Tabela "produtos"
+      // 3. Descrição
       const listaProdutos = extrairListaTexto(
         dadosSAC.produtos || dadosSAC.descricoes || [], 
         ['produto', 'descricao', 'nome', 'descricao_produto', 'item']
@@ -1619,7 +1549,7 @@
         dlDesc.appendChild(opt);
       });
 
-      // 4. Problemas * -> Tabela "problemas"
+      // 4. Problemas
       const listaProblemas = extrairListaTexto(
         dadosSAC.problemas || [], 
         ['problema', 'problemas', 'descricao', 'motivo', 'nome']
@@ -1632,7 +1562,7 @@
         dlProb.appendChild(opt);
       });
 
-      // 5. Forma de Pagamento * -> Tabela "formas_pgt"
+      // 5. Forma de Pagamento
       const listaFormasPgt = extrairListaTexto(
         dadosSAC.formas_pgt || dadosSAC.formas_pagamento || [], 
         ['forma_pgt', 'forma_pagamento', 'forma', 'descricao', 'nome']
@@ -1645,54 +1575,83 @@
         dlPgto.appendChild(opt);
       });
     }
-    // =========================================================================
-    // TÉRMINO: inicializarFormularioSAC
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: aoMudarClienteSAC
-    // =========================================================================
+    function aoDigitarOuSelecionarClienteSAC() {
+      const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
+      if (!cli) {
+        document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
+        return;
+      }
+      const baseClientes = obterBaseUnificadaClientes();
+      const existeExato = baseClientes.some(c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR'));
+      if (existeExato) {
+        aoMudarClienteSAC();
+      }
+    }
+
     function aoMudarClienteSAC() {
       const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
       const selectLocal = document.getElementById('sacLocalInterno');
+      const inputFilial = document.getElementById('sacCidade');
+
       selectLocal.innerHTML = '<option value="">Selecione o Local Interno...</option>';
       if (!cli) return;
 
-      const locaisDoCliente = (dadosSAC.clientes || []).filter(c => c.cliente && limparTextoEntrada(c.cliente).toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR'));
-      if (!locaisDoCliente.length) return;
+      const baseClientes = obterBaseUnificadaClientes();
+      const registrosCliente = baseClientes.filter(
+        c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR')
+      );
 
-      const locaisUnicos = [...new Set(locaisDoCliente.map(l => limparTextoEntrada(l.local)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      if (!registrosCliente.length) return;
+
+      const locaisUnicos = [...new Set(registrosCliente.map(r => r.localInterno).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
       locaisUnicos.forEach(loc => {
         const opt = document.createElement('option');
-        opt.value = loc; opt.textContent = loc;
+        opt.value = loc;
+        opt.textContent = loc;
         selectLocal.appendChild(opt);
       });
+
       if (locaisUnicos.length === 1) {
         selectLocal.value = locaisUnicos[0];
         aoMudarLocalInternoSAC();
+      } else {
+        // Se todas as unidades desse cliente pertencem à mesma filial, já pré-preenche a filial
+        const filiaisUnicas = [...new Set(registrosCliente.map(r => r.filialResponsavel).filter(Boolean))];
+        if (filiaisUnicas.length === 1 && inputFilial) {
+          inputFilial.value = filiaisUnicas[0];
+        }
       }
     }
-    // =========================================================================
-    // TÉRMINO: aoMudarClienteSAC
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: aoMudarLocalInternoSAC
-    // =========================================================================
     function aoMudarLocalInternoSAC() {
       const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
       const loc = limparTextoEntrada(document.getElementById('sacLocalInterno').value);
-      if (!cli || !loc) return;
-      const achado = (dadosSAC.clientes || []).find(c => c.cliente && limparTextoEntrada(c.cliente).toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR') && limparTextoEntrada(c.local) === loc);
-      if (achado && achado.cidade) document.getElementById('sacCidade').value = limparTextoEntrada(achado.cidade);
-    }
-    // =========================================================================
-    // TÉRMINO: aoMudarLocalInternoSAC
-    // =========================================================================
+      if (!cli) return;
 
-    // =========================================================================
-    // INÍCIO: limparFormSAC
-    // =========================================================================
+      const baseClientes = obterBaseUnificadaClientes();
+      let achado = null;
+
+      if (loc) {
+        achado = baseClientes.find(
+          c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR') &&
+               c.localInterno.toLocaleLowerCase('pt-BR') === loc.toLocaleLowerCase('pt-BR')
+        );
+      }
+
+      if (!achado) {
+        achado = baseClientes.find(
+          c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR') && c.filialResponsavel
+        );
+      }
+
+      if (achado && achado.filialResponsavel) {
+        document.getElementById('sacCidade').value = achado.filialResponsavel;
+      }
+    }
+
     function limparFormSAC() {
       chamadoEmEdicao = null;
       document.getElementById('sacForm').reset();
@@ -1724,17 +1683,19 @@
       document.getElementById('sacDataHoraAuto').value = "Automático no Envio";
       lucide.createIcons();
     }
-    // =========================================================================
-    // TÉRMINO: limparFormSAC
-    // =========================================================================
 
     // =========================================================================
-    // INÍCIO: editarChamadoSAC (ROBUSTO COM FALLBACK DE COLUNAS SQL/CSV)
+    // EDIÇÃO E EXCLUSÃO DE CHAMADO SAC
     // =========================================================================
     function editarChamadoSAC(numeroChamado, origem = 'sac') {
-      const item = listaChamadosSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === String(numeroChamado).trim().toUpperCase());
+      const busca = String(numeroChamado).trim().toUpperCase();
+      const item =
+        listaChamadosSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === busca) ||
+        itensPaginaSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === busca) ||
+        itensPaginaAbertos.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === busca);
+
       if (!item) {
-        console.warn('Chamado não encontrado para edição:', numeroChamado);
+        alert('Chamado não localizado na listagem atual.');
         return;
       }
 
@@ -1742,23 +1703,18 @@
       switchPage('sac');
       chamadoEmEdicao = item;
 
-      // 1. Identificador e Data Principal
       document.getElementById('sacChamado').value = limparTextoEntrada(item.chamado || item.Chamado || '');
       const dataOriginal = limparTextoEntrada(item.data || item.Data || '');
       document.getElementById('sacData').value = dataOriginal.includes('/') ? dataPtBrParaIso(dataOriginal) : dataOriginal;
 
-      // 2. Cliente e Cascata de Local Interno
       const clienteVal = limparTextoEntrada(item.cliente || item.Cliente || '');
       document.getElementById('sacCliente').value = clienteVal;
-      aoMudarClienteSAC(); // Repopula o select de locais internos
+      aoMudarClienteSAC();
 
-      // Local Interno (aceita local_interno, localInterno, Local Interno ou local)
       const localVal = limparTextoEntrada(item.local_interno || item.localInterno || item['Local Interno'] || item.local || '');
       const selectLocal = document.getElementById('sacLocalInterno');
-      
-      // Se a opção não constava na lista populada do cliente, adiciona para garantir a seleção
       if (localVal) {
-        let optExiste = Array.from(selectLocal.options).some(o => o.value.toLocaleLowerCase('pt-BR') === localVal.toLocaleLowerCase('pt-BR'));
+        const optExiste = Array.from(selectLocal.options).some(o => o.value.toLocaleLowerCase('pt-BR') === localVal.toLocaleLowerCase('pt-BR'));
         if (!optExiste) {
           const novaOpt = document.createElement('option');
           novaOpt.value = localVal;
@@ -1768,10 +1724,7 @@
         selectLocal.value = localVal;
       }
 
-      // 3. Filial / Cidade
       document.getElementById('sacCidade').value = limparTextoEntrada(item.cidade || item.Cidade || item.filial || '');
-
-      // 4. Descrição e Produto
       document.getElementById('sacDescricao').value = limparTextoEntrada(item.descricao || item.Descricao || item['Descrição'] || '');
       
       const prodVal = limparTextoEntrada(item.produto || item.Produto || '');
@@ -1784,25 +1737,21 @@
         selectProduto.value = prodVal;
       }
 
-      // 5. Data e Hora da Transação
       const dtTrans = limparTextoEntrada(item.data_transacao || item.dataTransacao || item['Data da Transação'] || '');
       document.getElementById('sacDataTransacao').value = dtTrans.includes('/') ? dataPtBrParaIso(dtTrans) : dtTrans;
       
       let hrTrans = limparTextoEntrada(item.hora_transacao || item.horaTransacao || item['Hora da Transação'] || '');
-      if (hrTrans && hrTrans.length > 5) hrTrans = hrTrans.substring(0, 5); // Formata HH:MM
+      if (hrTrans && hrTrans.length > 5) hrTrans = hrTrans.substring(0, 5);
       document.getElementById('sacHoraTransacao').value = hrTrans;
 
-      // 6. Valor
       const valNum = parseValorNumerico(item.valor || item.Valor);
       document.getElementById('sacValor').value = valNum ? valNum : '';
 
-      // 7. Dados do Cliente / Contato
       document.getElementById('sacNome').value = limparTextoEntrada(item.nome_sobrenome || item.nomeSobrenome || item['Nome/Sobrenome'] || item.nome || '');
       document.getElementById('sacCelular').value = limparTextoEntrada(item.celular || item.Celular || '');
       document.getElementById('sacProblema').value = limparTextoEntrada(item.problemas || item.Problemas || item.problema || '');
       document.getElementById('sacFormaPgto').value = limparTextoEntrada(item.forma_pgto || item.formaPgto || item['Forma de Pagamento'] || '');
 
-      // 8. Reembolso
       const rmbVal = limparTextoEntrada(item.reembolso || item.Reembolso || '').toLowerCase();
       if (rmbVal.includes('remoto') || rmbVal.includes('crédito') || rmbVal.includes('credito')) {
         document.getElementById('sacReembolso').value = 'Crédito Remoto';
@@ -1814,19 +1763,15 @@
         document.getElementById('sacReembolso').value = limparTextoEntrada(item.reembolso || item.Reembolso || '');
       }
 
-      // 9. Pix e Observação
       document.getElementById('sacPix').value = limparTextoEntrada(item.pix || item.Pix || item['Pix - Reembolso'] || '');
       document.getElementById('sacObservacao').value = limparTextoEntrada(item.observacao || item.observação || item.obs || item.Observação || '');
 
-      // 10. Reembolso Realizado (Sim/Não)
       const rReal = limparTextoEntrada(item.reembolso_realizado || item.reembolsoRealizado || item['Reembolso Realizado'] || 'Não').toLowerCase();
       document.getElementById('sacReembolsoRealizado').value = (rReal === 'sim' || rReal === 's' || rReal === 'true') ? 'Sim' : 'Não';
 
-      // 11. Atendente e Carimbo de Data/Hora
       document.getElementById('sacAtendente').value = limparTextoEntrada(item.atendente || item.Atendente || atendenteSACLogado);
       document.getElementById('sacDataHoraAuto').value = limparTextoEntrada(item.data_hora_lancamento || item.dataHoraLancamento || item['Data/Hora do lançamento'] || 'Original Preservado');
 
-      // 12. Atualização dos Avisos e Botões da UI
       document.getElementById('alertSACEditMode').classList.remove('hidden');
       document.getElementById('labelSACEditChamado').innerText = item.chamado || item.Chamado;
       document.getElementById('sacFormTitleText').innerText = 'Edição da Ocorrência: ' + (item.chamado || item.Chamado);
@@ -1835,31 +1780,22 @@
       
       lucide.createIcons();
     }
-    // =========================================================================
-    // TÉRMINO: editarChamadoSAC
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: cancelarEdicaoSAC
-    // =========================================================================
     function cancelarEdicaoSAC() {
       const origemAnterior = origemEdicaoSAC;
       limparFormSAC();
       if (origemAnterior === 'chamadosAbertos') switchPage('chamadosAbertos');
       origemEdicaoSAC = 'sac';
     }
-    // =========================================================================
-    // TÉRMINO: cancelarEdicaoSAC
-    // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: excluirChamadoSAC
-    // =========================================================================
     async function excluirChamadoSAC(numeroChamado) {
-      if (!confirm('Deseja realmente excluir o chamado ' + numeroChamado + '? Esta ação solicitará a remoção do banco SQL.')) return;
+      if (!confirm('Deseja realmente excluir o chamado ' + numeroChamado + '? Esta ação removerá o registro do banco SQL.')) return;
       
       abrirModalLoading('Excluindo Ocorrência...', 'Removendo a ocorrência ' + numeroChamado + ' do banco de dados.', 'loading');
-      const item = listaChamadosSAC.find(c => c.chamado === numeroChamado);
+      const item =
+        listaChamadosSAC.find(c => c.chamado === numeroChamado) ||
+        itensPaginaSAC.find(c => c.chamado === numeroChamado) ||
+        itensPaginaAbertos.find(c => c.chamado === numeroChamado);
 
       const resultado = await enviarParaBancoGarantido({
         "action": "excluir", 
@@ -1867,7 +1803,8 @@
         "tipo": "excluir_sac",
         "Chamado": numeroChamado, 
         "chamado": numeroChamado,
-        "linha": item?.linha || ""
+        "id": item?.id || item?.linha || "",
+        "linha": item?.linha || item?.id || ""
       });
 
       if (resultado.status === "error") {
@@ -1876,16 +1813,9 @@
         return;
       }
 
-      // Atualização de dados somente após validação positiva do banco
       listaChamadosSAC = listaChamadosSAC.filter(c => c.chamado !== numeroChamado);
-      if (listaFiltradaSACCache) {
-        listaFiltradaSACCache = listaFiltradaSACCache.filter(c => c.chamado !== numeroChamado);
-      }
-      if (listaFiltradaAbertosCache) {
-        listaFiltradaAbertosCache = listaFiltradaAbertosCache.filter(c => c.chamado !== numeroChamado);
-      }
-      renderizarTabelaChamadosSAC();
-      renderizarTabelaChamadosAbertos();
+      await carregarPaginaChamadosSAC(paginaAtualSAC);
+      await carregarPaginaChamadosAbertos(paginaAtualAbertos);
       atualizarDashboardSAC();
 
       if (chamadoEmEdicao && chamadoEmEdicao.chamado === numeroChamado) {
@@ -1897,12 +1827,9 @@
       
       setTimeout(fecharModalLoading, 1000);
     }
-    // =========================================================================
-    // TÉRMINO: excluirChamadoSAC
-    // =========================================================================
 
     // =========================================================================
-    // INÍCIO: handleSACSubmit
+    // SUBMISSÃO DE NOVO CHAMADO OU EDIÇÃO (PERSISTÊNCIA GARANTIDA)
     // =========================================================================
     async function handleSACSubmit(e) {
       e.preventDefault();
@@ -1922,12 +1849,6 @@
       const anoAtual = new Date().getFullYear();
       if (!ehEdicao) chamado = calcularPreviaProximoChamado(anoAtual);
 
-      if (!ehEdicao && listaChamadosSAC.some(c => c.chamado.toUpperCase() === chamado.toUpperCase())) {
-        alert('⛔ Chamado Duplicado! O número "' + chamado + '" já existe.');
-        document.getElementById('sacChamado').value = calcularPreviaProximoChamado(anoAtual);
-        return;
-      }
-
       const dataIso = document.getElementById('sacData').value;
       const data = dataIsoParaPtBr(dataIso);
 
@@ -1936,1247 +1857,4 @@
       const cidade = limparTextoEntrada(document.getElementById('sacCidade').value);
       const descricao = limparTextoEntrada(document.getElementById('sacDescricao').value);
       const produto = limparTextoEntrada(document.getElementById('sacProduto').value);
-      const dataTransacaoIso = document.getElementById('sacDataTransacao').value;
-      const dataTransacao = dataIsoParaPtBr(dataTransacaoIso);
-      const horaTransacao = limparTextoEntrada(document.getElementById('sacHoraTransacao').value);
-      const valor = parseFloat(document.getElementById('sacValor').value) || 0;
-      const nomeSobrenome = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('sacNome').value));
-      const celular = limparTextoEntrada(document.getElementById('sacCelular').value);
-      const problemas = limparTextoEntrada(document.getElementById('sacProblema').value);
-      const formaPgto = limparTextoEntrada(document.getElementById('sacFormaPgto').value);
-      const reembolso = limparTextoEntrada(document.getElementById('sacReembolso').value);
-      const pix = limparTextoEntrada(document.getElementById('sacPix').value);
-      const reembolsoRealizado = limparTextoEntrada(document.getElementById('sacReembolsoRealizado').value) || "Não";
-      const observacao = limparTextoEntrada(document.getElementById('sacObservacao').value);
-
-      let atendente = ehEdicao && chamadoEmEdicao?.atendente ? limparTextoEntrada(chamadoEmEdicao.atendente) : limparTextoEntrada(atendenteSACLogado || document.getElementById('sacAtendente').value);
-      let dataHoraLancamento = ehEdicao && chamadoEmEdicao?.dataHoraLancamento ? limparTextoEntrada(chamadoEmEdicao.dataHoraLancamento) : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
-      let financeiroResponsavel = (reembolsoRealizado === "Sim") ? limparTextoEntrada(atendenteSACLogado || chamadoEmEdicao?.financeiroResponsavel || "") : limparTextoEntrada(chamadoEmEdicao?.financeiroResponsavel || "");
-
-      const payloadSAC = {
-        "acao": ehEdicao ? "editar" : "inserir", 
-        "action": ehEdicao ? "editar" : "inserir",
-        "linha": ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : "",
-        "Chamado": chamado, 
-        "Data": data, 
-        "Cliente": cliente, 
-        "Local Interno": localInterno, 
-        "Cidade": cidade, 
-        "Descrição": descricao, 
-        "Produto": produto, 
-        "Data da Transação": dataTransacao, 
-        "Hora da Transação": horaTransacao, 
-        "Valor": valor, 
-        "Nome/Sobrenome": nomeSobrenome, 
-        "Celular": celular, 
-        "Problemas": problemas, 
-        "Forma de Pagamento": formaPgto, 
-        "Reembolso": reembolso, 
-        "Pix - Reembolso": pix, 
-        "Atendente": atendente, 
-        "Data/Hora do lançamento": dataHoraLancamento, 
-        "Reembolso Realizado": reembolsoRealizado, 
-        "Financeiro Responsavel": financeiroResponsavel, 
-        "Observação": observacao
-      };
-
-      abrirModalLoading(
-        ehEdicao ? 'Atualizando Ocorrência...' : 'Lançando no Sistema...',
-        ehEdicao ? 'Gravando alterações do chamado ' + chamado + ' no banco de dados.' : 'Registrando a ocorrência ' + chamado + ' no banco de dados.',
-        'loading'
-      );
-
-      const btnSalvar = document.getElementById('btnSalvarSAC');
-      if (btnSalvar) btnSalvar.disabled = true;
-
-      // Execução assíncrona com await explícito e verificação de retorno
-      const resultado = await enviarParaBancoGarantido(payloadSAC);
-
-      if (btnSalvar) btnSalvar.disabled = false;
-
-      if (resultado.status === "error") {
-        fecharModalLoading();
-        alert('❌ Falha ao gravar chamado no banco de dados:\n' + resultado.message);
-        return;
-      }
-
-      if (resultado.data && resultado.data.chamado) {
-        chamado = limparTextoEntrada(resultado.data.chamado);
-      }
-
-      const novoItem = {
-        linha: ehEdicao && (chamadoEmEdicao.linha || chamadoEmEdicao.id) ? (chamadoEmEdicao.linha || chamadoEmEdicao.id) : (resultado.data?.linha || listaChamadosSAC.length + 2),
-        chamado,
-        data,
-        cliente,
-        local_interno: localInterno,
-        localInterno: localInterno,
-        cidade,
-        descricao,
-        produto,
-        data_transacao: dataTransacao,
-        dataTransacao: dataTransacao,
-        hora_transacao: horaTransacao,
-        horaTransacao: horaTransacao,
-        valor: formatCurrency(valor),
-        nome_sobrenome: nomeSobrenome,
-        nomeSobrenome: nomeSobrenome,
-        celular,
-        problemas,
-        forma_pgto: formaPgto,
-        formaPgto: formaPgto,
-        reembolso,
-        pix,
-        atendente,
-        data_hora_lancamento: dataHoraLancamento,
-        dataHoraLancamento: dataHoraLancamento,
-        reembolso_realizado: reembolsoRealizado,
-        reembolsoRealizado: reembolsoRealizado,
-        financeiro_responsavel: financeiroResponsavel,
-        financeiroResponsavel: financeiroResponsavel,
-        observacao,
-        obs: observacao
-      };
-
-      if (ehEdicao) {
-        listaChamadosSAC = listaChamadosSAC.map(c => c.chamado === chamado ? novoItem : c);
-        if (listaFiltradaSACCache) {
-          listaFiltradaSACCache = listaFiltradaSACCache.map(c => c.chamado === chamado ? novoItem : c);
-        }
-        if (listaFiltradaAbertosCache) {
-          listaFiltradaAbertosCache = listaFiltradaAbertosCache.map(c => c.chamado === chamado ? novoItem : c);
-        }
-      } else {
-        listaChamadosSAC.unshift(novoItem);
-        paginaAtualSAC = 1;
-        paginaAtualAbertos = 1;
-        if (document.getElementById('searchSACChamados')) document.getElementById('searchSACChamados').value = '';
-        if (document.getElementById('searchAbertos')) document.getElementById('searchAbertos').value = '';
-        listaFiltradaSACCache = null;
-        listaFiltradaAbertosCache = null;
-      }
-
-      const m = chamado.match(/SAC-(\d{4})-(\d+)/i);
-      if (m) {
-        if (!dadosSAC.maior_sac_ano) dadosSAC.maior_sac_ano = {};
-        dadosSAC.maior_sac_ano[m[1]] = Math.max(dadosSAC.maior_sac_ano[m[1]] || 0, parseInt(m[2], 10));
-      }
-
-      const destinoAposSalvar = (ehEdicao && origemEdicaoSAC === 'chamadosAbertos') ? 'chamadosAbertos' : 'sac';
-      limparFormSAC();
-      renderizarTabelaChamadosSAC();
-      renderizarTabelaChamadosAbertos();
-      atualizarDashboardSAC();
-      origemEdicaoSAC = 'sac';
-
-      abrirModalLoading(ehEdicao ? 'Ocorrência Atualizada!' : 'Lançamento Concluído!', 'Ocorrência gravada com sucesso.', 'sucesso');
-      if (destinoAposSalvar === 'chamadosAbertos') switchPage('chamadosAbertos');
-      exibirMensagemTopo('✅ Ocorrência ' + chamado + ' registrada com sucesso!', 'Valor: ' + formatCurrency(valor) + ' · Forma Pgto: ' + (formaPgto || '-'));
-      
-      setTimeout(fecharModalLoading, 1000);
-    }
-    // =========================================================================
-    // TÉRMINO: handleSACSubmit
-    // =========================================================================
-
-    // =========================================================================
-    // VARIÁVEIS DE CONTROLE DE PAGINAÇÃO (50 POR PÁGINA)
-    // =========================================================================
-    const ITENS_POR_PAGINA = 50;
-
-    let paginaAtualSAC = 1;
-    let listaFiltradaSACCache = null;
-
-    let paginaAtualAbertos = 1;
-    let listaFiltradaAbertosCache = null;
-
-    // =========================================================================
-    // INÍCIO: filtrarChamadosSAC
-    // =========================================================================
-    function filtrarChamadosSAC() {
-      const termo = limparTextoEntrada(document.getElementById('searchSACChamados')?.value || '').toLocaleLowerCase('pt-BR');
-      paginaAtualSAC = 1; // Retorna à primeira página ao pesquisar
-
-      if (!termo) {
-        listaFiltradaSACCache = null;
-        renderizarTabelaChamadosSAC(listaChamadosSAC);
-        return;
-      }
-
-      listaFiltradaSACCache = listaChamadosSAC.filter(c => 
-        Object.values(c).some(val => normalizarCodificacaoTexto(String(val || '')).toLocaleLowerCase('pt-BR').includes(termo))
-      );
-      renderizarTabelaChamadosSAC(listaFiltradaSACCache);
-    }
-    // =========================================================================
-    // TÉRMINO: filtrarChamadosSAC
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: mudarPaginaSAC
-    // =========================================================================
-    function mudarPaginaSAC(delta) {
-      const listaBase = listaFiltradaSACCache || listaChamadosSAC;
-      const totalPaginas = Math.ceil(listaBase.length / ITENS_POR_PAGINA) || 1;
-      const novaPagina = paginaAtualSAC + delta;
-
-      if (novaPagina >= 1 && novaPagina <= totalPaginas) {
-        paginaAtualSAC = novaPagina;
-        renderizarTabelaChamadosSAC(listaBase);
-      }
-    }
-    // =========================================================================
-    // TÉRMINO: mudarPaginaSAC
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: renderizarTabelaChamadosSAC
-    // =========================================================================
-    function renderizarTabelaChamadosSAC(lista = (listaFiltradaSACCache || listaChamadosSAC)) {
-      const tbody = document.getElementById('tableSACChamadosBody');
-      const badge = document.getElementById('badgeContadorSAC');
-      const totalRegistros = lista ? lista.length : 0;
-
-      if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
-      if (!tbody) return;
-
-      if (!lista || totalRegistros === 0) {
-        tbody.innerHTML = '<tr><td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhuma ocorrência encontrada.</td></tr>';
-        atualizarControlesPaginacaoSAC(0, 0, 0, 1, 1);
-        return;
-      }
-
-      // Calcula limites da página
-      const totalPaginas = Math.ceil(totalRegistros / ITENS_POR_PAGINA) || 1;
-      if (paginaAtualSAC > totalPaginas) paginaAtualSAC = totalPaginas;
-      if (paginaAtualSAC < 1) paginaAtualSAC = 1;
-
-      const indiceInicio = (paginaAtualSAC - 1) * ITENS_POR_PAGINA;
-      const indiceFim = Math.min(indiceInicio + ITENS_POR_PAGINA, totalRegistros);
-      
-      // FATIAMENTO DE PERFORMANCE: renderiza apenas os 50 registros da página
-      const listaPaginada = lista.slice(indiceInicio, indiceFim);
-
-      tbody.innerHTML = listaPaginada.map(c => {
-        const rVal = limparTextoEntrada(c.reembolso_realizado || c.reembolsoRealizado || 'Não').toLowerCase();
-        const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
-        const badgePago = pago 
-          ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
-          : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
-
-        const numChamado = limparTextoEntrada(c.chamado || c.Chamado || '');
-        const dtChamado = limparTextoEntrada(c.data || c.Data || '-');
-        const nomeCliente = limparTextoEntrada(c.cliente || c.Cliente || '-');
-        const localInt = limparTextoEntrada(c.local_interno || c.localInterno || c['Local Interno'] || c.local || '-');
-        const filialCid = limparTextoEntrada(c.cidade || c.Cidade || '-');
-        const prod = limparTextoEntrada(c.produto || c.Produto || '-');
-        const valFormatado = formatCurrency(parseValorNumerico(c.valor || c.Valor));
-        const contatoNome = limparTextoEntrada(c.nome_sobrenome || c.nomeSobrenome || c['Nome/Sobrenome'] || '-');
-        const formaPag = limparTextoEntrada(c.forma_pgto || c.formaPgto || c['Forma de Pagamento'] || '-');
-        const tipoReembolso = limparTextoEntrada(c.reembolso || c.Reembolso || '-');
-        const finResp = limparTextoEntrada(c.financeiro_responsavel || c.financeiroResponsavel || c['Financeiro Responsavel'] || '-');
-        const obs = limparTextoEntrada(c.observacao || c.Observação || c.obs || '-');
-        const atend = limparTextoEntrada(c.atendente || c.Atendente || '-');
-
-        return `
-          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-            <td class="text-center whitespace-nowrap">
-              <div class="inline-flex items-center gap-1 justify-center">
-                <button type="button" onclick="editarChamadoSAC('${numChamado}', 'sac')" title="Editar chamado ${numChamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
-                  <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
-                </button>
-                <button type="button" onclick="excluirChamadoSAC('${numChamado}')" title="Excluir chamado ${numChamado}" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
-                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                </button>
-              </div>
-            </td>
-            <td class="font-mono font-bold text-sky-700 truncate" title="${numChamado}">${numChamado}</td>
-            <td class="truncate" title="${dtChamado}">${dtChamado}</td>
-            <td class="font-semibold text-slate-800 truncate" title="${nomeCliente}">${nomeCliente}</td>
-            <td class="text-slate-600 truncate" title="${localInt}">${localInt}</td>
-            <td class="text-slate-600 truncate" title="${filialCid}">${filialCid}</td>
-            <td class="font-medium text-slate-700 truncate" title="${prod}">${prod}</td>
-            <td class="text-right font-bold text-emerald-700 truncate" title="${valFormatado}">${valFormatado}</td>
-            <td class="font-medium text-slate-800 truncate" title="${contatoNome}">${contatoNome}</td>
-            <td class="text-slate-700 font-medium truncate" title="${formaPag}">${formaPag}</td>
-            <td class="text-sky-900 font-semibold truncate" title="${tipoReembolso}">${tipoReembolso}</td>
-            <td class="text-center whitespace-nowrap">${badgePago}</td>
-            <td class="font-semibold text-emerald-800 truncate" title="${finResp}">${finResp}</td>
-            <td class="text-slate-600 truncate" title="${obs}">${obs}</td>
-            <td class="font-medium text-slate-600 truncate" title="${atend}">${atend}</td>
-          </tr>
-        `;
-      }).join('');
-
-      atualizarControlesPaginacaoSAC(indiceInicio + 1, indiceFim, totalRegistros, paginaAtualSAC, totalPaginas);
-      lucide.createIcons();
-    }
-    // =========================================================================
-    // TÉRMINO: renderizarTabelaChamadosSAC
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarControlesPaginacaoSAC
-    // =========================================================================
-    function atualizarControlesPaginacaoSAC(de, ate, total, pagina, totalPaginas) {
-      const info = document.getElementById('infoPaginacaoSAC');
-      const badge = document.getElementById('badgePaginaSAC');
-      const btnAnt = document.getElementById('btnPagAntSAC');
-      const btnProx = document.getElementById('btnPagProxSAC');
-
-      if (info) info.innerText = `Exibindo ${de.toLocaleString('pt-BR')} a ${ate.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} chamados`;
-      if (badge) badge.innerText = `Página ${pagina} de ${totalPaginas}`;
-      if (btnAnt) btnAnt.disabled = (pagina <= 1);
-      if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarControlesPaginacaoSAC
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: filtrarChamadosAbertos
-    // =========================================================================
-    function filtrarChamadosAbertos() {
-      const termo = limparTextoEntrada(document.getElementById('searchAbertos')?.value || '').toLocaleLowerCase('pt-BR');
-      paginaAtualAbertos = 1; // Retorna à primeira página ao pesquisar
-
-      if (!termo) {
-        listaFiltradaAbertosCache = null;
-        renderizarTabelaChamadosAbertos(listaChamadosSAC);
-        return;
-      }
-
-      listaFiltradaAbertosCache = listaChamadosSAC.filter(c => 
-        Object.values(c).some(val => normalizarCodificacaoTexto(String(val || '')).toLocaleLowerCase('pt-BR').includes(termo))
-      );
-      renderizarTabelaChamadosAbertos(listaFiltradaAbertosCache);
-    }
-    // =========================================================================
-    // TÉRMINO: filtrarChamadosAbertos
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: mudarPaginaAbertos
-    // =========================================================================
-    function mudarPaginaAbertos(delta) {
-      const listaBase = listaFiltradaAbertosCache || listaChamadosSAC;
-      const totalPaginas = Math.ceil(listaBase.length / ITENS_POR_PAGINA) || 1;
-      const novaPagina = paginaAtualAbertos + delta;
-
-      if (novaPagina >= 1 && novaPagina <= totalPaginas) {
-        paginaAtualAbertos = novaPagina;
-        renderizarTabelaChamadosAbertos(listaBase);
-      }
-    }
-    // =========================================================================
-    // TÉRMINO: mudarPaginaAbertos
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: renderizarTabelaChamadosAbertos
-    // =========================================================================
-    function renderizarTabelaChamadosAbertos(lista = (listaFiltradaAbertosCache || listaChamadosSAC)) {
-      const tbody = document.getElementById('tableChamadosAbertosBody');
-      const badge = document.getElementById('badgeContadorAbertos');
-      const totalRegistros = lista ? lista.length : 0;
-
-      if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
-      if (!tbody) return;
-
-      if (!lista || totalRegistros === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto encontrado.</td></tr>';
-        atualizarControlesPaginacaoAbertos(0, 0, 0, 1, 1);
-        return;
-      }
-
-      // Calcula limites da página
-      const totalPaginas = Math.ceil(totalRegistros / ITENS_POR_PAGINA) || 1;
-      if (paginaAtualAbertos > totalPaginas) paginaAtualAbertos = totalPaginas;
-      if (paginaAtualAbertos < 1) paginaAtualAbertos = 1;
-
-      const indiceInicio = (paginaAtualAbertos - 1) * ITENS_POR_PAGINA;
-      const indiceFim = Math.min(indiceInicio + ITENS_POR_PAGINA, totalRegistros);
-      
-      // FATIAMENTO DE PERFORMANCE: renderiza apenas os 50 registros da página
-      const listaPaginada = lista.slice(indiceInicio, indiceFim);
-
-      tbody.innerHTML = listaPaginada.map(c => {
-        const rVal = limparTextoEntrada(c.reembolso_realizado || c.reembolsoRealizado || 'Não').toLowerCase();
-        const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
-        const badgePago = pago 
-          ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
-          : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
-
-        const numChamado = limparTextoEntrada(c.chamado || c.Chamado || '');
-        const dtChamado = limparTextoEntrada(c.data || c.Data || '-');
-        const nomeCliente = limparTextoEntrada(c.cliente || c.Cliente || '-');
-        const valFormatado = formatCurrency(parseValorNumerico(c.valor || c.Valor));
-        const contatoNome = limparTextoEntrada(c.nome_sobrenome || c.nomeSobrenome || c['Nome/Sobrenome'] || '-');
-        const formaPag = limparTextoEntrada(c.forma_pgto || c.formaPgto || c['Forma de Pagamento'] || '-');
-        const chavePix = limparTextoEntrada(c.pix || c.Pix || c['Pix - Reembolso'] || '-');
-        const finResp = limparTextoEntrada(c.financeiro_responsavel || c.financeiroResponsavel || c['Financeiro Responsavel'] || '-');
-        const obs = limparTextoEntrada(c.observacao || c.Observação || c.obs || '-');
-
-        return `
-          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-            <td class="font-mono font-bold text-sky-700 truncate" title="${numChamado}">${numChamado}</td>
-            <td class="text-slate-700 truncate" title="${dtChamado}">${dtChamado}</td>
-            <td class="font-semibold text-slate-800 truncate" title="${nomeCliente}">${nomeCliente}</td>
-            <td class="text-right font-bold text-emerald-700 truncate" title="${valFormatado}">${valFormatado}</td>
-            <td class="font-medium text-slate-800 truncate" title="${contatoNome}">${contatoNome}</td>
-            <td class="text-slate-700 font-semibold truncate" title="${formaPag}">${formaPag}</td>
-            <td class="font-mono text-slate-600 truncate" title="${chavePix}">${chavePix}</td>
-            <td class="text-center whitespace-nowrap">${badgePago}</td>
-            <td class="font-semibold text-emerald-800 truncate" title="${finResp}">${finResp}</td>
-            <td class="text-slate-600 truncate" title="${obs}">${obs}</td>
-            <td class="text-center whitespace-nowrap">
-              <button type="button" onclick="editarChamadoSAC('${numChamado}', 'chamadosAbertos')" title="Editar chamado ${numChamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer inline-flex items-center justify-center">
-                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      atualizarControlesPaginacaoAbertos(indiceInicio + 1, indiceFim, totalRegistros, paginaAtualAbertos, totalPaginas);
-      lucide.createIcons();
-    }
-    // =========================================================================
-    // TÉRMINO: renderizarTabelaChamadosAbertos
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarControlesPaginacaoAbertos
-    // =========================================================================
-    function atualizarControlesPaginacaoAbertos(de, ate, total, pagina, totalPaginas) {
-      const info = document.getElementById('infoPaginacaoAbertos');
-      const badge = document.getElementById('badgePaginaAbertos');
-      const btnAnt = document.getElementById('btnPagAntAbertos');
-      const btnProx = document.getElementById('btnPagProxAbertos');
-
-      if (info) info.innerText = `Exibindo ${de.toLocaleString('pt-BR')} a ${ate.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} chamados`;
-      if (badge) badge.innerText = `Página ${pagina} de ${totalPaginas}`;
-      if (btnAnt) btnAnt.disabled = (pagina <= 1);
-      if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarControlesPaginacaoAbertos
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: limparFormCliente
-    // =========================================================================
-    function limparFormCliente() {
-      clienteEmEdicao = null;
-      document.getElementById('clienteForm').reset();
-      document.getElementById('alertCliEditMode').classList.add('hidden');
-      document.getElementById('cliFormTitleText').innerText = "Cadastro de Clientes e Pontos de Atendimento";
-      document.getElementById('btnSalvarClienteText').innerText = "Cadastrar Cliente";
-      lucide.createIcons();
-    }
-    // =========================================================================
-    // TÉRMINO: limparFormCliente
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: cancelarEdicaoCliente
-    // =========================================================================
-    function cancelarEdicaoCliente() { 
-      limparFormCliente(); 
-    }
-    // =========================================================================
-    // TÉRMINO: cancelarEdicaoCliente
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: editarCliente
-    // =========================================================================
-    function editarCliente(index) {
-      if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
-        alert('⛔ Operação não permitida: Apenas usuários com perfil Geral podem editar clientes.');
-        return;
-      }
-      const item = listaCadastroClientes[index];
-      if (!item) return;
-
-      clienteEmEdicao = { ...item, indexOriginal: index };
-      document.getElementById('cadCliCliente').value = converterParaPrimeirasMaiusculas(item.cliente || '');
-      document.getElementById('cadCliLocal').value = converterParaPrimeirasMaiusculas(item.local || '');
-      document.getElementById('cadCliLocalInterno').value = converterParaPrimeirasMaiusculas(item.localInterno || item.local || '');
-      document.getElementById('cadCliMaquina').value = converterParaPrimeirasMaiusculas(item.maquina || '');
-      document.getElementById('cadCliModeloMaquina').value = converterParaPrimeirasMaiusculas(item.modeloMaquina || '');
-      document.getElementById('cadCliFilial').value = converterParaPrimeirasMaiusculas(item.filialResponsavel || '');
-
-      document.getElementById('alertCliEditMode').classList.remove('hidden');
-      document.getElementById('labelCliEditNome').innerText = limparTextoEntrada(item.cliente) + ' (' + limparTextoEntrada(item.localInterno || item.local || '') + ')';
-      document.getElementById('cliFormTitleText').innerText = 'Edição de Ponto: ' + limparTextoEntrada(item.cliente);
-      document.getElementById('btnSalvarClienteText').innerText = 'Salvar Alterações';
-      document.getElementById('clienteForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      lucide.createIcons();
-    }
-    // =========================================================================
-    // TÉRMINO: editarCliente
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: excluirCliente
-    // =========================================================================
-    async function excluirCliente(index) {
-      if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
-        alert('⛔ Operação não permitida: Apenas usuários com perfil Geral podem excluir clientes.');
-        return;
-      }
-      const item = listaCadastroClientes[index];
-      if (!item) return;
-      const descr = limparTextoEntrada(item.cliente) + ' - ' + limparTextoEntrada(item.localInterno || item.local || '');
-      if (!confirm('Deseja realmente excluir o cadastro de "' + descr + '"?')) return;
-
-      abrirModalLoading('Excluindo Cliente...', 'Removendo o ponto "' + descr + '" do banco de dados.', 'loading');
-      
-      const resultado = await enviarParaBancoGarantido({
-        "action": "excluir_cliente", 
-        "acao": "excluir_cliente", 
-        "tipo": "excluir_cliente",
-        "linha": item.linha || "",
-        "Cliente": limparTextoEntrada(item.cliente), 
-        "Local": limparTextoEntrada(item.local), 
-        "Local interno": limparTextoEntrada(item.localInterno), 
-        "Máquina": limparTextoEntrada(item.maquina), 
-        "Modelo de máquina": limparTextoEntrada(item.modeloMaquina), 
-        "Filial Responsavel": limparTextoEntrada(item.filialResponsavel)
-      });
-
-      if (resultado.status === "error") {
-        fecharModalLoading();
-        alert('❌ Falha ao excluir cliente:\n' + resultado.message);
-        return;
-      }
-
-      listaCadastroClientes.splice(index, 1);
-      renderizarTabelaClientes();
-      if (clienteEmEdicao && clienteEmEdicao.indexOriginal === index) limparFormCliente();
-
-      abrirModalLoading('Cliente Excluído!', 'O cadastro foi removido com sucesso.', 'excluir');
-      setTimeout(fecharModalLoading, 1000);
-    }
-    // =========================================================================
-    // TÉRMINO: excluirCliente
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: filtrarClientesCadastrados
-    // =========================================================================
-    function filtrarClientesCadastrados() {
-      const termo = limparTextoEntrada(document.getElementById('searchClientesCadastrados')?.value || '').toLocaleLowerCase('pt-BR');
-      if (!termo) { renderizarTabelaClientes(listaCadastroClientes); return; }
-      const filtrados = listaCadastroClientes.filter(c => Object.values(c).some(val => normalizarCodificacaoTexto(String(val || '')).toLocaleLowerCase('pt-BR').includes(termo)));
-      renderizarTabelaClientes(filtrados);
-    }
-    // =========================================================================
-    // TÉRMINO: filtrarClientesCadastrados
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: renderizarTabelaClientes
-    // =========================================================================
-    function renderizarTabelaClientes(lista = listaCadastroClientes) {
-      const tbody = document.getElementById('tableClientesBody');
-      const badge = document.getElementById('badgeContadorClientes');
-      if (badge) badge.innerText = lista.length + ' cliente(s)';
-      if (!tbody) return;
-      if (!lista || lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 font-semibold">Nenhum cliente carregado.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = lista.map((c, idx) => `
-        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-          <td class="text-center whitespace-nowrap">
-            <div class="inline-flex items-center gap-1 justify-center">
-              <button type="button" onclick="editarCliente(${idx})" title="Editar cadastro" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
-                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
-              </button>
-              <button type="button" onclick="excluirCliente(${idx})" title="Excluir cadastro" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-          </td>
-          <td class="font-bold text-slate-800 truncate" title="${limparTextoEntrada(c.cliente)}">${limparTextoEntrada(c.cliente) || '-'}</td>
-          <td class="text-slate-600 truncate" title="${limparTextoEntrada(c.local)}">${limparTextoEntrada(c.local) || '-'}</td>
-          <td class="text-slate-700 font-medium truncate" title="${limparTextoEntrada(c.localInterno)}">${limparTextoEntrada(c.localInterno) || '-'}</td>
-          <td class="text-slate-600 font-mono truncate" title="${limparTextoEntrada(c.maquina)}">${limparTextoEntrada(c.maquina) || '-'}</td>
-          <td class="text-slate-600 truncate" title="${limparTextoEntrada(c.modeloMaquina)}">${limparTextoEntrada(c.modeloMaquina) || '-'}</td>
-          <td class="font-semibold text-sky-800 truncate" title="${limparTextoEntrada(c.filialResponsavel)}">${limparTextoEntrada(c.filialResponsavel) || '-'}</td>
-        </tr>
-      `).join('');
-      lucide.createIcons();
-    }
-    // =========================================================================
-    // TÉRMINO: renderizarTabelaClientes
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: handleClienteSubmit
-    // =========================================================================
-    async function handleClienteSubmit(e) {
-      e.preventDefault();
-      if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
-        alert('⛔ Apenas perfil Geral pode cadastrar clientes.'); return;
-      }
-      const cliente = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliCliente').value));
-      const local = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliLocal').value));
-      const localInterno = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliLocalInterno').value));
-      const maquina = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliMaquina').value));
-      const modeloMaquina = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliModeloMaquina').value));
-      const filialResponsavel = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliFilial').value));
-      if (!cliente || !local || !localInterno || !maquina || !modeloMaquina || !filialResponsavel) {
-        alert('Preencha todos os campos obrigatórios.'); return;
-      }
-
-      const ehEdicao = (clienteEmEdicao !== null);
-      abrirModalLoading(ehEdicao ? 'Atualizando Cliente...' : 'Cadastrando Cliente...', 'Gravando no banco SQL...', 'loading');
-
-      const btnSalvarCli = document.getElementById('btnSalvarCliente');
-      if (btnSalvarCli) btnSalvarCli.disabled = true;
-
-      const resultado = await enviarParaBancoGarantido({
-        "acao": ehEdicao ? "editar_cliente" : "inserir_cliente",
-        "action": ehEdicao ? "editar_cliente" : "inserir_cliente",
-        "tipo": "cadastro_cliente",
-        "linha": ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : "",
-        "Cliente": cliente, 
-        "Local": local, 
-        "Local interno": localInterno, 
-        "Máquina": maquina, 
-        "Modelo de máquina": modeloMaquina, 
-        "Filial Responsavel": filialResponsavel
-      });
-
-      if (btnSalvarCli) btnSalvarCli.disabled = false;
-
-      if (resultado.status === "error") {
-        fecharModalLoading();
-        alert('❌ Falha ao salvar cliente:\n' + resultado.message);
-        return;
-      }
-
-      const novoItem = {
-        linha: ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : (resultado.data?.linha || listaCadastroClientes.length + 2),
-        cliente, local, localInterno, maquina, modeloMaquina, filialResponsavel
-      };
-      if (ehEdicao) listaCadastroClientes[clienteEmEdicao.indexOriginal] = novoItem;
-      else listaCadastroClientes.unshift(novoItem);
-
-      if (!dadosSAC.clientes) dadosSAC.clientes = [];
-      dadosSAC.clientes.push({ cliente, local: localInterno, cidade: filialResponsavel });
-      limparFormCliente();
-      renderizarTabelaClientes();
-
-      abrirModalLoading('Cliente Salvo!', 'Registro gravado com sucesso no banco de dados.', 'sucesso');
-      setTimeout(fecharModalLoading, 1000);
-    }
-    // =========================================================================
-    // TÉRMINO: handleClienteSubmit
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: getHorizontalSACBarOptions
-    // =========================================================================
-    function getHorizontalSACBarOptions() {
-      const textColor = '#475569';
-      const gridColor = 'rgba(226, 232, 240, 0.7)';
-      return {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { right: 40, left: 10, top: 10, bottom: 10 } },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#ffffff', titleColor: '#0f172a', bodyColor: '#334155',
-            borderColor: '#e2e8f0', borderWidth: 1, padding: 10,
-            callbacks: { label: (c) => 'Ocorrências: ' + c.raw.toLocaleString('pt-BR') }
-          },
-          datalabels: {
-            anchor: 'end', align: 'right', offset: 4, color: '#0f172a',
-            font: { family: 'Inter', weight: 'bold', size: 10 },
-            formatter: (v) => v ? v.toLocaleString('pt-BR') : ''
-          }
-        },
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 } }, beginAtZero: true },
-          y: { grid: { display: false }, ticks: { color: textColor, font: { size: 10, weight: '600' } } }
-        }
-      };
-    }
-    // =========================================================================
-    // TÉRMINO: getHorizontalSACBarOptions
-    // =========================================================================
-
-    const filterSACCliente = document.getElementById('filterSACCliente');
-    const filterSACProduto = document.getElementById('filterSACProduto');
-    const filterSACAtendente = document.getElementById('filterSACAtendente');
-
-    const chartTopProblemasSAC = new Chart(document.getElementById('chartTopProblemasSAC').getContext('2d'), {
-      type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6 }] },
-      options: getHorizontalSACBarOptions()
-    });
-
-    const chartAtendentesSAC = new Chart(document.getElementById('chartAtendentesSAC').getContext('2d'), {
-      type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6 }] },
-      options: getHorizontalSACBarOptions()
-    });
-
-    const chartLocaisAnterior = new Chart(document.getElementById('chartLocaisAnterior').getContext('2d'), {
-      type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(100, 116, 139, 0.85)', borderRadius: 6 }] },
-      options: getHorizontalSACBarOptions()
-    });
-
-    const chartLocaisAtual = new Chart(document.getElementById('chartLocaisAtual').getContext('2d'), {
-      type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(79, 70, 229, 0.85)', borderRadius: 6 }] },
-      options: getHorizontalSACBarOptions()
-    });
-
-    const chartMesesQtd = new Chart(document.getElementById('chartMesesQtd').getContext('2d'), {
-      type: 'bar',
-      data: { labels: [], datasets: [{ label: 'Quantidade', data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6 }] },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { top: 20 } },
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c) => 'Chamados: ' + c.raw.toLocaleString('pt-BR') } },
-          datalabels: {
-            anchor: 'end', align: 'top', offset: 2, color: '#0284c7',
-            font: { family: 'Inter', weight: 'bold', size: 10 },
-            formatter: (v) => v ? v.toLocaleString('pt-BR') : ''
-          }
-        },
-        scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { font: { size: 10 } } }
-        }
-      }
-    });
-
-    const chartMesesVal = new Chart(document.getElementById('chartMesesVal').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Valor Ressarcido',
-          data: [],
-          backgroundColor: 'rgba(16, 185, 129, 0.85)',
-          borderRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { top: 22 } },
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c) => 'Ressarcido: ' + formatCurrency(c.raw) } },
-          datalabels: {
-            anchor: 'end', align: 'top', offset: 2, color: '#047857',
-            font: { family: 'Inter', weight: 'bold', size: 9 },
-            formatter: (v) => v ? 'R$' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : ''
-          }
-        },
-        scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } }
-        }
-      }
-    });
-
-    const chartDiasQtd = new Chart(document.getElementById('chartDiasQtd').getContext('2d'), {
-      type: 'bar',
-      data: { labels: [], datasets: [{ label: 'Quantidade', data: [], backgroundColor: 'rgba(14, 165, 233, 0.85)', borderRadius: 4 }] },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { top: 20 } },
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c) => 'Chamados: ' + c.raw } },
-          datalabels: {
-            anchor: 'end', align: 'top', offset: 2, color: '#0369a1',
-            font: { family: 'Inter', weight: 'bold', size: 10 },
-            formatter: (v) => v ? v : ''
-          }
-        },
-        scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { font: { size: 10 } } }
-        }
-      }
-    });
-
-    const chartDiasVal = new Chart(document.getElementById('chartDiasVal').getContext('2d'), {
-      type: 'bar',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Valor (R$)',
-          data: [],
-          backgroundColor: 'rgba(245, 158, 11, 0.85)',
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: { padding: { top: 22 } },
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c) => 'Valor: ' + formatCurrency(c.raw) } },
-          datalabels: {
-            anchor: 'end', align: 'top', offset: 2, color: '#b45309',
-            font: { family: 'Inter', weight: 'bold', size: 9 },
-            formatter: (v) => v ? 'R$' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : ''
-          }
-        },
-        scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: (v) => 'R$' + v.toLocaleString('pt-BR') } }
-        }
-      }
-    });
-
-    const chartTop10Semana = new Chart(document.getElementById('chartTop10Semana').getContext('2d'), {
-      type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(225, 29, 72, 0.85)', borderRadius: 6 }] },
-      options: getHorizontalSACBarOptions()
-    });
-
-    const chartTop3Filial = new Chart(document.getElementById('chartTop3Filial').getContext('2d'), {
-      type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(217, 119, 6, 0.85)', borderRadius: 6 }] },
-      options: getHorizontalSACBarOptions()
-    });
-
-    // =========================================================================
-    // INÍCIO: parseDateToYMD
-    // =========================================================================
-    function parseDateToYMD(dStr) {
-      if (!dStr) return '';
-      dStr = dStr.trim();
-      if (/^\d{4}-\d{2}-\d{2}/.test(dStr)) return dStr.substring(0, 10);
-      const parts = dStr.split(/[/ -]/);
-      if (parts.length === 3) {
-        if (parts[2].length === 4) return parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
-        if (parts[0].length === 4) return parts[0] + '-' + parts[1].padStart(2, '0') + '-' + parts[2].padStart(2, '0');
-      }
-      return '';
-    }
-    // =========================================================================
-    // TÉRMINO: parseDateToYMD
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarGraficoLocaisAnterior
-    // =========================================================================
-    function atualizarGraficoLocaisAnterior() {
-      const mesAntInput = document.getElementById('filterMesLocaisAnterior')?.value;
-      if (!mesAntInput) return;
-      const cont = {};
-      listaChamadosSAC.forEach(c => {
-        const ymd = parseDateToYMD(c.data);
-        if (ymd && ymd.startsWith(mesAntInput)) {
-          const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
-          cont[loc] = (cont[loc] || 0) + 1;
-        }
-      });
-      const truncar = (t, max = 22) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 5);
-      chartLocaisAnterior.data.labels = top5.map(t => truncar(t.nome));
-      chartLocaisAnterior.data.datasets[0].data = top5.map(t => t.qt);
-      chartLocaisAnterior.update();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarGraficoLocaisAnterior
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarGraficoLocaisAtual
-    // =========================================================================
-    function atualizarGraficoLocaisAtual() {
-      const mesAtualInput = document.getElementById('filterMesLocaisAtual')?.value;
-      if (!mesAtualInput) return;
-      const cont = {};
-      listaChamadosSAC.forEach(c => {
-        const ymd = parseDateToYMD(c.data);
-        if (ymd && ymd.startsWith(mesAtualInput)) {
-          const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
-          cont[loc] = (cont[loc] || 0) + 1;
-        }
-      });
-      const truncar = (t, max = 22) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 5);
-      chartLocaisAtual.data.labels = top5.map(t => truncar(t.nome));
-      chartLocaisAtual.data.datasets[0].data = top5.map(t => t.qt);
-      chartLocaisAtual.update();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarGraficoLocaisAtual
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarGraficoMesesQtd
-    // =========================================================================
-    function atualizarGraficoMesesQtd() {
-      const selAno = document.getElementById('filterAnoMesesQtd')?.value || new Date().getFullYear();
-      const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      const contQtd = Array(12).fill(0);
-      listaChamadosSAC.forEach(c => {
-        const ymd = parseDateToYMD(c.data);
-        if (ymd && ymd.startsWith(String(selAno))) {
-          const mIdx = parseInt(ymd.substring(5, 7), 10) - 1;
-          if (mIdx >= 0 && mIdx < 12) contQtd[mIdx]++;
-        }
-      });
-      chartMesesQtd.data.labels = mesesNomes;
-      chartMesesQtd.data.datasets[0].data = contQtd;
-      chartMesesQtd.update();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarGraficoMesesQtd
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarGraficoMesesVal
-    // =========================================================================
-    function atualizarGraficoMesesVal() {
-      const selAno = document.getElementById('filterAnoMesesVal')?.value || new Date().getFullYear();
-      const mesesNomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      const somaVal = Array(12).fill(0);
-      listaChamadosSAC.forEach(c => {
-        const ymd = parseDateToYMD(c.data);
-        if (ymd && ymd.startsWith(String(selAno))) {
-          const mIdx = parseInt(ymd.substring(5, 7), 10) - 1;
-          if (mIdx >= 0 && mIdx < 12) somaVal[mIdx] += parseValorNumerico(c.valor);
-        }
-      });
-      chartMesesVal.data.labels = mesesNomes;
-      chartMesesVal.data.datasets[0].data = somaVal;
-      chartMesesVal.update();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarGraficoMesesVal
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarGraficoDiasQtd
-    // =========================================================================
-    function atualizarGraficoDiasQtd() {
-      const mesDiasInput = document.getElementById('filterMesDiasQtd')?.value;
-      let anoRef, mesRef;
-      if (mesDiasInput) {
-        const parts = mesDiasInput.split('-');
-        anoRef = parseInt(parts[0], 10);
-        mesRef = parseInt(parts[1], 10);
-      } else {
-        const hoje = new Date();
-        anoRef = hoje.getFullYear();
-        mesRef = hoje.getMonth() + 1;
-      }
-      const pad = (n) => String(n).padStart(2, '0');
-      const strAnoMes = anoRef + '-' + pad(mesRef);
-      const contagemPorDia = {};
-
-      listaChamadosSAC.forEach(c => {
-        const ymd = parseDateToYMD(c.data);
-        if (ymd && ymd.startsWith(strAnoMes)) {
-          const dia = ymd.substring(8, 10);
-          contagemPorDia[dia] = (contagemPorDia[dia] || 0) + 1;
-        }
-      });
-
-      const diasPreenchidos = Object.keys(contagemPorDia).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
-      chartDiasQtd.data.labels = diasPreenchidos.map(d => 'Dia ' + d);
-      chartDiasQtd.data.datasets[0].data = diasPreenchidos.map(d => contagemPorDia[d]);
-      chartDiasQtd.update();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarGraficoDiasQtd
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarGraficoDiasVal
-    // =========================================================================
-    function atualizarGraficoDiasVal() {
-      const mesDiasInput = document.getElementById('filterMesDiasVal')?.value;
-      let anoRef, mesRef;
-      if (mesDiasInput) {
-        const parts = mesDiasInput.split('-');
-        anoRef = parseInt(parts[0], 10);
-        mesRef = parseInt(parts[1], 10);
-      } else {
-        const hoje = new Date();
-        anoRef = hoje.getFullYear();
-        mesRef = hoje.getMonth() + 1;
-      }
-      const pad = (n) => String(n).padStart(2, '0');
-      const strAnoMes = anoRef + '-' + pad(mesRef);
-      const somaPorDia = {};
-
-      listaChamadosSAC.forEach(c => {
-        const ymd = parseDateToYMD(c.data);
-        if (ymd && ymd.startsWith(strAnoMes)) {
-          const dia = ymd.substring(8, 10);
-          const v = parseValorNumerico(c.valor);
-          if (v > 0 || !(dia in somaPorDia)) {
-            somaPorDia[dia] = (somaPorDia[dia] || 0) + v;
-          }
-        }
-      });
-
-      const diasPreenchidos = Object.keys(somaPorDia).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
-      chartDiasVal.data.labels = diasPreenchidos.map(d => 'Dia ' + d);
-      chartDiasVal.data.datasets[0].data = diasPreenchidos.map(d => somaPorDia[d]);
-      chartDiasVal.update();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarGraficoDiasVal
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarGraficoTopSemana
-    // =========================================================================
-    function atualizarGraficoTopSemana() {
-      const dtIni = document.getElementById('filterTopSemanaDtIni')?.value;
-      const dtFim = document.getElementById('filterTopSemanaDtFim')?.value;
-      const cont = {};
-
-      listaChamadosSAC.forEach(c => {
-        const ymd = parseDateToYMD(c.data);
-        if (!ymd) return;
-        if (dtIni && ymd < dtIni) return;
-        if (dtFim && ymd > dtFim) return;
-        const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
-        cont[loc] = (cont[loc] || 0) + 1;
-      });
-
-      const truncar = (t, max = 26) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top10 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
-      chartTop10Semana.data.labels = top10.map(t => truncar(t.nome));
-      chartTop10Semana.data.datasets[0].data = top10.map(t => t.qt);
-      chartTop10Semana.update();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarGraficoTopSemana
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: atualizarGraficoTopFilial
-    // =========================================================================
-    function atualizarGraficoTopFilial() {
-      const filial = document.getElementById('filterTopFilialSelect')?.value || 'ALL';
-      const dtIni = document.getElementById('filterTopFilialDtIni')?.value;
-      const dtFim = document.getElementById('filterTopFilialDtFim')?.value;
-      const cont = {};
-
-      listaChamadosSAC.forEach(c => {
-        const ymd = parseDateToYMD(c.data);
-        if (!ymd) return;
-        if (dtIni && ymd < dtIni) return;
-        if (dtFim && ymd > dtFim) return;
-        if (filial !== 'ALL' && limparTextoEntrada(c.cidade).toLocaleLowerCase('pt-BR') !== filial.toLocaleLowerCase('pt-BR')) return;
-        const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
-        cont[loc] = (cont[loc] || 0) + 1;
-      });
-
-      const truncar = (t, max = 26) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top3 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 3);
-      chartTop3Filial.data.labels = top3.map(t => truncar(t.nome));
-      chartTop3Filial.data.datasets[0].data = top3.map(t => t.qt);
-      chartTop3Filial.update();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarGraficoTopFilial
-    // =========================================================================
-
-    // =========================================================================
-    // INÍCIO: inicializarFiltrosDashboardSAC
-    // =========================================================================
-    function inicializarFiltrosDashboardSAC() {
-      const clientesUnicos = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.cliente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-      filterSACCliente.innerHTML = '<option value="ALL">Todos os Clientes</option>';
-      clientesUnicos.forEach(cli => {
-        const opt = document.createElement('option'); opt.value = cli; opt.textContent = cli;
-        filterSACCliente.appendChild(opt);
-      });
-
-      const atendentesUnicos = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.atendente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-      filterSACAtendente.innerHTML = '<option value="ALL">Todos os Atendentes</option>';
-      atendentesUnicos.forEach(a => {
-        const opt = document.createElement('option'); opt.value = a; opt.textContent = a;
-        filterSACAtendente.appendChild(opt);
-      });
-
-      const anosUnicos = [...new Set(listaChamadosSAC.map(c => {
-        const ymd = parseDateToYMD(c.data);
-        return ymd ? ymd.substring(0, 4) : '';
-      }).filter(Boolean))].sort().reverse();
-      const anoAtual = String(new Date().getFullYear());
-      if (!anosUnicos.length) anosUnicos.push(anoAtual);
-
-      const selAnoQtd = document.getElementById('filterAnoMesesQtd');
-      const selAnoVal = document.getElementById('filterAnoMesesVal');
-      selAnoQtd.innerHTML = '';
-      selAnoVal.innerHTML = '';
-      anosUnicos.forEach(a => {
-        const opt1 = document.createElement('option'); opt1.value = a; opt1.textContent = a; selAnoQtd.appendChild(opt1);
-        const opt2 = document.createElement('option'); opt2.value = a; opt2.textContent = a; selAnoVal.appendChild(opt2);
-      });
-      selAnoQtd.value = anosUnicos.includes(anoAtual) ? anoAtual : anosUnicos[0];
-      selAnoVal.value = anosUnicos.includes(anoAtual) ? anoAtual : anosUnicos[0];
-
-      const hoje = new Date();
-      const pad = (n) => String(n).padStart(2, '0');
-      const anoHoje = hoje.getFullYear();
-      const mesHoje = hoje.getMonth() + 1;
-      const strMesAtual = anoHoje + '-' + pad(mesHoje);
-
-      let mesAnt = mesHoje - 1;
-      let anoAnt = anoHoje;
-      if (mesAnt === 0) { mesAnt = 12; anoAnt--; }
-      const strMesAnt = anoAnt + '-' + pad(mesAnt);
-
-      const elLocAnt = document.getElementById('filterMesLocaisAnterior');
-      if (elLocAnt) elLocAnt.value = strMesAnt;
-
-      const elLocAtu = document.getElementById('filterMesLocaisAtual');
-      if (elLocAtu) elLocAtu.value = strMesAtual;
-
-      const elDiasQtd = document.getElementById('filterMesDiasQtd');
-      if (elDiasQtd) elDiasQtd.value = strMesAtual;
-
-      const elDiasVal = document.getElementById('filterMesDiasVal');
-      if (elDiasVal) elDiasVal.value = strMesAtual;
-
-      const dFim = hoje.toISOString().split('T')[0];
-      const dIniDate = new Date();
-      dIniDate.setDate(dIniDate.getDate() - 7);
-      const dIni = dIniDate.toISOString().split('T')[0];
-
-      const sDtIni = document.getElementById('filterTopSemanaDtIni');
-      const sDtFim = document.getElementById('filterTopSemanaDtFim');
-      if (sDtIni) sDtIni.value = dIni;
-      if (sDtFim) sDtFim.value = dFim;
-
-      const fDtIni = document.getElementById('filterTopFilialDtIni');
-      const fDtFim = document.getElementById('filterTopFilialDtFim');
-      if (fDtIni) fDtIni.value = dIni;
-      if (fDtFim) fDtFim.value = dFim;
-
-      const selFilial = document.getElementById('filterTopFilialSelect');
-      selFilial.innerHTML = '<option value="ALL">Todas as Filiais</option>';
-      const filiais = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.cidade)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-      filiais.forEach(f => {
-        const opt = document.createElement('option'); opt.value = f; opt.textContent = f;
-        selFilial.appendChild(opt);
-      });
-    }
-    // =========================================================================
-    // TÉRMINO: inicializarFiltrosDashboardSAC
-    // =========================================================================
-    inicializarFiltrosDashboardSAC();
-
-    // =========================================================================
-    // INÍCIO: atualizarDashboardSAC
-    // =========================================================================
-    function atualizarDashboardSAC() {
-      const cliVal = filterSACCliente.value;
-      const prodVal = filterSACProduto.value;
-      const atendVal = filterSACAtendente.value;
-
-      const filtrados = listaChamadosSAC.filter(item => {
-        const matchCli = (cliVal === 'ALL' || (item.cliente && limparTextoEntrada(item.cliente).toLocaleLowerCase('pt-BR') === cliVal.toLocaleLowerCase('pt-BR')));
-        const matchProd = (prodVal === 'ALL' || (item.produto && limparTextoEntrada(item.produto).toLocaleLowerCase('pt-BR') === prodVal.toLocaleLowerCase('pt-BR')));
-        const matchAtend = (atendVal === 'ALL' || (item.atendente && limparTextoEntrada(item.atendente).toLocaleLowerCase('pt-BR') === atendVal.toLocaleLowerCase('pt-BR')));
-        return matchCli && matchProd && matchAtend;
-      });
-
-      document.getElementById('badgeFiltroSAC').innerText = 'Filtrando: Cliente [' + cliVal + '] · Produto [' + prodVal + '] · Atendente [' + atendVal + ']';
-
-      const totalChamados = filtrados.length;
-      let somaValor = 0;
-      let chamadosCafe = 0;
-      let chamadosSnaky = 0;
-
-      filtrados.forEach(c => {
-        somaValor += parseValorNumerico(c.valor);
-        const pLower = limparTextoEntrada(c.produto).toLowerCase();
-        if (pLower.includes('café') || pLower.includes('cafe')) chamadosCafe++;
-        else if (pLower.includes('snaky') || pLower.includes('snack')) chamadosSnaky++;
-      });
-
-      const pctCafe = totalChamados > 0 ? Math.round((chamadosCafe / totalChamados) * 100) : 0;
-      const pctSnaky = totalChamados > 0 ? Math.round((chamadosSnaky / totalChamados) * 100) : 0;
-      const ticketMedio = totalChamados > 0 ? (somaValor / totalChamados) : 0;
-
-      document.getElementById('kpiSACTotal').innerText = totalChamados.toLocaleString('pt-BR');
-      document.getElementById('kpiSACTotalSub').innerText = totalChamados + ' ocorrências registradas';
-      document.getElementById('kpiSACValorTotal').innerText = formatCurrency(somaValor);
-      document.getElementById('kpiSACCafé').innerText = chamadosCafe.toLocaleString('pt-BR');
-      document.getElementById('kpiSACCaféPct').innerText = pctCafe + '%';
-      document.getElementById('kpiSACSnaky').innerText = chamadosSnaky.toLocaleString('pt-BR');
-      document.getElementById('kpiSACSnakyPct').innerText = pctSnaky + '%';
-      document.getElementById('kpiSACClientes').innerText = new Set(filtrados.map(c => limparTextoEntrada(c.cliente))).size;
-      document.getElementById('kpiSACTicketMedio').innerText = formatCurrency(ticketMedio);
-
-      // Atualiza Top Problemas
-      const probContagem = {};
-      filtrados.forEach(c => {
-        const p = limparTextoEntrada(c.problemas || 'Outros');
-        probContagem[p] = (probContagem[p] || 0) + 1;
-      });
-      const truncar = (t, max = 28) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top10Problemas = Object.entries(probContagem).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
-      chartTopProblemasSAC.data.labels = top10Problemas.map(p => truncar(p.nome));
-      chartTopProblemasSAC.data.datasets[0].data = top10Problemas.map(p => p.qt);
-      chartTopProblemasSAC.update();
-
-      // Atualiza Chamados por Atendente
-      const atendContagem = {};
-      filtrados.forEach(c => {
-        const a = limparTextoEntrada(c.atendente || 'Não Informado');
-        atendContagem[a] = (atendContagem[a] || 0) + 1;
-      });
-      const topAtendentes = Object.entries(atendContagem).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
-      chartAtendentesSAC.data.labels = topAtendentes.map(a => truncar(a.nome));
-      chartAtendentesSAC.data.datasets[0].data = topAtendentes.map(a => a.qt);
-      chartAtendentesSAC.update();
-
-      // Gráficos dinâmicos complementares
-      atualizarGraficoLocaisAnterior();
-      atualizarGraficoLocaisAtual();
-      atualizarGraficoMesesQtd();
-      atualizarGraficoMesesVal();
-      atualizarGraficoDiasQtd();
-      atualizarGraficoDiasVal();
-      atualizarGraficoTopSemana();
-      atualizarGraficoTopFilial();
-    }
-    // =========================================================================
-    // TÉRMINO: atualizarDashboardSAC
-    // =========================================================================
-
-    [filterSACCliente, filterSACProduto, filterSACAtendente].forEach(el => el.addEventListener('change', atualizarDashboardSAC));
-    document.getElementById('btnLimparFiltrosSAC').addEventListener('click', () => {
-      filterSACCliente.value = 'ALL';
-      filterSACProduto.value = 'ALL';
-      filterSACAtendente.value = 'ALL';
-      atualizarDashboardSAC();
-    });
-
-    verificarEstadoAutenticacao();
-  </script>
-</body>
-</html>
+      const dataTransacaoIso = document.getElementById('sacData
