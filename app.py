@@ -237,14 +237,18 @@ def criar_indices_de_alta_performance():
 criar_indices_de_alta_performance()
 
 # ==============================================================================
-# INICIALIZAÇÃO FASTAPI & JINJA2 TEMPLATES
+# INICIALIZAÇÃO FASTAPI & JINJA2 TEMPLATES (CAMINHOS ABSOLUTOS PARA RENDER)
 # ==============================================================================
-app = FastAPI(title="Gestão SAC MasterCafé", version="2.2.0")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
-if os.path.exists("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+app = FastAPI(title="Gestão SAC MasterCafé", version="2.2.1")
 
-templates = Jinja2Templates(directory="templates")
+if os.path.isdir(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
 
 def get_db():
