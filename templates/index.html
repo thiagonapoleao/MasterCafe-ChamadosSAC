@@ -101,7 +101,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Senha *</label>
-          <input type="password" id="globalLoginPass" placeholder="••••••••" required oninput="this.value = this.value.toLowerCase()" class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <input type="password" id="globalLoginPass" placeholder="••••••••" required class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
         </div>
         <div id="globalLoginErro" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
           <i data-lucide="alert-circle" class="w-4 h-4"></i>
@@ -470,7 +470,6 @@
           </div>
         </section>
       </div>
-
       <!-- PÁGINA 2: LANÇAMENTO SAC -->
       <div id="pageSAC" class="hidden space-y-4">
         <div id="sacMainPanel" class="space-y-4">
@@ -915,7 +914,6 @@
 
     </main>
   </div>
-
   <script>
     lucide.createIcons();
     Chart.register(ChartDataLabels);
@@ -927,18 +925,39 @@
     // =========================================================================
     // NORMALIZAÇÃO UTF-8 (PRESERVAÇÃO DE ACENTOS: ~, ^, ´, ç, º, ª)
     // =========================================================================
+    const MAPA_REPARO_UTF8 = {
+      "Ã¡": "á", "Ã ": "à", "Ã¢": "â", "Ã£": "ã", "Ã¤": "ä",
+      "Ã\u0081": "Á", "Ã€": "À", "Ã‚": "Â", "Ãƒ": "Ã", "Ã„": "Ä",
+      "Ã©": "é", "Ã¨": "è", "Ãª": "ê", "Ã«": "ë",
+      "Ã‰": "É", "Ãˆ": "È", "ÃŠ": "Ê", "Ã‹": "Ë",
+      "Ã­": "í", "Ã¬": "ì", "Ã®": "î", "Ã¯": "ï",
+      "Ã\u008d": "Í", "ÃŒ": "Ì", "ÃŽ": "Î", "Ã\u008f": "Ï",
+      "Ã³": "ó", "Ã²": "ò", "Ã´": "ô", "Ãµ": "õ", "Ã¶": "ö",
+      "Ã“": "Ó", "Ã’": "Ò", "Ã”": "Ô", "Ã•": "Õ", "Ã–": "Ö",
+      "Ãº": "ú", "Ã¹": "ù", "Ã»": "û", "Ã¼": "ü",
+      "Ãš": "Ú", "Ã™": "Ù", "Ã›": "Û", "Ãœ": "Ü",
+      "Ã§": "ç", "Ã‡": "Ç", "Ã±": "ñ", "Ã‘": "Ñ",
+      "Âº": "º", "Âª": "ª", "Â°": "°", "â€“": "–", "â€”": "—"
+    };
+
     function normalizarCodificacaoTexto(valor) {
       if (valor === null || valor === undefined) return '';
       if (typeof valor !== 'string') return valor;
       let str = valor;
 
-      if (/Ã[\x80-\xBF]|Â[\x80-\xBF]/.test(str)) {
+      if (/Ã[\x80-\xBF]|Â[\x80-\xBF]|â€/.test(str)) {
         try {
           const bytes = new Uint8Array(str.length);
           for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i) & 0xff;
           const decodificado = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
           if (decodificado && !decodificado.includes('\uFFFD')) str = decodificado;
         } catch (e) {}
+
+        if (/Ã|Â|â€/.test(str)) {
+          for (const [errado, certo] of Object.entries(MAPA_REPARO_UTF8)) {
+            if (str.includes(errado)) str = str.split(errado).join(certo);
+          }
+        }
       }
 
       if (/&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);/.test(str)) {
@@ -1198,7 +1217,7 @@
       );
 
       if (!achado) {
-        alert('⛔ Atenção no campo "' + nomeAmigavel + '":\nO valor "' + valor + '" não foi encontrado na lista padrão.\nPor favor, escolha uma opção disponível.');
+        alert('⛔ Atenção no campo "' + nomeAmigavel + '":\nO valor "' + valor + '" não foi encontrado na lista do banco.\nPor favor, escolha uma opção disponível.');
         setTimeout(() => { input.focus(); }, 50);
         return false;
       } else {
@@ -1416,7 +1435,7 @@
     }
 
     // =========================================================================
-    // FORMULÁRIO SAC & VÍNCULO AUTOMÁTICO (CLIENTE -> LOCAL INTERNO -> FILIAL)
+    // FORMULÁRIO SAC & VÍNCULO AUTOMÁTICO (TABELAS "clientes" E "produtos")
     // =========================================================================
     function obterBaseClientesUnificada() {
       const base = [];
@@ -1463,7 +1482,7 @@
 
       const baseClientes = obterBaseClientesUnificada();
 
-      // 1. Clientes
+      // 1. Cliente * -> Tabela "clientes"
       const dlCli = document.getElementById('listaSACClientes');
       dlCli.innerHTML = '';
       [...new Set(baseClientes.map(c => c.cliente).filter(Boolean))]
@@ -1474,7 +1493,7 @@
           dlCli.appendChild(opt);
         });
 
-      // 2. Cidades / Filiais
+      // 2. Filial Responsável * -> Tabela "clientes"
       const dlCid = document.getElementById('listaSACCidades');
       dlCid.innerHTML = '';
       const cidadesSet = new Set([
@@ -1487,10 +1506,10 @@
         dlCid.appendChild(opt);
       });
 
-      // 3. Descrição
+      // 3. Descrição * -> Tabela "produtos"
       const listaProdutos = extrairListaTexto(
         dadosSAC.produtos || dadosSAC.descricoes || [],
-        ['produto', 'descricao', 'nome', 'descricao_produto', 'item']
+        ['descricao', 'produto', 'nome', 'descricao_produto', 'item']
       );
       const dlDesc = document.getElementById('listaSACDescricoes');
       dlDesc.innerHTML = '';
@@ -1500,7 +1519,7 @@
         dlDesc.appendChild(opt);
       });
 
-      // 4. Problemas
+      // 4. Problemas * -> Tabela "problemas"
       const listaProblemas = extrairListaTexto(
         dadosSAC.problemas || [],
         ['problema', 'problemas', 'descricao', 'motivo', 'nome']
@@ -1513,7 +1532,7 @@
         dlProb.appendChild(opt);
       });
 
-      // 5. Forma de Pagamento
+      // 5. Forma de Pagamento * -> Tabela "formas_pgt"
       const listaFormasPgt = extrairListaTexto(
         dadosSAC.formas_pgt || dadosSAC.formas_pagamento || [],
         ['forma_pgt', 'forma_pagamento', 'forma', 'descricao', 'nome']
@@ -1571,12 +1590,10 @@
         selectLocal.appendChild(opt);
       });
 
-      // Se houver apenas 1 local interno cadastrado, seleciona automaticamente
       if (locaisUnicos.length === 1) {
         selectLocal.value = locaisUnicos[0];
         aoMudarLocalInternoSAC();
       } else {
-        // Caso haja múltiplos locais, pré-preenche a filial se todos pertencerem à mesma filial
         const filiaisUnicas = [...new Set(registrosCliente.map(r => r.filial).filter(Boolean))];
         if (filiaisUnicas.length === 1) {
           inputFilial.value = filiaisUnicas[0];
@@ -2029,7 +2046,6 @@
     }
 
     async function carregarPaginaChamadosSAC(pagina = 1) {
-      const tbody = document.getElementById('tableSACChamadosBody');
       const badge = document.getElementById('badgeContadorSAC');
       const termo = limparTextoEntrada(document.getElementById('searchSACChamados')?.value || '');
 
@@ -2049,7 +2065,6 @@
         console.warn('Fallback local na paginação SAC:', err);
       }
 
-      // Fallback local caso a API esteja indisponível
       const filtrados = termo
         ? listaChamadosSAC.filter(c => Object.values(c).some(v => normalizarCodificacaoTexto(String(v || '')).toLocaleLowerCase('pt-BR').includes(termo.toLocaleLowerCase('pt-BR'))))
         : listaChamadosSAC;
@@ -2142,7 +2157,6 @@
       if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
     }
 
-    // --- PAGINAÇÃO ABA: CHAMADOS ABERTOS ---
     function filtrarChamadosAbertos() {
       clearTimeout(debounceTimerAbertos);
       debounceTimerAbertos = setTimeout(() => {
