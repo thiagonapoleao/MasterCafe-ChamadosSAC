@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Executivo - Gestão SAC</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -28,7 +29,7 @@
     .nav-btn.active { 
       background-color: #0284c7; 
       color: #ffffff; 
-      box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.25);
+      box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.25); 
     }
     .nav-btn.inactive { 
       background-color: #ffffff; 
@@ -93,7 +94,7 @@
         </div>
       </div>
 
-      <form id="globalLoginForm" onsubmit="realizarLoginGlobal(event)" class="space-y-4">
+      <form id="globalLoginForm" accept-charset="UTF-8" onsubmit="realizarLoginGlobal(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Usuário para Login *</label>
           <input type="text" id="globalLoginUser" placeholder="Digite seu usuário..." required oninput="this.value = this.value.toLowerCase()" class="w-full text-sm lowercase rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium">
@@ -527,7 +528,7 @@
               </div>
             </div>
 
-            <form id="sacForm" onsubmit="handleSACSubmit(event)" class="space-y-4">
+            <form id="sacForm" accept-charset="UTF-8" onsubmit="handleSACSubmit(event)" class="space-y-4">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200">
                 <div>
                   <label class="block text-xs font-bold text-sky-900 mb-1">Chamado (Automático) *</label>
@@ -692,6 +693,22 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- CONTROLE DE PAGINAÇÃO: CHAMADOS SAC -->
+            <div id="paginacaoSACContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+              <span id="paginacaoSACInfo" class="text-slate-500 font-medium">Exibindo 0 a 0 de 0 chamados</span>
+              <div class="flex items-center gap-2">
+                <button type="button" id="btnPrevSAC" onclick="mudarPaginaSAC(-1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                  <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Anterior
+                </button>
+                <span id="paginacaoSACIndicador" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
+                  Página 1 de 1
+                </span>
+                <button type="button" id="btnNextSAC" onclick="mudarPaginaSAC(1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                  Próxima <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
           </section>
         </div>
       </div>
@@ -746,6 +763,22 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- CONTROLE DE PAGINAÇÃO: CHAMADOS ABERTOS -->
+          <div id="paginacaoAbertosContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+            <span id="paginacaoAbertosInfo" class="text-slate-500 font-medium">Exibindo 0 a 0 de 0 chamados</span>
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnPrevAbertos" onclick="mudarPaginaAbertos(-1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Anterior
+              </button>
+              <span id="paginacaoAbertosIndicador" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
+                Página 1 de 1
+              </span>
+              <button type="button" id="btnNextAbertos" onclick="mudarPaginaAbertos(1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                Próxima <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
           </div>
         </section>
       </div>
@@ -812,7 +845,7 @@
               </div>
             </div>
 
-            <form id="clienteForm" onsubmit="handleClienteSubmit(event)" class="space-y-6">
+            <form id="clienteForm" accept-charset="UTF-8" onsubmit="handleClienteSubmit(event)" class="space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-5 rounded-2xl bg-slate-50/90 border border-slate-200">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Cliente *</label>
@@ -893,6 +926,22 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- CONTROLE DE PAGINAÇÃO: CLIENTES CADASTRADOS -->
+            <div id="paginacaoClientesContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+              <span id="paginacaoClientesInfo" class="text-slate-500 font-medium">Exibindo 0 a 0 de 0 clientes</span>
+              <div class="flex items-center gap-2">
+                <button type="button" id="btnPrevClientes" onclick="mudarPaginaClientes(-1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                  <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Anterior
+                </button>
+                <span id="paginacaoClientesIndicador" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
+                  Página 1 de 1
+                </span>
+                <button type="button" id="btnNextClientes" onclick="mudarPaginaClientes(1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                  Próxima <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
           </section>
         </div>
       </div>
@@ -904,22 +953,69 @@
     lucide.createIcons();
     Chart.register(ChartDataLabels);
 
+    // =========================================================================
+    // INÍCIO: normalizarTextoUtf8
+    // =========================================================================
+    function normalizarTextoUtf8(valor) {
+      if (valor === null || valor === undefined) return '';
+      let str = String(valor);
+      try {
+        if (/Ã[\x80-\xBF]|Â[\x80-\xBF]/.test(str)) {
+          str = decodeURIComponent(escape(str));
+        }
+      } catch (e) {}
+      return str.normalize('NFC');
+    }
+    // =========================================================================
+    // TÉRMINO: normalizarTextoUtf8
+    // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: sanitizarObjetoUtf8
+    // =========================================================================
+    function sanitizarObjetoUtf8(obj) {
+      if (typeof obj === 'string') return normalizarTextoUtf8(obj);
+      if (Array.isArray(obj)) return obj.map(item => sanitizarObjetoUtf8(item));
+      if (obj && typeof obj === 'object') {
+        const limpo = {};
+        for (const [k, v] of Object.entries(obj)) {
+          limpo[k] = sanitizarObjetoUtf8(v);
+        }
+        return limpo;
+      }
+      return obj;
+    }
+    // =========================================================================
+    // TÉRMINO: sanitizarObjetoUtf8
+    // =========================================================================
+
     const BACKEND_API_URL = "/api/action";
-    const dadosSAC = {{ dados_sac_json | safe }};
+    const dadosSAC = sanitizarObjetoUtf8({{ dados_sac_json | safe }});
     let listaChamadosSAC = Array.isArray(dadosSAC.chamados) ? dadosSAC.chamados : [];
     let listaCadastroClientes = Array.isArray(dadosSAC.cadastro_clientes) ? dadosSAC.cadastro_clientes : [];
     let chamadoEmEdicao = null;
     let clienteEmEdicao = null;
     let origemEdicaoSAC = 'sac';
+
+    // =========================================================================
+    // CONTROLE DE PAGINAÇÃO INDEPENDENTE (50 REGISTROS POR PÁGINA NO DOM)
+    // =========================================================================
+    const ITENS_POR_PAGINA = 50;
+    let paginaAtualSAC = 1;
+    let paginaAtualAbertos = 1;
+    let paginaAtualClientes = 1;
+    let listaFiltradaSACAtual = listaChamadosSAC;
+    let listaFiltradaAbertosAtual = listaChamadosSAC;
+    let listaFiltradaClientesAtual = listaCadastroClientes;
     
     let atendenteSACLogado = "";
     let loginUsuarioConectado = "";
     let nivelAcessoLogado = "";
 
     try {
-      atendenteSACLogado = sessionStorage.getItem('sac_atendente_conectado') || "";
-      loginUsuarioConectado = sessionStorage.getItem('sac_usuario_login') || "";
-      nivelAcessoLogado = sessionStorage.getItem('sac_nivel_acesso') || "";
+      atendenteSACLogado = normalizarTextoUtf8(sessionStorage.getItem('sac_atendente_conectado') || "");
+      loginUsuarioConectado = normalizarTextoUtf8(sessionStorage.getItem('sac_usuario_login') || "");
+      nivelAcessoLogado = normalizarTextoUtf8(sessionStorage.getItem('sac_nivel_acesso') || "");
     } catch(e) {}
 
     // =========================================================================
@@ -1006,9 +1102,9 @@
         loginScreen.classList.add('hidden');
         appContainer.classList.remove('hidden');
 
-        document.getElementById('labelHeaderAtendente').innerText = atendenteSACLogado;
-        document.getElementById('labelSACAtendenteLogado').innerText = atendenteSACLogado;
-        document.getElementById('sacAtendente').value = atendenteSACLogado;
+        document.getElementById('labelHeaderAtendente').innerText = normalizarTextoUtf8(atendenteSACLogado);
+        document.getElementById('labelSACAtendenteLogado').innerText = normalizarTextoUtf8(atendenteSACLogado);
+        document.getElementById('sacAtendente').value = normalizarTextoUtf8(atendenteSACLogado);
 
         aplicarRegrasDeAcesso();
         inicializarFormularioSAC();
@@ -1037,20 +1133,20 @@
     // =========================================================================
     function realizarLoginGlobal(e) {
       e.preventDefault();
-      const u = (document.getElementById('globalLoginUser').value || '').trim().toLowerCase();
-      const p = (document.getElementById('globalLoginPass').value || '').trim().toLowerCase();
+      const u = normalizarTextoUtf8(document.getElementById('globalLoginUser').value || '').trim().toLowerCase();
+      const p = normalizarTextoUtf8(document.getElementById('globalLoginPass').value || '').trim().toLowerCase();
       const erroBox = document.getElementById('globalLoginErro');
 
       const userValido = (dadosSAC.usuarios || []).find(x => 
-        String(x.usuario || '').trim().toLowerCase() === u && 
-        String(x.senha || '').trim().toLowerCase() === p
+        normalizarTextoUtf8(x.usuario || '').trim().toLowerCase() === u && 
+        normalizarTextoUtf8(x.senha || '').trim().toLowerCase() === p
       );
 
       if (userValido) {
         erroBox.classList.add('hidden');
-        atendenteSACLogado = userValido.nome || userValido.usuario;
-        loginUsuarioConectado = userValido.usuario;
-        nivelAcessoLogado = userValido.acesso || "Atendente";
+        atendenteSACLogado = normalizarTextoUtf8(userValido.nome || userValido.usuario);
+        loginUsuarioConectado = normalizarTextoUtf8(userValido.usuario);
+        nivelAcessoLogado = normalizarTextoUtf8(userValido.acesso || "Atendente");
 
         try {
           sessionStorage.setItem('sac_atendente_conectado', atendenteSACLogado);
@@ -1135,8 +1231,9 @@
     // =========================================================================
     function converterParaPrimeirasMaiusculas(texto) {
       if (!texto) return '';
+      const textoUtf8 = normalizarTextoUtf8(texto);
       const preposicoes = ['de', 'da', 'do', 'das', 'dos', 'e'];
-      return texto
+      return textoUtf8
         .toString()
         .trim()
         .toLowerCase()
@@ -1170,7 +1267,7 @@
     function obterValoresDeDatalist(datalistId) {
       const dl = document.getElementById(datalistId);
       if (!dl) return [];
-      return Array.from(dl.options).map(opt => (opt.value || '').trim());
+      return Array.from(dl.options).map(opt => normalizarTextoUtf8(opt.value || '').trim());
     }
     // =========================================================================
     // TÉRMINO: obterValoresDeDatalist
@@ -1182,7 +1279,7 @@
     function validarInputComLista(inputId, datalistId, nomeAmigavel, dispararCascataCliente = false) {
       const input = document.getElementById(inputId);
       if (!input) return false;
-      const valor = (input.value || '').trim();
+      const valor = normalizarTextoUtf8(input.value || '').trim();
       if (!valor) return false; // Campo vazio já é pego pelo required
 
       const opcoesValidas = obterValoresDeDatalist(datalistId);
@@ -1215,8 +1312,8 @@
     function abrirModalLoading(titulo, subtitulo, tipoAcao = 'loading') {
       const modal = document.getElementById('modalLoadingAcao');
       if (!modal) return;
-      document.getElementById('modalLoadingTitle').innerText = titulo;
-      document.getElementById('modalLoadingSub').innerText = subtitulo;
+      document.getElementById('modalLoadingTitle').innerText = normalizarTextoUtf8(titulo);
+      document.getElementById('modalLoadingSub').innerText = normalizarTextoUtf8(subtitulo);
       const spinner = document.getElementById('modalSpinner');
       const iconCheck = document.getElementById('modalIconCheck');
       const iconTrash = document.getElementById('modalIconTrash');
@@ -1269,8 +1366,8 @@
       const lucideIcon = document.getElementById('alertSACLucideIcon');
       if (!alertBox) return;
 
-      alertTitle.innerText = titulo;
-      alertSub.innerText = subtitulo;
+      alertTitle.innerText = normalizarTextoUtf8(titulo);
+      alertSub.innerText = normalizarTextoUtf8(subtitulo);
       if (tipo === 'excluir') {
         alertBox.className = "p-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm transition";
         iconBadge.className = "p-2 bg-rose-600 text-white rounded-xl";
@@ -1297,16 +1394,18 @@
     // =========================================================================
     async function enviarParaBancoGarantido(payload) {
       try {
+        const payloadUtf8 = sanitizarObjetoUtf8(payload);
         const resp = await fetch(BACKEND_API_URL, {
           method: "POST",
           headers: { 
-            "Content-Type": "application/json",
-            "Accept": "application/json"
+            "Content-Type": "application/json; charset=utf-8",
+            "Accept": "application/json; charset=utf-8"
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payloadUtf8)
         });
 
-        const dadosResposta = await resp.json().catch(() => null);
+        const rawJson = await resp.json().catch(() => null);
+        const dadosResposta = sanitizarObjetoUtf8(rawJson);
 
         if (!resp.ok) {
           const msgErro = (dadosResposta && (dadosResposta.detail || dadosResposta.message || dadosResposta.error)) 
@@ -1389,12 +1488,12 @@
       if (page === 'dashboardSAC') {
         atualizarDashboardSAC();
       } else if (page === 'chamadosAbertos') {
-        renderizarTabelaChamadosAbertos();
+        filtrarChamadosAbertos();
       } else if (page === 'sac') {
-        renderizarTabelaChamadosSAC();
+        filtrarChamadosSAC();
       } else if (page === 'cadastroClientes') {
         aplicarRegrasDeAcesso();
-        renderizarTabelaClientes();
+        filtrarClientesCadastrados();
       }
       lucide.createIcons();
     }
@@ -1430,18 +1529,18 @@
       const resultado = [];
       fonte.forEach(item => {
         if (typeof item === 'string' || typeof item === 'number') {
-          const s = String(item).trim();
+          const s = normalizarTextoUtf8(item).trim();
           if (s) resultado.push(s);
         } else if (item && typeof item === 'object') {
           for (const chave of propriedadesChave) {
             if (item[chave]) {
-              const s = String(item[chave]).trim();
+              const s = normalizarTextoUtf8(item[chave]).trim();
               if (s) { resultado.push(s); break; }
             }
           }
         }
       });
-      return [...new Set(resultado)].sort();
+      return [...new Set(resultado)].sort((a, b) => a.localeCompare(b, 'pt-BR'));
     }
     // =========================================================================
     // TÉRMINO: extrairListaTexto
@@ -1475,14 +1574,14 @@
       // 1. Clientes
       const dlCli = document.getElementById('listaSACClientes');
       dlCli.innerHTML = '';
-      [...new Set((dadosSAC.clientes || []).map(c => c.cliente).filter(Boolean))].sort().forEach(cli => {
+      [...new Set((dadosSAC.clientes || []).map(c => normalizarTextoUtf8(c.cliente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(cli => {
         const opt = document.createElement('option'); opt.value = cli; dlCli.appendChild(opt);
       });
 
       // 2. Cidades / Filiais
       const dlCid = document.getElementById('listaSACCidades');
       dlCid.innerHTML = '';
-      (dadosSAC.cidades?.length ? dadosSAC.cidades : [...new Set((dadosSAC.clientes || []).map(c => c.cidade).filter(Boolean))]).sort().forEach(cid => {
+      (dadosSAC.cidades?.length ? dadosSAC.cidades.map(normalizarTextoUtf8) : [...new Set((dadosSAC.clientes || []).map(c => normalizarTextoUtf8(c.cidade)).filter(Boolean))]).sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(cid => {
         const opt = document.createElement('option'); opt.value = cid; dlCid.appendChild(opt);
       });
 
@@ -1533,15 +1632,15 @@
     // INÍCIO: aoMudarClienteSAC
     // =========================================================================
     function aoMudarClienteSAC() {
-      const cli = (document.getElementById('sacCliente').value || '').trim();
+      const cli = normalizarTextoUtf8(document.getElementById('sacCliente').value || '').trim();
       const selectLocal = document.getElementById('sacLocalInterno');
       selectLocal.innerHTML = '<option value="">Selecione o Local Interno...</option>';
       if (!cli) return;
 
-      const locaisDoCliente = (dadosSAC.clientes || []).filter(c => c.cliente && c.cliente.toLowerCase() === cli.toLowerCase());
+      const locaisDoCliente = (dadosSAC.clientes || []).filter(c => c.cliente && normalizarTextoUtf8(c.cliente).toLowerCase() === cli.toLowerCase());
       if (!locaisDoCliente.length) return;
 
-      const locaisUnicos = [...new Set(locaisDoCliente.map(l => l.local).filter(Boolean))].sort();
+      const locaisUnicos = [...new Set(locaisDoCliente.map(l => normalizarTextoUtf8(l.local)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
       locaisUnicos.forEach(loc => {
         const opt = document.createElement('option');
         opt.value = loc; opt.textContent = loc;
@@ -1560,11 +1659,11 @@
     // INÍCIO: aoMudarLocalInternoSAC
     // =========================================================================
     function aoMudarLocalInternoSAC() {
-      const cli = (document.getElementById('sacCliente').value || '').trim();
-      const loc = document.getElementById('sacLocalInterno').value;
+      const cli = normalizarTextoUtf8(document.getElementById('sacCliente').value || '').trim();
+      const loc = normalizarTextoUtf8(document.getElementById('sacLocalInterno').value);
       if (!cli || !loc) return;
-      const achado = (dadosSAC.clientes || []).find(c => c.cliente && c.cliente.toLowerCase() === cli.toLowerCase() && c.local === loc);
-      if (achado && achado.cidade) document.getElementById('sacCidade').value = achado.cidade;
+      const achado = (dadosSAC.clientes || []).find(c => c.cliente && normalizarTextoUtf8(c.cliente).toLowerCase() === cli.toLowerCase() && normalizarTextoUtf8(c.local) === loc);
+      if (achado && achado.cidade) document.getElementById('sacCidade').value = normalizarTextoUtf8(achado.cidade);
     }
     // =========================================================================
     // TÉRMINO: aoMudarLocalInternoSAC
@@ -1608,7 +1707,7 @@
     // TÉRMINO: limparFormSAC
     // =========================================================================
 
-   // =========================================================================
+    // =========================================================================
     // INÍCIO: editarChamadoSAC (ROBUSTO COM FALLBACK DE COLUNAS SQL/CSV)
     // =========================================================================
     function editarChamadoSAC(numeroChamado, origem = 'sac') {
@@ -1623,17 +1722,17 @@
       chamadoEmEdicao = item;
 
       // 1. Identificador e Data Principal
-      document.getElementById('sacChamado').value = item.chamado || item.Chamado || '';
+      document.getElementById('sacChamado').value = normalizarTextoUtf8(item.chamado || item.Chamado || '');
       const dataOriginal = item.data || item.Data || '';
       document.getElementById('sacData').value = dataOriginal.includes('/') ? dataPtBrParaIso(dataOriginal) : dataOriginal;
 
       // 2. Cliente e Cascata de Local Interno
-      const clienteVal = item.cliente || item.Cliente || '';
+      const clienteVal = normalizarTextoUtf8(item.cliente || item.Cliente || '');
       document.getElementById('sacCliente').value = clienteVal;
       aoMudarClienteSAC(); // Repopula o select de locais internos
 
       // Local Interno (aceita local_interno, localInterno, Local Interno ou local)
-      const localVal = item.local_interno || item.localInterno || item['Local Interno'] || item.local || '';
+      const localVal = normalizarTextoUtf8(item.local_interno || item.localInterno || item['Local Interno'] || item.local || '');
       const selectLocal = document.getElementById('sacLocalInterno');
       
       // Se a opção não constava na lista populada do cliente, adiciona para garantir a seleção
@@ -1649,12 +1748,12 @@
       }
 
       // 3. Filial / Cidade
-      document.getElementById('sacCidade').value = item.cidade || item.Cidade || item.filial || '';
+      document.getElementById('sacCidade').value = normalizarTextoUtf8(item.cidade || item.Cidade || item.filial || '');
 
       // 4. Descrição e Produto
-      document.getElementById('sacDescricao').value = item.descricao || item.Descricao || item['Descrição'] || '';
+      document.getElementById('sacDescricao').value = normalizarTextoUtf8(item.descricao || item.Descricao || item['Descrição'] || '');
       
-      const prodVal = (item.produto || item.Produto || '').trim();
+      const prodVal = normalizarTextoUtf8(item.produto || item.Produto || '').trim();
       const selectProduto = document.getElementById('sacProduto');
       if (prodVal.toLowerCase().includes('café') || prodVal.toLowerCase().includes('cafe')) {
         selectProduto.value = 'Café';
@@ -1677,13 +1776,13 @@
       document.getElementById('sacValor').value = valNum ? valNum : '';
 
       // 7. Dados do Cliente / Contato
-      document.getElementById('sacNome').value = item.nome_sobrenome || item.nomeSobrenome || item['Nome/Sobrenome'] || item.nome || '';
-      document.getElementById('sacCelular').value = item.celular || item.Celular || '';
-      document.getElementById('sacProblema').value = item.problemas || item.Problemas || item.problema || '';
-      document.getElementById('sacFormaPgto').value = item.forma_pgto || item.formaPgto || item['Forma de Pagamento'] || '';
+      document.getElementById('sacNome').value = normalizarTextoUtf8(item.nome_sobrenome || item.nomeSobrenome || item['Nome/Sobrenome'] || item.nome || '');
+      document.getElementById('sacCelular').value = normalizarTextoUtf8(item.celular || item.Celular || '');
+      document.getElementById('sacProblema').value = normalizarTextoUtf8(item.problemas || item.Problemas || item.problema || '');
+      document.getElementById('sacFormaPgto').value = normalizarTextoUtf8(item.forma_pgto || item.formaPgto || item['Forma de Pagamento'] || '');
 
       // 8. Reembolso
-      const rmbVal = String(item.reembolso || item.Reembolso || '').trim().toLowerCase();
+      const rmbVal = normalizarTextoUtf8(item.reembolso || item.Reembolso || '').trim().toLowerCase();
       if (rmbVal.includes('remoto') || rmbVal.includes('crédito') || rmbVal.includes('credito')) {
         document.getElementById('sacReembolso').value = 'Crédito Remoto';
       } else if (rmbVal.includes('pendente')) {
@@ -1691,20 +1790,20 @@
       } else if (rmbVal.includes('stone') || rmbVal.includes('devolução') || rmbVal.includes('devolucao')) {
         document.getElementById('sacReembolso').value = 'Devolução Stone';
       } else {
-        document.getElementById('sacReembolso').value = item.reembolso || item.Reembolso || '';
+        document.getElementById('sacReembolso').value = normalizarTextoUtf8(item.reembolso || item.Reembolso || '');
       }
 
       // 9. Pix e Observação
-      document.getElementById('sacPix').value = item.pix || item.Pix || item['Pix - Reembolso'] || '';
-      document.getElementById('sacObservacao').value = item.observacao || item.observação || item.obs || item.Observação || '';
+      document.getElementById('sacPix').value = normalizarTextoUtf8(item.pix || item.Pix || item['Pix - Reembolso'] || '');
+      document.getElementById('sacObservacao').value = normalizarTextoUtf8(item.observacao || item.observação || item.obs || item.Observação || '');
 
       // 10. Reembolso Realizado (Sim/Não)
-      const rReal = String(item.reembolso_realizado || item.reembolsoRealizado || item['Reembolso Realizado'] || 'Não').trim().toLowerCase();
+      const rReal = normalizarTextoUtf8(item.reembolso_realizado || item.reembolsoRealizado || item['Reembolso Realizado'] || 'Não').trim().toLowerCase();
       document.getElementById('sacReembolsoRealizado').value = (rReal === 'sim' || rReal === 's' || rReal === 'true') ? 'Sim' : 'Não';
 
       // 11. Atendente e Carimbo de Data/Hora
-      document.getElementById('sacAtendente').value = item.atendente || item.Atendente || atendenteSACLogado;
-      document.getElementById('sacDataHoraAuto').value = item.data_hora_lancamento || item.dataHoraLancamento || item['Data/Hora do lançamento'] || 'Original Preservado';
+      document.getElementById('sacAtendente').value = normalizarTextoUtf8(item.atendente || item.Atendente || atendenteSACLogado);
+      document.getElementById('sacDataHoraAuto').value = normalizarTextoUtf8(item.data_hora_lancamento || item.dataHoraLancamento || item['Data/Hora do lançamento'] || 'Original Preservado');
 
       // 12. Atualização dos Avisos e Botões da UI
       document.getElementById('alertSACEditMode').classList.remove('hidden');
@@ -1758,8 +1857,8 @@
 
       // Atualização de dados somente após validação positiva do banco
       listaChamadosSAC = listaChamadosSAC.filter(c => c.chamado !== numeroChamado);
-      renderizarTabelaChamadosSAC();
-      renderizarTabelaChamadosAbertos();
+      filtrarChamadosSAC(false);
+      filtrarChamadosAbertos(false);
       atualizarDashboardSAC();
 
       if (chamadoEmEdicao && chamadoEmEdicao.chamado === numeroChamado) {
@@ -1781,9 +1880,9 @@
     async function handleSACSubmit(e) {
       e.preventDefault();
 
-      // 1. Coleta e sanitização de valores diretos
+      // 1. Coleta e sanitização UTF-8 de valores diretos
       const clienteInput = document.getElementById('sacCliente');
-      const cliente = (clienteInput?.value || '').trim();
+      const cliente = normalizarTextoUtf8(clienteInput?.value || '').trim();
       if (!cliente) {
         alert('⛔ Preencha o campo Cliente.');
         clienteInput?.focus();
@@ -1791,21 +1890,21 @@
       }
 
       const selectLocal = document.getElementById('sacLocalInterno');
-      let localInterno = (selectLocal?.value || '').trim();
+      let localInterno = normalizarTextoUtf8(selectLocal?.value || '').trim();
       if (!localInterno) {
         alert('⛔ Selecione um Local Interno.');
         selectLocal?.focus();
         return;
       }
 
-      const cidade = (document.getElementById('sacCidade')?.value || '').trim();
+      const cidade = normalizarTextoUtf8(document.getElementById('sacCidade')?.value || '').trim();
       if (!cidade) {
         alert('⛔ Preencha a Filial Responsável.');
         document.getElementById('sacCidade')?.focus();
         return;
       }
 
-      const descricao = (document.getElementById('sacDescricao')?.value || '').trim();
+      const descricao = normalizarTextoUtf8(document.getElementById('sacDescricao')?.value || '').trim();
       if (!descricao) {
         alert('⛔ Preencha a Descrição.');
         document.getElementById('sacDescricao')?.focus();
@@ -1813,21 +1912,21 @@
       }
 
       const selectProduto = document.getElementById('sacProduto');
-      const produto = (selectProduto?.value || '').trim();
+      const produto = normalizarTextoUtf8(selectProduto?.value || '').trim();
       if (!produto) {
         alert('⛔ Selecione o Produto (Café ou Snaky).');
         selectProduto?.focus();
         return;
       }
 
-      const problemas = (document.getElementById('sacProblema')?.value || '').trim();
+      const problemas = normalizarTextoUtf8(document.getElementById('sacProblema')?.value || '').trim();
       if (!problemas) {
         alert('⛔ Preencha o campo Problemas.');
         document.getElementById('sacProblema')?.focus();
         return;
       }
 
-      const formaPgto = (document.getElementById('sacFormaPgto')?.value || '').trim();
+      const formaPgto = normalizarTextoUtf8(document.getElementById('sacFormaPgto')?.value || '').trim();
       if (!formaPgto) {
         alert('⛔ Selecione ou preencha a Forma de Pagamento.');
         document.getElementById('sacFormaPgto')?.focus();
@@ -1850,27 +1949,27 @@
       const horaTransacao = document.getElementById('sacHoraTransacao').value;
       const valor = parseFloat(document.getElementById('sacValor').value) || 0;
       const nomeSobrenome = converterParaPrimeirasMaiusculas(document.getElementById('sacNome').value.trim());
-      const celular = document.getElementById('sacCelular').value.trim();
-      const reembolso = (document.getElementById('sacReembolso').value || '').trim();
-      const pix = document.getElementById('sacPix').value.trim();
-      const reembolsoRealizado = document.getElementById('sacReembolsoRealizado').value || "Não";
-      const observacao = document.getElementById('sacObservacao').value.trim();
+      const celular = normalizarTextoUtf8(document.getElementById('sacCelular').value).trim();
+      const reembolso = normalizarTextoUtf8(document.getElementById('sacReembolso').value || '').trim();
+      const pix = normalizarTextoUtf8(document.getElementById('sacPix').value).trim();
+      const reembolsoRealizado = normalizarTextoUtf8(document.getElementById('sacReembolsoRealizado').value || "Não");
+      const observacao = normalizarTextoUtf8(document.getElementById('sacObservacao').value).trim();
 
-      let atendente = ehEdicao && (chamadoEmEdicao?.atendente || chamadoEmEdicao?.Atendente) 
+      let atendente = normalizarTextoUtf8(ehEdicao && (chamadoEmEdicao?.atendente || chamadoEmEdicao?.Atendente) 
         ? (chamadoEmEdicao.atendente || chamadoEmEdicao.Atendente) 
-        : (atendenteSACLogado || document.getElementById('sacAtendente').value);
+        : (atendenteSACLogado || document.getElementById('sacAtendente').value));
 
       let dataHoraLancamento = ehEdicao && (chamadoEmEdicao?.dataHoraLancamento || chamadoEmEdicao?.data_hora_lancamento)
         ? (chamadoEmEdicao.dataHoraLancamento || chamadoEmEdicao.data_hora_lancamento)
         : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
 
-      let finRespOriginal = chamadoEmEdicao?.financeiroResponsavel || chamadoEmEdicao?.financeiro_responsavel || "";
+      let finRespOriginal = normalizarTextoUtf8(chamadoEmEdicao?.financeiroResponsavel || chamadoEmEdicao?.financeiro_responsavel || "");
       let financeiroResponsavel = (reembolsoRealizado === "Sim")
         ? (atendenteSACLogado || finRespOriginal)
         : finRespOriginal;
 
-      // Monta payload com compatibilidade para o backend
-      const payloadSAC = {
+      // Monta payload com compatibilidade UTF-8 para o backend
+      const payloadSAC = sanitizarObjetoUtf8({
         "acao": ehEdicao ? "editar" : "inserir",
         "action": ehEdicao ? "editar" : "inserir",
         "id": ehEdicao ? (chamadoEmEdicao.id || chamadoEmEdicao.linha) : undefined,
@@ -1917,7 +2016,7 @@
         "Financeiro Responsavel": financeiroResponsavel,
         "observacao": observacao,
         "Observação": observacao
-      };
+      });
 
       abrirModalLoading(
         ehEdicao ? 'Atualizando Ocorrência...' : 'Lançando no Sistema...',
@@ -1944,7 +2043,7 @@
       }
 
       // Atualiza o estado da memória
-      const novoItem = {
+      const novoItem = sanitizarObjetoUtf8({
         ...chamadoEmEdicao,
         id: ehEdicao ? (chamadoEmEdicao.id || chamadoEmEdicao.linha) : (resultado.data?.id || resultado.data?.linha),
         linha: ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : (resultado.data?.linha || listaChamadosSAC.length + 2),
@@ -1969,7 +2068,7 @@
         reembolso_realizado: reembolsoRealizado, reembolsoRealizado: reembolsoRealizado,
         financeiro_responsavel: financeiroResponsavel, financeiroResponsavel: financeiroResponsavel,
         observacao, Observação: observacao
-      };
+      });
 
       if (ehEdicao) {
         listaChamadosSAC = listaChamadosSAC.map(c => 
@@ -1977,14 +2076,16 @@
         );
       } else {
         listaChamadosSAC.unshift(novoItem);
+        paginaAtualSAC = 1;
+        paginaAtualAbertos = 1;
       }
 
       const destinoAposSalvar = (ehEdicao && origemEdicaoSAC === 'chamadosAbertos') ? 'chamadosAbertos' : 'sac';
       
       // Limpeza ocorre SOMENTE após o sucesso confirmado da API
       limparFormSAC();
-      renderizarTabelaChamadosSAC();
-      renderizarTabelaChamadosAbertos();
+      filtrarChamadosSAC(false);
+      filtrarChamadosAbertos(false);
       atualizarDashboardSAC();
       origemEdicaoSAC = 'sac';
 
@@ -1999,15 +2100,37 @@
     // =========================================================================
 
     // =========================================================================
+    // INÍCIO: mudarPaginaSAC
+    // =========================================================================
+    function mudarPaginaSAC(delta) {
+      const totalPaginas = Math.max(1, Math.ceil(listaFiltradaSACAtual.length / ITENS_POR_PAGINA));
+      const novaPagina = paginaAtualSAC + delta;
+      if (novaPagina >= 1 && novaPagina <= totalPaginas) {
+        paginaAtualSAC = novaPagina;
+        renderizarTabelaChamadosSAC(listaFiltradaSACAtual);
+      }
+    }
+    // =========================================================================
+    // TÉRMINO: mudarPaginaSAC
+    // =========================================================================
+
+    // =========================================================================
     // INÍCIO: filtrarChamadosSAC
     // =========================================================================
-    function filtrarChamadosSAC() {
-      const termo = (document.getElementById('searchSACChamados')?.value || '').trim().toLowerCase();
-      if (!termo) { renderizarTabelaChamadosSAC(listaChamadosSAC); return; }
-      const filtrados = listaChamadosSAC.filter(c => 
-        Object.values(c).some(val => String(val || '').toLowerCase().includes(termo))
+    function filtrarChamadosSAC(resetarPagina = true) {
+      if (resetarPagina) {
+        paginaAtualSAC = 1;
+      }
+      const termo = normalizarTextoUtf8(document.getElementById('searchSACChamados')?.value || '').trim().toLowerCase();
+      if (!termo) {
+        listaFiltradaSACAtual = listaChamadosSAC;
+        renderizarTabelaChamadosSAC(listaFiltradaSACAtual);
+        return;
+      }
+      listaFiltradaSACAtual = listaChamadosSAC.filter(c => 
+        Object.values(c).some(val => normalizarTextoUtf8(val || '').toLowerCase().includes(termo))
       );
-      renderizarTabelaChamadosSAC(filtrados);
+      renderizarTabelaChamadosSAC(listaFiltradaSACAtual);
     }
     // =========================================================================
     // TÉRMINO: filtrarChamadosSAC
@@ -2016,48 +2139,91 @@
     // =========================================================================
     // INÍCIO: renderizarTabelaChamadosSAC
     // =========================================================================
-    function renderizarTabelaChamadosSAC(lista = listaChamadosSAC) {
+    function renderizarTabelaChamadosSAC(lista = listaFiltradaSACAtual) {
+      listaFiltradaSACAtual = Array.isArray(lista) ? lista : [];
       const tbody = document.getElementById('tableSACChamadosBody');
       const badge = document.getElementById('badgeContadorSAC');
-      if (badge) badge.innerText = lista.length + ' chamado(s)';
+      const infoEl = document.getElementById('paginacaoSACInfo');
+      const indicadorEl = document.getElementById('paginacaoSACIndicador');
+      const btnPrev = document.getElementById('btnPrevSAC');
+      const btnNext = document.getElementById('btnNextSAC');
+
+      const totalRegistros = listaFiltradaSACAtual.length;
+      if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
+
+      const totalPaginas = Math.max(1, Math.ceil(totalRegistros / ITENS_POR_PAGINA));
+      if (paginaAtualSAC > totalPaginas) paginaAtualSAC = totalPaginas;
+      if (paginaAtualSAC < 1) paginaAtualSAC = 1;
+
+      const inicioIdx = (paginaAtualSAC - 1) * ITENS_POR_PAGINA;
+      const fimIdx = Math.min(inicioIdx + ITENS_POR_PAGINA, totalRegistros);
+
+      if (infoEl) {
+        infoEl.innerText = totalRegistros === 0
+          ? 'Exibindo 0 a 0 de 0 chamados'
+          : `Exibindo ${(inicioIdx + 1).toLocaleString('pt-BR')} a ${fimIdx.toLocaleString('pt-BR')} de ${totalRegistros.toLocaleString('pt-BR')} chamados`;
+      }
+      if (indicadorEl) {
+        indicadorEl.innerText = `Página ${paginaAtualSAC.toLocaleString('pt-BR')} de ${totalPaginas.toLocaleString('pt-BR')}`;
+      }
+      if (btnPrev) btnPrev.disabled = (paginaAtualSAC <= 1 || totalRegistros === 0);
+      if (btnNext) btnNext.disabled = (paginaAtualSAC >= totalPaginas || totalRegistros === 0);
+
       if (!tbody) return;
-      if (!lista || lista.length === 0) {
+      if (totalRegistros === 0) {
         tbody.innerHTML = '<tr><td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhuma ocorrência encontrada.</td></tr>';
         return;
       }
-      tbody.innerHTML = lista.map(c => {
-        const rVal = (c.reembolsoRealizado || 'Não').toString().trim().toLowerCase();
+
+      // Isolamento de Performance no DOM: fatiamento estrito de no máximo 50 nós <tr>
+      const fatiaPagina = listaFiltradaSACAtual.slice(inicioIdx, fimIdx);
+
+      tbody.innerHTML = fatiaPagina.map(c => {
+        const rVal = normalizarTextoUtf8(c.reembolsoRealizado || c.reembolso_realizado || 'Não').toString().trim().toLowerCase();
         const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
         const badgePago = pago 
           ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
           : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
 
+        const chamadoTxt = normalizarTextoUtf8(c.chamado || '');
+        const dataTxt = normalizarTextoUtf8(c.data || '-');
+        const clienteTxt = normalizarTextoUtf8(c.cliente || '-');
+        const localTxt = normalizarTextoUtf8(c.localInterno || c.local_interno || '-');
+        const cidadeTxt = normalizarTextoUtf8(c.cidade || '-');
+        const produtoTxt = normalizarTextoUtf8(c.produto || '-');
+        const nomeTxt = normalizarTextoUtf8(c.nomeSobrenome || c.nome_sobrenome || '-');
+        const pgtoTxt = normalizarTextoUtf8(c.formaPgto || c.forma_pgto || '-');
+        const reembolsoTxt = normalizarTextoUtf8(c.reembolso || '-');
+        const finRespTxt = normalizarTextoUtf8(c.financeiroResponsavel || c.financeiro_responsavel || '-');
+        const obsTxt = normalizarTextoUtf8(c.observacao || '-');
+        const atendenteTxt = normalizarTextoUtf8(c.atendente || '-');
+
         return `
           <tr class="hover:bg-slate-50 transition border-b border-slate-100">
             <td class="text-center whitespace-nowrap">
               <div class="inline-flex items-center gap-1 justify-center">
-                <button type="button" onclick="editarChamadoSAC('${c.chamado}', 'sac')" title="Editar chamado ${c.chamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
+                <button type="button" onclick="editarChamadoSAC('${chamadoTxt}', 'sac')" title="Editar chamado ${chamadoTxt}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
                   <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
                 </button>
-                <button type="button" onclick="excluirChamadoSAC('${c.chamado}')" title="Excluir chamado ${c.chamado}" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
+                <button type="button" onclick="excluirChamadoSAC('${chamadoTxt}')" title="Excluir chamado ${chamadoTxt}" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
                   <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
               </div>
             </td>
-            <td class="font-mono font-bold text-sky-700 truncate" title="${c.chamado}">${c.chamado}</td>
-            <td class="truncate" title="${c.data || '-'}">${c.data || '-'}</td>
-            <td class="font-semibold text-slate-800 truncate" title="${c.cliente || ''}">${c.cliente || '-'}</td>
-            <td class="text-slate-600 truncate" title="${c.localInterno || ''}">${c.localInterno || '-'}</td>
-            <td class="text-slate-600 truncate" title="${c.cidade || ''}">${c.cidade || '-'}</td>
-            <td class="font-medium text-slate-700 truncate" title="${c.produto || '-'}">${c.produto || '-'}</td>
+            <td class="font-mono font-bold text-sky-700 truncate" title="${chamadoTxt}">${chamadoTxt}</td>
+            <td class="truncate" title="${dataTxt}">${dataTxt}</td>
+            <td class="font-semibold text-slate-800 truncate" title="${clienteTxt}">${clienteTxt}</td>
+            <td class="text-slate-600 truncate" title="${localTxt}">${localTxt}</td>
+            <td class="text-slate-600 truncate" title="${cidadeTxt}">${cidadeTxt}</td>
+            <td class="font-medium text-slate-700 truncate" title="${produtoTxt}">${produtoTxt}</td>
             <td class="text-right font-bold text-emerald-700 truncate" title="${c.valor || ''}">${formatCurrency(parseValorNumerico(c.valor))}</td>
-            <td class="font-medium text-slate-800 truncate" title="${c.nomeSobrenome || ''}">${c.nomeSobrenome || '-'}</td>
-            <td class="text-slate-700 font-medium truncate" title="${c.formaPgto || ''}">${c.formaPgto || '-'}</td>
-            <td class="text-sky-900 font-semibold truncate" title="${c.reembolso || ''}">${c.reembolso || '-'}</td>
+            <td class="font-medium text-slate-800 truncate" title="${nomeTxt}">${nomeTxt}</td>
+            <td class="text-slate-700 font-medium truncate" title="${pgtoTxt}">${pgtoTxt}</td>
+            <td class="text-sky-900 font-semibold truncate" title="${reembolsoTxt}">${reembolsoTxt}</td>
             <td class="text-center whitespace-nowrap">${badgePago}</td>
-            <td class="font-semibold text-emerald-800 truncate" title="${c.financeiroResponsavel || ''}">${c.financeiroResponsavel || '-'}</td>
-            <td class="text-slate-600 truncate" title="${c.observacao || ''}">${c.observacao || '-'}</td>
-            <td class="font-medium text-slate-600 truncate" title="${c.atendente || ''}">${c.atendente || '-'}</td>
+            <td class="font-semibold text-emerald-800 truncate" title="${finRespTxt}">${finRespTxt}</td>
+            <td class="text-slate-600 truncate" title="${obsTxt}">${obsTxt}</td>
+            <td class="font-medium text-slate-600 truncate" title="${atendenteTxt}">${atendenteTxt}</td>
           </tr>
         `;
       }).join('');
@@ -2068,15 +2234,37 @@
     // =========================================================================
 
     // =========================================================================
+    // INÍCIO: mudarPaginaAbertos
+    // =========================================================================
+    function mudarPaginaAbertos(delta) {
+      const totalPaginas = Math.max(1, Math.ceil(listaFiltradaAbertosAtual.length / ITENS_POR_PAGINA));
+      const novaPagina = paginaAtualAbertos + delta;
+      if (novaPagina >= 1 && novaPagina <= totalPaginas) {
+        paginaAtualAbertos = novaPagina;
+        renderizarTabelaChamadosAbertos(listaFiltradaAbertosAtual);
+      }
+    }
+    // =========================================================================
+    // TÉRMINO: mudarPaginaAbertos
+    // =========================================================================
+
+    // =========================================================================
     // INÍCIO: filtrarChamadosAbertos
     // =========================================================================
-    function filtrarChamadosAbertos() {
-      const termo = (document.getElementById('searchAbertos')?.value || '').trim().toLowerCase();
-      if (!termo) { renderizarTabelaChamadosAbertos(listaChamadosSAC); return; }
-      const filtrados = listaChamadosSAC.filter(c => 
-        Object.values(c).some(val => String(val || '').toLowerCase().includes(termo))
+    function filtrarChamadosAbertos(resetarPagina = true) {
+      if (resetarPagina) {
+        paginaAtualAbertos = 1;
+      }
+      const termo = normalizarTextoUtf8(document.getElementById('searchAbertos')?.value || '').trim().toLowerCase();
+      if (!termo) {
+        listaFiltradaAbertosAtual = listaChamadosSAC;
+        renderizarTabelaChamadosAbertos(listaFiltradaAbertosAtual);
+        return;
+      }
+      listaFiltradaAbertosAtual = listaChamadosSAC.filter(c => 
+        Object.values(c).some(val => normalizarTextoUtf8(val || '').toLowerCase().includes(termo))
       );
-      renderizarTabelaChamadosAbertos(filtrados);
+      renderizarTabelaChamadosAbertos(listaFiltradaAbertosAtual);
     }
     // =========================================================================
     // TÉRMINO: filtrarChamadosAbertos
@@ -2085,36 +2273,75 @@
     // =========================================================================
     // INÍCIO: renderizarTabelaChamadosAbertos
     // =========================================================================
-    function renderizarTabelaChamadosAbertos(lista = listaChamadosSAC) {
+    function renderizarTabelaChamadosAbertos(lista = listaFiltradaAbertosAtual) {
+      listaFiltradaAbertosAtual = Array.isArray(lista) ? lista : [];
       const tbody = document.getElementById('tableChamadosAbertosBody');
       const badge = document.getElementById('badgeContadorAbertos');
-      if (badge) badge.innerText = lista.length + ' chamado(s)';
+      const infoEl = document.getElementById('paginacaoAbertosInfo');
+      const indicadorEl = document.getElementById('paginacaoAbertosIndicador');
+      const btnPrev = document.getElementById('btnPrevAbertos');
+      const btnNext = document.getElementById('btnNextAbertos');
+
+      const totalRegistros = listaFiltradaAbertosAtual.length;
+      if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
+
+      const totalPaginas = Math.max(1, Math.ceil(totalRegistros / ITENS_POR_PAGINA));
+      if (paginaAtualAbertos > totalPaginas) paginaAtualAbertos = totalPaginas;
+      if (paginaAtualAbertos < 1) paginaAtualAbertos = 1;
+
+      const inicioIdx = (paginaAtualAbertos - 1) * ITENS_POR_PAGINA;
+      const fimIdx = Math.min(inicioIdx + ITENS_POR_PAGINA, totalRegistros);
+
+      if (infoEl) {
+        infoEl.innerText = totalRegistros === 0
+          ? 'Exibindo 0 a 0 de 0 chamados'
+          : `Exibindo ${(inicioIdx + 1).toLocaleString('pt-BR')} a ${fimIdx.toLocaleString('pt-BR')} de ${totalRegistros.toLocaleString('pt-BR')} chamados`;
+      }
+      if (indicadorEl) {
+        indicadorEl.innerText = `Página ${paginaAtualAbertos.toLocaleString('pt-BR')} de ${totalPaginas.toLocaleString('pt-BR')}`;
+      }
+      if (btnPrev) btnPrev.disabled = (paginaAtualAbertos <= 1 || totalRegistros === 0);
+      if (btnNext) btnNext.disabled = (paginaAtualAbertos >= totalPaginas || totalRegistros === 0);
+
       if (!tbody) return;
-      if (!lista || lista.length === 0) {
+      if (totalRegistros === 0) {
         tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto encontrado.</td></tr>';
         return;
       }
-      tbody.innerHTML = lista.map(c => {
-        const rVal = (c.reembolsoRealizado || 'Não').toString().trim().toLowerCase();
+
+      // Isolamento de Performance no DOM: fatiamento estrito de no máximo 50 nós <tr>
+      const fatiaPagina = listaFiltradaAbertosAtual.slice(inicioIdx, fimIdx);
+
+      tbody.innerHTML = fatiaPagina.map(c => {
+        const rVal = normalizarTextoUtf8(c.reembolsoRealizado || c.reembolso_realizado || 'Não').toString().trim().toLowerCase();
         const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
         const badgePago = pago 
           ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
           : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
 
+        const chamadoTxt = normalizarTextoUtf8(c.chamado || '');
+        const dataTxt = normalizarTextoUtf8(c.data || '-');
+        const clienteTxt = normalizarTextoUtf8(c.cliente || '-');
+        const nomeTxt = normalizarTextoUtf8(c.nomeSobrenome || c.nome_sobrenome || '-');
+        const pgtoTxt = normalizarTextoUtf8(c.formaPgto || c.forma_pgto || '-');
+        const pixTxt = normalizarTextoUtf8(c.pix || '-');
+        const finRespTxt = normalizarTextoUtf8(c.financeiroResponsavel || c.financeiro_responsavel || '-');
+        const obsTxt = normalizarTextoUtf8(c.observacao || '-');
+
         return `
           <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-            <td class="font-mono font-bold text-sky-700 truncate" title="${c.chamado}">${c.chamado}</td>
-            <td class="text-slate-700 truncate" title="${c.data || '-'}">${c.data || '-'}</td>
-            <td class="font-semibold text-slate-800 truncate" title="${c.cliente || ''}">${c.cliente || '-'}</td>
+            <td class="font-mono font-bold text-sky-700 truncate" title="${chamadoTxt}">${chamadoTxt}</td>
+            <td class="text-slate-700 truncate" title="${dataTxt}">${dataTxt}</td>
+            <td class="font-semibold text-slate-800 truncate" title="${clienteTxt}">${clienteTxt}</td>
             <td class="text-right font-bold text-emerald-700 truncate" title="${c.valor || ''}">${formatCurrency(parseValorNumerico(c.valor))}</td>
-            <td class="font-medium text-slate-800 truncate" title="${c.nomeSobrenome || ''}">${c.nomeSobrenome || '-'}</td>
-            <td class="text-slate-700 font-semibold truncate" title="${c.formaPgto || ''}">${c.formaPgto || '-'}</td>
-            <td class="font-mono text-slate-600 truncate" title="${c.pix || ''}">${c.pix || '-'}</td>
+            <td class="font-medium text-slate-800 truncate" title="${nomeTxt}">${nomeTxt}</td>
+            <td class="text-slate-700 font-semibold truncate" title="${pgtoTxt}">${pgtoTxt}</td>
+            <td class="font-mono text-slate-600 truncate" title="${pixTxt}">${pixTxt}</td>
             <td class="text-center whitespace-nowrap">${badgePago}</td>
-            <td class="font-semibold text-emerald-800 truncate" title="${c.financeiroResponsavel || ''}">${c.financeiroResponsavel || '-'}</td>
-            <td class="text-slate-600 truncate" title="${c.observacao || ''}">${c.observacao || '-'}</td>
+            <td class="font-semibold text-emerald-800 truncate" title="${finRespTxt}">${finRespTxt}</td>
+            <td class="text-slate-600 truncate" title="${obsTxt}">${obsTxt}</td>
             <td class="text-center whitespace-nowrap">
-              <button type="button" onclick="editarChamadoSAC('${c.chamado}', 'chamadosAbertos')" title="Editar chamado ${c.chamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer inline-flex items-center justify-center">
+              <button type="button" onclick="editarChamadoSAC('${chamadoTxt}', 'chamadosAbertos')" title="Editar chamado ${chamadoTxt}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer inline-flex items-center justify-center">
                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
               </button>
             </td>
@@ -2172,8 +2399,8 @@
       document.getElementById('cadCliFilial').value = converterParaPrimeirasMaiusculas(item.filialResponsavel || '');
 
       document.getElementById('alertCliEditMode').classList.remove('hidden');
-      document.getElementById('labelCliEditNome').innerText = item.cliente + ' (' + (item.localInterno || item.local || '') + ')';
-      document.getElementById('cliFormTitleText').innerText = 'Edição de Ponto: ' + item.cliente;
+      document.getElementById('labelCliEditNome').innerText = normalizarTextoUtf8(item.cliente + ' (' + (item.localInterno || item.local || '') + ')');
+      document.getElementById('cliFormTitleText').innerText = 'Edição de Ponto: ' + normalizarTextoUtf8(item.cliente);
       document.getElementById('btnSalvarClienteText').innerText = 'Salvar Alterações';
       document.getElementById('clienteForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
       lucide.createIcons();
@@ -2192,7 +2419,7 @@
       }
       const item = listaCadastroClientes[index];
       if (!item) return;
-      const descr = item.cliente + ' - ' + (item.localInterno || item.local || '');
+      const descr = normalizarTextoUtf8(item.cliente + ' - ' + (item.localInterno || item.local || ''));
       if (!confirm('Deseja realmente excluir o cadastro de "' + descr + '"?')) return;
 
       abrirModalLoading('Excluindo Cliente...', 'Removendo o ponto "' + descr + '" do banco de dados.', 'loading');
@@ -2217,7 +2444,7 @@
       }
 
       listaCadastroClientes.splice(index, 1);
-      renderizarTabelaClientes();
+      filtrarClientesCadastrados(false);
       if (clienteEmEdicao && clienteEmEdicao.indexOriginal === index) limparFormCliente();
 
       abrirModalLoading('Cliente Excluído!', 'O cadastro foi removido com sucesso.', 'excluir');
@@ -2228,13 +2455,37 @@
     // =========================================================================
 
     // =========================================================================
+    // INÍCIO: mudarPaginaClientes
+    // =========================================================================
+    function mudarPaginaClientes(delta) {
+      const totalPaginas = Math.max(1, Math.ceil(listaFiltradaClientesAtual.length / ITENS_POR_PAGINA));
+      const novaPagina = paginaAtualClientes + delta;
+      if (novaPagina >= 1 && novaPagina <= totalPaginas) {
+        paginaAtualClientes = novaPagina;
+        renderizarTabelaClientes(listaFiltradaClientesAtual);
+      }
+    }
+    // =========================================================================
+    // TÉRMINO: mudarPaginaClientes
+    // =========================================================================
+
+    // =========================================================================
     // INÍCIO: filtrarClientesCadastrados
     // =========================================================================
-    function filtrarClientesCadastrados() {
-      const termo = (document.getElementById('searchClientesCadastrados')?.value || '').trim().toLowerCase();
-      if (!termo) { renderizarTabelaClientes(listaCadastroClientes); return; }
-      const filtrados = listaCadastroClientes.filter(c => Object.values(c).some(val => String(val || '').toLowerCase().includes(termo)));
-      renderizarTabelaClientes(filtrados);
+    function filtrarClientesCadastrados(resetarPagina = true) {
+      if (resetarPagina) {
+        paginaAtualClientes = 1;
+      }
+      const termo = normalizarTextoUtf8(document.getElementById('searchClientesCadastrados')?.value || '').trim().toLowerCase();
+      if (!termo) {
+        listaFiltradaClientesAtual = listaCadastroClientes;
+        renderizarTabelaClientes(listaFiltradaClientesAtual);
+        return;
+      }
+      listaFiltradaClientesAtual = listaCadastroClientes.filter(c => 
+        Object.values(c).some(val => normalizarTextoUtf8(val || '').toLowerCase().includes(termo))
+      );
+      renderizarTabelaClientes(listaFiltradaClientesAtual);
     }
     // =========================================================================
     // TÉRMINO: filtrarClientesCadastrados
@@ -2243,35 +2494,74 @@
     // =========================================================================
     // INÍCIO: renderizarTabelaClientes
     // =========================================================================
-    function renderizarTabelaClientes(lista = listaCadastroClientes) {
+    function renderizarTabelaClientes(lista = listaFiltradaClientesAtual) {
+      listaFiltradaClientesAtual = Array.isArray(lista) ? lista : [];
       const tbody = document.getElementById('tableClientesBody');
       const badge = document.getElementById('badgeContadorClientes');
-      if (badge) badge.innerText = lista.length + ' cliente(s)';
+      const infoEl = document.getElementById('paginacaoClientesInfo');
+      const indicadorEl = document.getElementById('paginacaoClientesIndicador');
+      const btnPrev = document.getElementById('btnPrevClientes');
+      const btnNext = document.getElementById('btnNextClientes');
+
+      const totalRegistros = listaFiltradaClientesAtual.length;
+      if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' cliente(s)';
+
+      const totalPaginas = Math.max(1, Math.ceil(totalRegistros / ITENS_POR_PAGINA));
+      if (paginaAtualClientes > totalPaginas) paginaAtualClientes = totalPaginas;
+      if (paginaAtualClientes < 1) paginaAtualClientes = 1;
+
+      const inicioIdx = (paginaAtualClientes - 1) * ITENS_POR_PAGINA;
+      const fimIdx = Math.min(inicioIdx + ITENS_POR_PAGINA, totalRegistros);
+
+      if (infoEl) {
+        infoEl.innerText = totalRegistros === 0
+          ? 'Exibindo 0 a 0 de 0 clientes'
+          : `Exibindo ${(inicioIdx + 1).toLocaleString('pt-BR')} a ${fimIdx.toLocaleString('pt-BR')} de ${totalRegistros.toLocaleString('pt-BR')} clientes`;
+      }
+      if (indicadorEl) {
+        indicadorEl.innerText = `Página ${paginaAtualClientes.toLocaleString('pt-BR')} de ${totalPaginas.toLocaleString('pt-BR')}`;
+      }
+      if (btnPrev) btnPrev.disabled = (paginaAtualClientes <= 1 || totalRegistros === 0);
+      if (btnNext) btnNext.disabled = (paginaAtualClientes >= totalPaginas || totalRegistros === 0);
+
       if (!tbody) return;
-      if (!lista || lista.length === 0) {
+      if (totalRegistros === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 font-semibold">Nenhum cliente carregado.</td></tr>';
         return;
       }
-      tbody.innerHTML = lista.map((c, idx) => `
-        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-          <td class="text-center whitespace-nowrap">
-            <div class="inline-flex items-center gap-1 justify-center">
-              <button type="button" onclick="editarCliente(${idx})" title="Editar cadastro" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
-                <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
-              </button>
-              <button type="button" onclick="excluirCliente(${idx})" title="Excluir cadastro" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-          </td>
-          <td class="font-bold text-slate-800 truncate" title="${c.cliente || ''}">${c.cliente || '-'}</td>
-          <td class="text-slate-600 truncate" title="${c.local || ''}">${c.local || '-'}</td>
-          <td class="text-slate-700 font-medium truncate" title="${c.localInterno || ''}">${c.localInterno || '-'}</td>
-          <td class="text-slate-600 font-mono truncate" title="${c.maquina || ''}">${c.maquina || '-'}</td>
-          <td class="text-slate-600 truncate" title="${c.modeloMaquina || ''}">${c.modeloMaquina || '-'}</td>
-          <td class="font-semibold text-sky-800 truncate" title="${c.filialResponsavel || ''}">${c.filialResponsavel || '-'}</td>
-        </tr>
-      `).join('');
+
+      const fatiaPagina = listaFiltradaClientesAtual.slice(inicioIdx, fimIdx);
+
+      tbody.innerHTML = fatiaPagina.map(c => {
+        const idxReal = listaCadastroClientes.indexOf(c);
+        const cliTxt = normalizarTextoUtf8(c.cliente || '-');
+        const locTxt = normalizarTextoUtf8(c.local || '-');
+        const locIntTxt = normalizarTextoUtf8(c.localInterno || '-');
+        const maqTxt = normalizarTextoUtf8(c.maquina || '-');
+        const modTxt = normalizarTextoUtf8(c.modeloMaquina || '-');
+        const filTxt = normalizarTextoUtf8(c.filialResponsavel || '-');
+
+        return `
+          <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+            <td class="text-center whitespace-nowrap">
+              <div class="inline-flex items-center gap-1 justify-center">
+                <button type="button" onclick="editarCliente(${idxReal})" title="Editar cadastro" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
+                  <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" onclick="excluirCliente(${idxReal})" title="Excluir cadastro" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </td>
+            <td class="font-bold text-slate-800 truncate" title="${cliTxt}">${cliTxt}</td>
+            <td class="text-slate-600 truncate" title="${locTxt}">${locTxt}</td>
+            <td class="text-slate-700 font-medium truncate" title="${locIntTxt}">${locIntTxt}</td>
+            <td class="text-slate-600 font-mono truncate" title="${maqTxt}">${maqTxt}</td>
+            <td class="text-slate-600 truncate" title="${modTxt}">${modTxt}</td>
+            <td class="font-semibold text-sky-800 truncate" title="${filTxt}">${filTxt}</td>
+          </tr>
+        `;
+      }).join('');
       lucide.createIcons();
     }
     // =========================================================================
@@ -2323,17 +2613,20 @@
         return;
       }
 
-      const novoItem = {
+      const novoItem = sanitizarObjetoUtf8({
         linha: ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : (resultado.data?.linha || listaCadastroClientes.length + 2),
         cliente, local, localInterno, maquina, modeloMaquina, filialResponsavel
-      };
+      });
       if (ehEdicao) listaCadastroClientes[clienteEmEdicao.indexOriginal] = novoItem;
-      else listaCadastroClientes.unshift(novoItem);
+      else {
+        listaCadastroClientes.unshift(novoItem);
+        paginaAtualClientes = 1;
+      }
 
       if (!dadosSAC.clientes) dadosSAC.clientes = [];
       dadosSAC.clientes.push({ cliente, local: localInterno, cidade: filialResponsavel });
       limparFormCliente();
-      renderizarTabelaClientes();
+      filtrarClientesCadastrados(false);
 
       abrirModalLoading('Cliente Salvo!', 'Registro gravado com sucesso no banco de dados.', 'sucesso');
       setTimeout(fecharModalLoading, 1000);
@@ -2552,7 +2845,7 @@
       listaChamadosSAC.forEach(c => {
         const ymd = parseDateToYMD(c.data);
         if (ymd && ymd.startsWith(mesAntInput)) {
-          const loc = (c.localInterno || c.cliente || 'Outros').trim();
+          const loc = normalizarTextoUtf8(c.localInterno || c.cliente || 'Outros').trim();
           cont[loc] = (cont[loc] || 0) + 1;
         }
       });
@@ -2576,7 +2869,7 @@
       listaChamadosSAC.forEach(c => {
         const ymd = parseDateToYMD(c.data);
         if (ymd && ymd.startsWith(mesAtualInput)) {
-          const loc = (c.localInterno || c.cliente || 'Outros').trim();
+          const loc = normalizarTextoUtf8(c.localInterno || c.cliente || 'Outros').trim();
           cont[loc] = (cont[loc] || 0) + 1;
         }
       });
@@ -2722,7 +3015,7 @@
         if (!ymd) return;
         if (dtIni && ymd < dtIni) return;
         if (dtFim && ymd > dtFim) return;
-        const loc = (c.localInterno || c.cliente || 'Outros').trim();
+        const loc = normalizarTextoUtf8(c.localInterno || c.cliente || 'Outros').trim();
         cont[loc] = (cont[loc] || 0) + 1;
       });
 
@@ -2750,8 +3043,8 @@
         if (!ymd) return;
         if (dtIni && ymd < dtIni) return;
         if (dtFim && ymd > dtFim) return;
-        if (filial !== 'ALL' && (c.cidade || '').toLowerCase() !== filial.toLowerCase()) return;
-        const loc = (c.localInterno || c.cliente || 'Outros').trim();
+        if (filial !== 'ALL' && normalizarTextoUtf8(c.cidade || '').toLowerCase() !== filial.toLowerCase()) return;
+        const loc = normalizarTextoUtf8(c.localInterno || c.cliente || 'Outros').trim();
         cont[loc] = (cont[loc] || 0) + 1;
       });
 
@@ -2769,14 +3062,14 @@
     // INÍCIO: inicializarFiltrosDashboardSAC
     // =========================================================================
     function inicializarFiltrosDashboardSAC() {
-      const clientesUnicos = [...new Set(listaChamadosSAC.map(c => c.cliente).filter(Boolean))].sort();
+      const clientesUnicos = [...new Set(listaChamadosSAC.map(c => normalizarTextoUtf8(c.cliente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
       filterSACCliente.innerHTML = '<option value="ALL">Todos os Clientes</option>';
       clientesUnicos.forEach(cli => {
         const opt = document.createElement('option'); opt.value = cli; opt.textContent = cli;
         filterSACCliente.appendChild(opt);
       });
 
-      const atendentesUnicos = [...new Set(listaChamadosSAC.map(c => c.atendente).filter(Boolean))].sort();
+      const atendentesUnicos = [...new Set(listaChamadosSAC.map(c => normalizarTextoUtf8(c.atendente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
       filterSACAtendente.innerHTML = '<option value="ALL">Todos os Atendentes</option>';
       atendentesUnicos.forEach(a => {
         const opt = document.createElement('option'); opt.value = a; opt.textContent = a;
@@ -2841,7 +3134,7 @@
 
       const selFilial = document.getElementById('filterTopFilialSelect');
       selFilial.innerHTML = '<option value="ALL">Todas as Filiais</option>';
-      const filiais = [...new Set(listaChamadosSAC.map(c => c.cidade).filter(Boolean))].sort();
+      const filiais = [...new Set(listaChamadosSAC.map(c => normalizarTextoUtf8(c.cidade)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
       filiais.forEach(f => {
         const opt = document.createElement('option'); opt.value = f; opt.textContent = f;
         selFilial.appendChild(opt);
@@ -2861,9 +3154,9 @@
       const atendVal = filterSACAtendente.value;
 
       const filtrados = listaChamadosSAC.filter(item => {
-        const matchCli = (cliVal === 'ALL' || (item.cliente && item.cliente.toLowerCase() === cliVal.toLowerCase()));
-        const matchProd = (prodVal === 'ALL' || (item.produto && item.produto.toLowerCase() === prodVal.toLowerCase()));
-        const matchAtend = (atendVal === 'ALL' || (item.atendente && item.atendente.toLowerCase() === atendVal.toLowerCase()));
+        const matchCli = (cliVal === 'ALL' || (item.cliente && normalizarTextoUtf8(item.cliente).toLowerCase() === cliVal.toLowerCase()));
+        const matchProd = (prodVal === 'ALL' || (item.produto && normalizarTextoUtf8(item.produto).toLowerCase() === prodVal.toLowerCase()));
+        const matchAtend = (atendVal === 'ALL' || (item.atendente && normalizarTextoUtf8(item.atendente).toLowerCase() === atendVal.toLowerCase()));
         return matchCli && matchProd && matchAtend;
       });
 
@@ -2876,7 +3169,7 @@
 
       filtrados.forEach(c => {
         somaValor += parseValorNumerico(c.valor);
-        const pLower = (c.produto || '').toLowerCase();
+        const pLower = normalizarTextoUtf8(c.produto || '').toLowerCase();
         if (pLower.includes('café') || pLower.includes('cafe')) chamadosCafe++;
         else if (pLower.includes('snaky') || pLower.includes('snack')) chamadosSnaky++;
       });
@@ -2886,19 +3179,19 @@
       const ticketMedio = totalChamados > 0 ? (somaValor / totalChamados) : 0;
 
       document.getElementById('kpiSACTotal').innerText = totalChamados.toLocaleString('pt-BR');
-      document.getElementById('kpiSACTotalSub').innerText = totalChamados + ' ocorrências registradas';
+      document.getElementById('kpiSACTotalSub').innerText = totalChamados.toLocaleString('pt-BR') + ' ocorrências registradas';
       document.getElementById('kpiSACValorTotal').innerText = formatCurrency(somaValor);
       document.getElementById('kpiSACCafé').innerText = chamadosCafe.toLocaleString('pt-BR');
       document.getElementById('kpiSACCaféPct').innerText = pctCafe + '%';
       document.getElementById('kpiSACSnaky').innerText = chamadosSnaky.toLocaleString('pt-BR');
       document.getElementById('kpiSACSnakyPct').innerText = pctSnaky + '%';
-      document.getElementById('kpiSACClientes').innerText = new Set(filtrados.map(c => c.cliente)).size;
+      document.getElementById('kpiSACClientes').innerText = new Set(filtrados.map(c => c.cliente)).size.toLocaleString('pt-BR');
       document.getElementById('kpiSACTicketMedio').innerText = formatCurrency(ticketMedio);
 
       // Atualiza Top Problemas
       const probContagem = {};
       filtrados.forEach(c => {
-        const p = (c.problemas || 'Outros').trim();
+        const p = normalizarTextoUtf8(c.problemas || 'Outros').trim();
         probContagem[p] = (probContagem[p] || 0) + 1;
       });
       const truncar = (t, max = 28) => t.length > max ? t.substring(0, max) + '...' : t;
@@ -2910,7 +3203,7 @@
       // Atualiza Chamados por Atendente
       const atendContagem = {};
       filtrados.forEach(c => {
-        const a = (c.atendente || 'Não Informado').trim();
+        const a = normalizarTextoUtf8(c.atendente || 'Não Informado').trim();
         atendContagem[a] = (atendContagem[a] || 0) + 1;
       });
       const topAtendentes = Object.entries(atendContagem).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
