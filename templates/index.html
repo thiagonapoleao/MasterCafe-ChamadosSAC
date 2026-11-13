@@ -470,6 +470,82 @@
             <div class="relative h-80"><canvas id="chartTop3Filial"></canvas></div>
           </div>
         </section>
+<!-- NOVOS GRÁFICOS: TOP 3 LOCAL INTERNO NO DIA E NO MÊS (QTD & VALOR) -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- CARD 1: TOP 3 LOCAL INTERNO NO DIA -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+              <div>
+                <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+                  <i data-lucide="calendar-clock" class="w-4 h-4 text-sky-600"></i>
+                  Top 3 Local Interno no Dia (Qtd & Valor)
+                </h3>
+                <p class="text-xs text-slate-400">Ranking diário por volume e valor ressarcido</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] font-bold text-slate-500">Data:</label>
+                <input type="date" id="filterTop3LocalDia" onchange="atualizarGraficoTop3LocalDia()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+              </div>
+            </div>
+            <div class="relative h-80"><canvas id="chartTop3LocalDia"></canvas></div>
+          </div>
+
+          <!-- CARD 2: TOP 3 LOCAL INTERNO NO MÊS -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+              <div>
+                <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+                  <i data-lucide="calendar-range" class="w-4 h-4 text-emerald-600"></i>
+                  Top 3 Local Interno no Mês (Qtd & Valor)
+                </h3>
+                <p class="text-xs text-slate-400">Ranking mensal por volume e valor ressarcido</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-[11px] font-bold text-slate-500">Dia Ref.:</label>
+                <input type="date" id="filterTop3LocalMes" onchange="atualizarGraficoTop3LocalMes()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+              </div>
+            </div>
+            <div class="relative h-80"><canvas id="chartTop3LocalMes"></canvas></div>
+          </div>
+        </section>
+
+        <!-- TABELA: TOP 3 LOCAIS INTERNOS DO DIA COM PROBLEMAS RESUMIDOS -->
+        <section class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 overflow-hidden">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-rose-600"></i>
+                Top 3 Locais Internos do Dia — Problemas Resumidos
+              </h3>
+              <p class="text-xs text-slate-400">Detalhamento das ocorrências agrupadas por local interno na data selecionada</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-[11px] font-bold text-slate-500">Data:</label>
+              <input type="date" id="filterTabelaTop3Dia" onchange="atualizarTabelaTop3LocaisDia()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700">
+            </div>
+          </div>
+
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs text-slate-600">
+              <thead class="bg-slate-50 uppercase font-bold text-slate-500 text-[10px]">
+                <tr>
+                  <th class="py-2.5 px-3 rounded-l-lg w-14 text-center">Rank</th>
+                  <th class="py-2.5 px-3 w-1/4">Local Interno (Cliente)</th>
+                  <th class="py-2.5 px-3 w-24 text-center">Chamados</th>
+                  <th class="py-2.5 px-3 w-28 text-right">Valor Total</th>
+                  <th class="py-2.5 px-3 rounded-r-lg">Problemas Resumidos</th>
+                </tr>
+              </thead>
+              <tbody id="tableTop3LocaisDiaBody" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="5" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado na data selecionada.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        
       </div>
 
       <!-- PÁGINA 2: LANÇAMENTO SAC -->
@@ -2818,6 +2894,107 @@
     });
 
     // =========================================================================
+    // INÍCIO: getTop3LocalDualAxisOptions
+    // =========================================================================
+    function getTop3LocalDualAxisOptions() {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 24, right: 12, left: 8, bottom: 4 } },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { boxWidth: 12, font: { family: 'Inter', size: 11, weight: '600' } }
+          },
+          tooltip: {
+            backgroundColor: '#ffffff',
+            titleColor: '#0f172a',
+            bodyColor: '#334155',
+            borderColor: '#e2e8f0',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label: (ctx) => {
+                if (ctx.dataset.yAxisID === 'yVal') {
+                  return 'Valor Ressarcido: ' + formatCurrency(ctx.raw);
+                }
+                return 'Quantidade: ' + ctx.raw.toLocaleString('pt-BR') + ' chamado(s)';
+              }
+            }
+          },
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            offset: 2,
+            font: { family: 'Inter', weight: 'bold', size: 10 },
+            color: (ctx) => ctx.dataset.yAxisID === 'yVal' ? '#047857' : '#0369a1',
+            formatter: (v, ctx) => {
+              if (!v) return '';
+              if (ctx.dataset.yAxisID === 'yVal') {
+                return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              }
+              return v + ' un.';
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#334155', font: { size: 10, weight: '600' } }
+          },
+          yQtd: {
+            type: 'linear',
+            position: 'left',
+            beginAtZero: true,
+            grid: { color: 'rgba(226, 232, 240, 0.7)' },
+            ticks: { precision: 0, color: '#0284c7', font: { size: 10 } },
+            title: { display: true, text: 'Quantidade', color: '#0284c7', font: { size: 10, weight: 'bold' } }
+          },
+          yVal: {
+            type: 'linear',
+            position: 'right',
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+            ticks: {
+              color: '#059669',
+              font: { size: 10 },
+              callback: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR')
+            },
+            title: { display: true, text: 'Valor (R$)', color: '#059669', font: { size: 10, weight: 'bold' } }
+          }
+        }
+      };
+    }
+    // =========================================================================
+    // TÉRMINO: getTop3LocalDualAxisOptions
+    // =========================================================================
+
+    const chartTop3LocalDia = new Chart(document.getElementById('chartTop3LocalDia').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Quantidade', data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6, yAxisID: 'yQtd' },
+          { label: 'Valor (R$)', data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6, yAxisID: 'yVal' }
+        ]
+      },
+      options: getTop3LocalDualAxisOptions()
+    });
+
+    const chartTop3LocalMes = new Chart(document.getElementById('chartTop3LocalMes').getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [
+          { label: 'Quantidade', data: [], backgroundColor: 'rgba(79, 70, 229, 0.85)', borderRadius: 6, yAxisID: 'yQtd' },
+          { label: 'Valor (R$)', data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6, yAxisID: 'yVal' }
+        ]
+      },
+      options: getTop3LocalDualAxisOptions()
+    });
+
+    // =========================================================================
     // INÍCIO: parseDateToYMD
     // =========================================================================
     function parseDateToYMD(dStr) {
@@ -3054,8 +3231,138 @@
       chartTop3Filial.data.datasets[0].data = top3.map(t => t.qt);
       chartTop3Filial.update();
     }
+
+
     // =========================================================================
     // TÉRMINO: atualizarGraficoTopFilial
+    // =========================================================================
+
+// =========================================================================
+    // INÍCIO: atualizarGraficoTop3LocalDia
+    // =========================================================================
+    function atualizarGraficoTop3LocalDia() {
+      const dtDia = document.getElementById('filterTop3LocalDia')?.value;
+      if (!dtDia) return;
+
+      const agrupado = {};
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd === dtDia) {
+          const loc = normalizarTextoUtf8(c.localInterno || c.local_interno || c.cliente || 'Outros').trim();
+          if (!agrupado[loc]) agrupado[loc] = { qtd: 0, valor: 0 };
+          agrupado[loc].qtd += 1;
+          agrupado[loc].valor += parseValorNumerico(c.valor);
+        }
+      });
+
+      const truncar = (t, max = 24) => t.length > max ? t.substring(0, max) + '...' : t;
+      const top3 = Object.entries(agrupado)
+        .map(([nome, dados]) => ({ nome, qtd: dados.qtd, valor: dados.valor }))
+        .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor)
+        .slice(0, 3);
+
+      chartTop3LocalDia.data.labels = top3.map(t => truncar(t.nome));
+      chartTop3LocalDia.data.datasets[0].data = top3.map(t => t.qtd);
+      chartTop3LocalDia.data.datasets[1].data = top3.map(t => t.valor);
+      chartTop3LocalDia.update();
+    }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoTop3LocalDia
+    // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: atualizarGraficoTop3LocalMes
+    // =========================================================================
+    function atualizarGraficoTop3LocalMes() {
+      const dtRef = document.getElementById('filterTop3LocalMes')?.value;
+      if (!dtRef) return;
+      const anoMes = dtRef.substring(0, 7); // Extrai YYYY-MM do dia selecionado
+
+      const agrupado = {};
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd && ymd.startsWith(anoMes)) {
+          const loc = normalizarTextoUtf8(c.localInterno || c.local_interno || c.cliente || 'Outros').trim();
+          if (!agrupado[loc]) agrupado[loc] = { qtd: 0, valor: 0 };
+          agrupado[loc].qtd += 1;
+          agrupado[loc].valor += parseValorNumerico(c.valor);
+        }
+      });
+
+      const truncar = (t, max = 24) => t.length > max ? t.substring(0, max) + '...' : t;
+      const top3 = Object.entries(agrupado)
+        .map(([nome, dados]) => ({ nome, qtd: dados.qtd, valor: dados.valor }))
+        .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor)
+        .slice(0, 3);
+
+      chartTop3LocalMes.data.labels = top3.map(t => truncar(t.nome));
+      chartTop3LocalMes.data.datasets[0].data = top3.map(t => t.qtd);
+      chartTop3LocalMes.data.datasets[1].data = top3.map(t => t.valor);
+      chartTop3LocalMes.update();
+    }
+    // =========================================================================
+    // TÉRMINO: atualizarGraficoTop3LocalMes
+    // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: atualizarTabelaTop3LocaisDia
+    // =========================================================================
+    function atualizarTabelaTop3LocaisDia() {
+      const dtDia = document.getElementById('filterTabelaTop3Dia')?.value;
+      const tbody = document.getElementById('tableTop3LocaisDiaBody');
+      if (!tbody || !dtDia) return;
+
+      const agrupado = {};
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data);
+        if (ymd === dtDia) {
+          const loc = normalizarTextoUtf8(c.localInterno || c.local_interno || 'Não Informado').trim();
+          const cli = normalizarTextoUtf8(c.cliente || '').trim();
+          const prob = normalizarTextoUtf8(c.problemas || 'Outros').trim();
+          const chave = loc + '||' + cli;
+
+          if (!agrupado[chave]) {
+            agrupado[chave] = { local: loc, cliente: cli, qtd: 0, valor: 0, problemas: {} };
+          }
+          agrupado[chave].qtd += 1;
+          agrupado[chave].valor += parseValorNumerico(c.valor);
+          agrupado[chave].problemas[prob] = (agrupado[chave].problemas[prob] || 0) + 1;
+        }
+      });
+
+      const top3 = Object.values(agrupado)
+        .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor)
+        .slice(0, 3);
+
+      if (top3.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para ' + dataIsoParaPtBr(dtDia) + '.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = top3.map((item, idx) => {
+        const resumoProblemas = Object.entries(item.problemas)
+          .sort((a, b) => b[1] - a[1])
+          .map(([nomeProb, qtProb]) => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 font-medium mr-1 mb-1">${nomeProb} <strong class="text-sky-700">(${qtProb})</strong></span>`)
+          .join('');
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-2.5 px-3 text-center font-black text-sky-700">#${idx + 1}</td>
+            <td class="py-2.5 px-3">
+              <div class="font-bold text-slate-800">${item.local}</div>
+              <div class="text-[11px] text-slate-400">${item.cliente}</div>
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <span class="px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 font-bold border border-sky-200">${item.qtd}</span>
+            </td>
+            <td class="py-2.5 px-3 text-right font-bold text-emerald-700">${formatCurrency(item.valor)}</td>
+            <td class="py-2.5 px-3">${resumoProblemas}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    // =========================================================================
+    // TÉRMINO: atualizarTabelaTop3LocaisDia
     // =========================================================================
 
     // =========================================================================
@@ -3131,6 +3438,15 @@
       const fDtFim = document.getElementById('filterTopFilialDtFim');
       if (fDtIni) fDtIni.value = dIni;
       if (fDtFim) fDtFim.value = dFim;
+
+      const elTop3Dia = document.getElementById('filterTop3LocalDia');
+      if (elTop3Dia) elTop3Dia.value = dFim;
+
+      const elTop3Mes = document.getElementById('filterTop3LocalMes');
+      if (elTop3Mes) elTop3Mes.value = dFim;
+
+      const elTabTop3Dia = document.getElementById('filterTabelaTop3Dia');
+      if (elTabTop3Dia) elTabTop3Dia.value = dFim;
 
       const selFilial = document.getElementById('filterTopFilialSelect');
       selFilial.innerHTML = '<option value="ALL">Todas as Filiais</option>';
@@ -3220,6 +3536,9 @@
       atualizarGraficoDiasVal();
       atualizarGraficoTopSemana();
       atualizarGraficoTopFilial();
+      atualizarGraficoTop3LocalDia();
+      atualizarGraficoTop3LocalMes();
+      atualizarTabelaTop3LocaisDia();
     }
     // =========================================================================
     // TÉRMINO: atualizarDashboardSAC
