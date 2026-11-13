@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Executivo - Gestão SAC</title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -59,7 +58,7 @@
 
   <!-- MODAL DE PROCESSAMENTO -->
   <div id="modalLoadingAcao" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in duration-200">
       <div id="modalIconContainer" class="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shadow-inner">
         <svg id="modalSpinner" class="animate-spin h-8 w-8 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -101,7 +100,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Senha *</label>
-          <input type="password" id="globalLoginPass" placeholder="••••••••" required class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <input type="password" id="globalLoginPass" placeholder="••••••••" required oninput="this.value = this.value.toLowerCase()" class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
         </div>
         <div id="globalLoginErro" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
           <i data-lucide="alert-circle" class="w-4 h-4"></i>
@@ -130,7 +129,7 @@
             <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               Painel Executivo de Gestão & SAC
             </h1>
-            <p class="text-xs text-slate-500">Controle Operacional, Atendimento & Análises · <span id="headerTotalChamados">{{ total_chamados_carregados }}</span> chamados registrados</p>
+            <p class="text-xs text-slate-500">Controle Operacional, Atendimento & Análises · {{ total_chamados_carregados }} chamados registrados</p>
           </div>
         </div>
         
@@ -174,6 +173,7 @@
 
       <!-- PÁGINA 1: DASHBOARD SAC -->
       <div id="pageDashboardSAC" class="space-y-6">
+        <!-- FILTROS GERAIS -->
         <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -233,7 +233,7 @@
             </div>
             <div class="mt-3">
               <span id="kpiSACValorTotal" class="text-xl font-bold tracking-tight text-emerald-600">R$ 0,00</span>
-              <p class="text-[11px] text-slate-400 mt-0.5">Soma coluna Valor</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Soma coluna J (Valor)</p>
             </div>
           </div>
 
@@ -470,6 +470,7 @@
           </div>
         </section>
       </div>
+
       <!-- PÁGINA 2: LANÇAMENTO SAC -->
       <div id="pageSAC" class="hidden space-y-4">
         <div id="sacMainPanel" class="space-y-4">
@@ -526,7 +527,7 @@
               </div>
             </div>
 
-            <form id="sacForm" onsubmit="handleSACSubmit(event)" accept-charset="UTF-8" class="space-y-4">
+            <form id="sacForm" onsubmit="handleSACSubmit(event)" class="space-y-4">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200">
                 <div>
                   <label class="block text-xs font-bold text-sky-900 mb-1">Chamado (Automático) *</label>
@@ -539,7 +540,7 @@
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Cliente *</label>
-                  <input list="listaSACClientes" id="sacCliente" placeholder="Selecione o cliente..." required oninput="aoDigitarOuSelecionarClienteSAC()" onchange="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" onblur="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACClientes" id="sacCliente" placeholder="Selecione o cliente..." required onchange="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" onblur="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACClientes"></datalist>
                 </div>
                 <div>
@@ -555,7 +556,7 @@
                 </div>
                 <div class="md:col-span-2 lg:col-span-3">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Descrição *</label>
-                  <input list="listaSACDescricoes" id="sacDescricao" placeholder="Selecione a descrição (Produtos)..." required onchange="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" onblur="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACDescricoes" id="sacDescricao" placeholder="Selecione a descrição do ocorrido..." required onchange="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" onblur="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACDescricoes"></datalist>
                 </div>
                 <div>
@@ -642,7 +643,7 @@
             </form>
           </section>
 
-          <!-- LISTA DE TODOS OS CHAMADOS REALIZADOS (PAGINADA 50 EM 50) -->
+          <!-- LISTA DE TODOS OS CHAMADOS REALIZADOS -->
           <section class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 overflow-hidden">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-slate-100">
               <div>
@@ -650,7 +651,7 @@
                   <i data-lucide="list-checks" class="w-4 h-4 text-sky-600"></i>
                   Chamados Realizados no SAC
                 </h2>
-                <p class="text-xs text-slate-500">Histórico completo de ocorrências registradas no banco de dados (50 por página)</p>
+                <p class="text-xs text-slate-500">Histórico completo de ocorrências registradas no banco de dados</p>
               </div>
               <div class="flex items-center gap-3">
                 <div class="relative">
@@ -691,29 +692,11 @@
                 </tbody>
               </table>
             </div>
-
-            <!-- CONTROLES DE PAGINAÇÃO (LANÇAMENTO SAC) -->
-            <div id="paginacaoContainerSAC" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
-              <span id="infoPaginacaoSAC" class="font-medium text-slate-500">Exibindo 0 a 0 de 0 chamados</span>
-              <div class="flex items-center gap-2">
-                <button type="button" id="btnPagAntSAC" onclick="mudarPaginaSAC(-1)" disabled class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
-                  <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-                  Anterior (-50)
-                </button>
-                <span id="badgePaginaSAC" class="px-3 py-1.5 rounded-xl bg-sky-50 text-sky-800 font-bold border border-sky-200">
-                  Página 1 de 1
-                </span>
-                <button type="button" id="btnPagProxSAC" onclick="mudarPaginaSAC(1)" disabled class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
-                  Próxima (+50)
-                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-                </button>
-              </div>
-            </div>
           </section>
         </div>
       </div>
 
-      <!-- PÁGINA 3: TODOS OS CHAMADOS ABERTOS (PAGINADA 50 EM 50) -->
+      <!-- PÁGINA 3: TODOS OS CHAMADOS ABERTOS -->
       <div id="pageChamadosAbertos" class="space-y-6 hidden">
         <section class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 overflow-hidden">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-3 border-b border-slate-100">
@@ -725,7 +708,7 @@
                 <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                   Todos os Chamados Abertos
                 </h2>
-                <p class="text-xs text-slate-500">Lista com status de reembolso, observações, financeiro responsável e edição SAC (50 por página)</p>
+                <p class="text-xs text-slate-500">Lista com status de reembolso, observações, financeiro responsável e edição SAC</p>
               </div>
             </div>
 
@@ -764,24 +747,6 @@
               </tbody>
             </table>
           </div>
-
-          <!-- CONTROLES DE PAGINAÇÃO (CHAMADOS ABERTOS) -->
-          <div id="paginacaoContainerAbertos" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs text-slate-600">
-            <span id="infoPaginacaoAbertos" class="font-medium text-slate-500">Exibindo 0 a 0 de 0 chamados</span>
-            <div class="flex items-center gap-2">
-              <button type="button" id="btnPagAntAbertos" onclick="mudarPaginaAbertos(-1)" disabled class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
-                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-                Anterior (-50)
-              </button>
-              <span id="badgePaginaAbertos" class="px-3 py-1.5 rounded-xl bg-sky-50 text-sky-800 font-bold border border-sky-200">
-                Página 1 de 1
-              </span>
-              <button type="button" id="btnPagProxAbertos" onclick="mudarPaginaAbertos(1)" disabled class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
-                Próxima (+50)
-                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-          </div>
         </section>
       </div>
 
@@ -814,6 +779,21 @@
             </button>
           </div>
 
+          <div id="alertCliSuccess" class="hidden p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm transition">
+            <div class="flex items-center gap-3">
+              <div id="alertCliIconBadge" class="p-2 bg-emerald-600 text-white rounded-xl">
+                <i id="alertCliLucideIcon" data-lucide="check-circle" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <p id="alertCliSuccessTitle" class="text-sm font-bold">Ação realizada com sucesso!</p>
+                <p id="alertCliSuccessSub" class="text-xs text-emerald-700">O cadastro de clientes foi atualizado com sucesso.</p>
+              </div>
+            </div>
+            <button type="button" onclick="document.getElementById('alertCliSuccess').classList.add('hidden')" class="px-3 py-2 rounded-xl hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition cursor-pointer">
+              Fechar
+            </button>
+          </div>
+
           <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-slate-100 gap-4">
               <div class="flex items-center gap-3">
@@ -825,9 +805,14 @@
                   <p class="text-xs text-slate-500">Gerenciamento de máquinas, locais e filiais responsáveis</p>
                 </div>
               </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs px-3 py-1 rounded-lg bg-sky-50 text-sky-800 font-semibold border border-sky-200 flex items-center gap-1.5">
+                  <i data-lucide="database" class="w-3.5 h-3.5 text-sky-600"></i> Tabela Clientes
+                </span>
+              </div>
             </div>
 
-            <form id="clienteForm" onsubmit="handleClienteSubmit(event)" accept-charset="UTF-8" class="space-y-6">
+            <form id="clienteForm" onsubmit="handleClienteSubmit(event)" class="space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-5 rounded-2xl bg-slate-50/90 border border-slate-200">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Cliente *</label>
@@ -914,105 +899,30 @@
 
     </main>
   </div>
+
   <script>
     lucide.createIcons();
     Chart.register(ChartDataLabels);
 
     const BACKEND_API_URL = "/api/action";
-    const BACKEND_PAGINACAO_URL = "/api/chamados";
     const dadosSAC = {{ dados_sac_json | safe }};
-
-    // =========================================================================
-    // NORMALIZAÇÃO UTF-8 (PRESERVAÇÃO DE ACENTOS: ~, ^, ´, ç, º, ª)
-    // =========================================================================
-    const MAPA_REPARO_UTF8 = {
-      "Ã¡": "á", "Ã ": "à", "Ã¢": "â", "Ã£": "ã", "Ã¤": "ä",
-      "Ã\u0081": "Á", "Ã€": "À", "Ã‚": "Â", "Ãƒ": "Ã", "Ã„": "Ä",
-      "Ã©": "é", "Ã¨": "è", "Ãª": "ê", "Ã«": "ë",
-      "Ã‰": "É", "Ãˆ": "È", "ÃŠ": "Ê", "Ã‹": "Ë",
-      "Ã­": "í", "Ã¬": "ì", "Ã®": "î", "Ã¯": "ï",
-      "Ã\u008d": "Í", "ÃŒ": "Ì", "ÃŽ": "Î", "Ã\u008f": "Ï",
-      "Ã³": "ó", "Ã²": "ò", "Ã´": "ô", "Ãµ": "õ", "Ã¶": "ö",
-      "Ã“": "Ó", "Ã’": "Ò", "Ã”": "Ô", "Ã•": "Õ", "Ã–": "Ö",
-      "Ãº": "ú", "Ã¹": "ù", "Ã»": "û", "Ã¼": "ü",
-      "Ãš": "Ú", "Ã™": "Ù", "Ã›": "Û", "Ãœ": "Ü",
-      "Ã§": "ç", "Ã‡": "Ç", "Ã±": "ñ", "Ã‘": "Ñ",
-      "Âº": "º", "Âª": "ª", "Â°": "°", "â€“": "–", "â€”": "—"
-    };
-
-    function normalizarCodificacaoTexto(valor) {
-      if (valor === null || valor === undefined) return '';
-      if (typeof valor !== 'string') return valor;
-      let str = valor;
-
-      if (/Ã[\x80-\xBF]|Â[\x80-\xBF]|â€/.test(str)) {
-        try {
-          const bytes = new Uint8Array(str.length);
-          for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i) & 0xff;
-          const decodificado = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
-          if (decodificado && !decodificado.includes('\uFFFD')) str = decodificado;
-        } catch (e) {}
-
-        if (/Ã|Â|â€/.test(str)) {
-          for (const [errado, certo] of Object.entries(MAPA_REPARO_UTF8)) {
-            if (str.includes(errado)) str = str.split(errado).join(certo);
-          }
-        }
-      }
-
-      if (/&(#\d+|#x[0-9a-fA-F]+|[a-zA-Z]+);/.test(str)) {
-        const txtArea = document.createElement('textarea');
-        txtArea.innerHTML = str;
-        str = txtArea.value;
-      }
-
-      try { str = str.normalize('NFC'); } catch (e) {}
-      return str;
-    }
-
-    function normalizarObjetoProfundo(obj) {
-      if (typeof obj === 'string') return normalizarCodificacaoTexto(obj);
-      if (Array.isArray(obj)) return obj.map(item => normalizarObjetoProfundo(item));
-      if (obj && typeof obj === 'object') {
-        const limpo = {};
-        for (const [k, v] of Object.entries(obj)) {
-          limpo[normalizarCodificacaoTexto(k)] = normalizarObjetoProfundo(v);
-        }
-        return limpo;
-      }
-      return obj;
-    }
-
-    function limparTextoEntrada(val) {
-      if (val === null || val === undefined) return '';
-      return normalizarCodificacaoTexto(String(val)).trim();
-    }
-
-    const dadosSACNormalizados = normalizarObjetoProfundo(dadosSAC);
-    if (dadosSACNormalizados && typeof dadosSACNormalizados === 'object') {
-      Object.assign(dadosSAC, dadosSACNormalizados);
-    }
-
     let listaChamadosSAC = Array.isArray(dadosSAC.chamados) ? dadosSAC.chamados : [];
-    let totalGeralBanco = Number(dadosSAC.total_chamados || listaChamadosSAC.length || 0);
     let listaCadastroClientes = Array.isArray(dadosSAC.cadastro_clientes) ? dadosSAC.cadastro_clientes : [];
     let chamadoEmEdicao = null;
     let clienteEmEdicao = null;
     let origemEdicaoSAC = 'sac';
-
+    
     let atendenteSACLogado = "";
     let loginUsuarioConectado = "";
     let nivelAcessoLogado = "";
 
     try {
-      atendenteSACLogado = normalizarCodificacaoTexto(sessionStorage.getItem('sac_atendente_conectado') || "");
-      loginUsuarioConectado = normalizarCodificacaoTexto(sessionStorage.getItem('sac_usuario_login') || "");
-      nivelAcessoLogado = normalizarCodificacaoTexto(sessionStorage.getItem('sac_nivel_acesso') || "");
-    } catch (e) {}
+      atendenteSACLogado = sessionStorage.getItem('sac_atendente_conectado') || "";
+      loginUsuarioConectado = sessionStorage.getItem('sac_usuario_login') || "";
+      nivelAcessoLogado = sessionStorage.getItem('sac_nivel_acesso') || "";
+    } catch(e) {}
 
-    // =========================================================================
-    // DATAS E VALORES MONETÁRIOS
-    // =========================================================================
+    // CONVERSORES DE DATAS ENTRE ISO (YYYY-MM-DD) E PT-BR (DD/MM/AAAA)
     function dataIsoParaPtBr(isoStr) {
       if (!isoStr) return '';
       const s = String(isoStr).trim();
@@ -1028,21 +938,27 @@
       const s = String(ptBrStr).trim();
       const parts = s.split(/[/ -]/);
       if (parts.length === 3) {
-        if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-        if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        if (parts[2].length === 4) {
+          return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        }
+        if (parts[0].length === 4) {
+          return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        }
       }
       return '';
     }
 
+    // PARSER RIGOROSO DE VALORES NUMÉRICOS
     function parseValorNumerico(v) {
       if (v === null || v === undefined) return 0;
-      if (typeof v === 'number') return isNaN(v) ? 0 : v;
       let s = String(v).trim().replace('R$', '').replace(/\s+/g, '');
       if (!s) return 0;
       if (s.includes(',') && s.includes('.')) {
-        s = (s.lastIndexOf(',') > s.lastIndexOf('.'))
-          ? s.replace(/\./g, '').replace(',', '.')
-          : s.replace(/,/g, '');
+        if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+          s = s.replace(/\./g, '').replace(',', '.');
+        } else {
+          s = s.replace(/,/g, '');
+        }
       } else if (s.includes(',')) {
         s = s.replace(',', '.');
       }
@@ -1054,9 +970,7 @@
       return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    // =========================================================================
-    // AUTENTICAÇÃO E CONTROLE DE ACESSO
-    // =========================================================================
+    // CONTROLE DE AUTENTICAÇÃO
     function verificarEstadoAutenticacao() {
       const loginScreen = document.getElementById('systemLoginScreen');
       const appContainer = document.getElementById('systemAppContainer');
@@ -1074,13 +988,13 @@
 
         aplicarRegrasDeAcesso();
         inicializarFormularioSAC();
-        carregarPaginaChamadosSAC(1);
-        carregarPaginaChamadosAbertos(1);
+        renderizarTabelaChamadosSAC();
+        renderizarTabelaChamadosAbertos();
 
         let abaDesejada = 'dashboardSAC';
         try {
           abaDesejada = sessionStorage.getItem('aba_ativa_atual') || 'dashboardSAC';
-        } catch (e) {}
+        } catch(e) {}
 
         if (abaDesejada === 'cadastroClientes' && (nivelAcessoLogado || '').toLowerCase() !== 'geral') {
           abaDesejada = 'sac';
@@ -1093,28 +1007,27 @@
 
     function realizarLoginGlobal(e) {
       e.preventDefault();
-      const u = limparTextoEntrada(document.getElementById('globalLoginUser').value).toLowerCase();
-      const p = limparTextoEntrada(document.getElementById('globalLoginPass').value);
+      const u = (document.getElementById('globalLoginUser').value || '').trim().toLowerCase();
+      const p = (document.getElementById('globalLoginPass').value || '').trim().toLowerCase();
       const erroBox = document.getElementById('globalLoginErro');
 
-      const userValido = (dadosSAC.usuarios || []).find(x => {
-        const loginBanco = limparTextoEntrada(x.usuario || x.login).toLowerCase();
-        const senhaBanco = limparTextoEntrada(x.senha);
-        return loginBanco === u && (senhaBanco === p || senhaBanco.toLowerCase() === p.toLowerCase());
-      });
+      const userValido = dadosSAC.usuarios.find(x => 
+        String(x.usuario || '').trim().toLowerCase() === u && 
+        String(x.senha || '').trim().toLowerCase() === p
+      );
 
       if (userValido) {
         erroBox.classList.add('hidden');
-        atendenteSACLogado = limparTextoEntrada(userValido.nome || userValido.usuario);
-        loginUsuarioConectado = limparTextoEntrada(userValido.usuario);
-        nivelAcessoLogado = limparTextoEntrada(userValido.acesso || "Atendente");
+        atendenteSACLogado = userValido.nome || userValido.usuario;
+        loginUsuarioConectado = userValido.usuario;
+        nivelAcessoLogado = userValido.acesso || "Atendente";
 
         try {
           sessionStorage.setItem('sac_atendente_conectado', atendenteSACLogado);
           sessionStorage.setItem('sac_usuario_login', loginUsuarioConectado);
           sessionStorage.setItem('sac_nivel_acesso', nivelAcessoLogado);
           sessionStorage.setItem('aba_ativa_atual', 'dashboardSAC');
-        } catch (e) {}
+        } catch(e) {}
 
         verificarEstadoAutenticacao();
       } else {
@@ -1131,7 +1044,7 @@
         sessionStorage.removeItem('sac_usuario_login');
         sessionStorage.removeItem('sac_nivel_acesso');
         sessionStorage.removeItem('aba_ativa_atual');
-      } catch (e) {}
+      } catch(e) {}
       document.getElementById('globalLoginForm').reset();
       verificarEstadoAutenticacao();
     }
@@ -1172,22 +1085,19 @@
       }
     }
 
-    // =========================================================================
-    // FORMATAÇÃO DE TEXTOS E VALIDAÇÃO DE LISTAS
-    // =========================================================================
     function converterParaPrimeirasMaiusculas(texto) {
       if (!texto) return '';
-      const textoNormalizado = normalizarCodificacaoTexto(texto.toString()).trim();
       const preposicoes = ['de', 'da', 'do', 'das', 'dos', 'e'];
-      return textoNormalizado
-        .toLocaleLowerCase('pt-BR')
+      return texto
+        .toString()
+        .trim()
+        .toLowerCase()
         .split(/\s+/)
         .map((palavra, index) => {
-          if (index > 0 && preposicoes.includes(palavra)) return palavra;
-          const chars = Array.from(palavra);
-          if (chars.length === 0) return '';
-          chars[0] = chars[0].toLocaleUpperCase('pt-BR');
-          return chars.join('');
+          if (index > 0 && preposicoes.includes(palavra)) {
+            return palavra;
+          }
+          return palavra.charAt(0).toUpperCase() + palavra.slice(1);
         })
         .join(' ');
     }
@@ -1200,24 +1110,25 @@
     function obterValoresDeDatalist(datalistId) {
       const dl = document.getElementById(datalistId);
       if (!dl) return [];
-      return Array.from(dl.options).map(opt => limparTextoEntrada(opt.value));
+      return Array.from(dl.options).map(opt => (opt.value || '').trim());
     }
 
     function validarInputComLista(inputId, datalistId, nomeAmigavel, dispararCascataCliente = false) {
       const input = document.getElementById(inputId);
       if (!input) return false;
-      const valor = limparTextoEntrada(input.value);
-      if (!valor) return false;
+      const valor = (input.value || '').trim();
+      if (!valor) return true;
 
       const opcoesValidas = obterValoresDeDatalist(datalistId);
-      if (opcoesValidas.length === 0) return true;
-
-      const achado = opcoesValidas.find(
-        item => item.toLocaleLowerCase('pt-BR') === valor.toLocaleLowerCase('pt-BR')
-      );
+      const achado = opcoesValidas.find(item => item.toLowerCase() === valor.toLowerCase());
 
       if (!achado) {
-        alert('⛔ Atenção no campo "' + nomeAmigavel + '":\nO valor "' + valor + '" não foi encontrado na lista do banco.\nPor favor, escolha uma opção disponível.');
+        alert('⛔ Bloqueio de Segurança:\nO valor digitado no campo "' + nomeAmigavel + '" não está cadastrado na base de dados.\nPor favor, selecione exclusivamente um dos itens disponíveis na listagem.');
+        input.value = '';
+        if (dispararCascataCliente) {
+          document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
+          document.getElementById('sacCidade').value = '';
+        }
         setTimeout(() => { input.focus(); }, 50);
         return false;
       } else {
@@ -1229,9 +1140,6 @@
       }
     }
 
-    // =========================================================================
-    // MODAIS E ALERTAS VISUAIS
-    // =========================================================================
     function abrirModalLoading(titulo, subtitulo, tipoAcao = 'loading') {
       const modal = document.getElementById('modalLoadingAcao');
       if (!modal) return;
@@ -1297,55 +1205,18 @@
       lucide.createIcons();
     }
 
-    // =========================================================================
-    // COMUNICAÇÃO COM O BACKEND FASTAPI + SUPABASE (UTF-8 PURO)
-    // =========================================================================
+    // COMUNICAÇÃO COM O BANCO DE DADOS (FASTAPI)
     async function enviarParaBancoGarantido(payload) {
       try {
-        const payloadUtf8 = normalizarObjetoProfundo(payload);
-        const jsonString = JSON.stringify(payloadUtf8);
-        const bodyBytes = new TextEncoder().encode(jsonString);
-
         const resp = await fetch(BACKEND_API_URL, {
           method: "POST",
-          headers: { 
-            "Content-Type": "application/json; charset=UTF-8",
-            "Accept": "application/json; charset=UTF-8"
-          },
-          body: bodyBytes
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
-
-        const buffer = await resp.arrayBuffer();
-        const textoResposta = new TextDecoder('utf-8').decode(buffer);
-        let dadosResposta = null;
-        try {
-          dadosResposta = normalizarObjetoProfundo(JSON.parse(textoResposta));
-        } catch (parseErr) {
-          dadosResposta = null;
-        }
-
-        if (!resp.ok) {
-          const msgErro = (dadosResposta && (dadosResposta.detail || dadosResposta.message || dadosResposta.error)) 
-            || `Falha de comunicação (${resp.status} - ${resp.statusText})`;
-          return { status: "error", message: msgErro, detail: dadosResposta };
-        }
-
-        if (dadosResposta && (dadosResposta.status === "error" || dadosResposta.success === false)) {
-          return { 
-            status: "error", 
-            message: dadosResposta.detail || dadosResposta.message || "Erro retornado pelo servidor.",
-            detail: dadosResposta 
-          };
-        }
-
-        return { status: "success", data: dadosResposta };
+        return await resp.json();
       } catch (err) {
         console.error("Erro na comunicação com a API do banco:", err);
-        return { 
-          status: "error", 
-          message: "Servidor inacessível ou falha de conexão de rede. Verifique se o backend está em execução.", 
-          detail: err 
-        };
+        return { status: "error", detail: err };
       }
     }
 
@@ -1359,7 +1230,7 @@
         switchPage('sac');
         return;
       }
-      try { sessionStorage.setItem('aba_ativa_atual', page); } catch (e) {}
+      try { sessionStorage.setItem('aba_ativa_atual', page); } catch(e) {}
 
       const pages = {
         dashboardSAC: document.getElementById('pageDashboardSAC'),
@@ -1382,7 +1253,9 @@
         }
       });
 
-      if (pages[page]) pages[page].classList.remove('hidden');
+      if (pages[page]) {
+        pages[page].classList.remove('hidden');
+      }
       if (buttons[page]) {
         buttons[page].classList.add('active');
         buttons[page].classList.remove('inactive');
@@ -1391,9 +1264,9 @@
       if (page === 'dashboardSAC') {
         atualizarDashboardSAC();
       } else if (page === 'chamadosAbertos') {
-        carregarPaginaChamadosAbertos(paginaAtualAbertos);
+        renderizarTabelaChamadosAbertos();
       } else if (page === 'sac') {
-        carregarPaginaChamadosSAC(paginaAtualSAC);
+        renderizarTabelaChamadosSAC();
       } else if (page === 'cadastroClientes') {
         aplicarRegrasDeAcesso();
         renderizarTabelaClientes();
@@ -1401,8 +1274,11 @@
       lucide.createIcons();
     }
 
+    // =========================================================================
+    // INICIALIZAÇÃO & FORMULÁRIO SAC
+    // =========================================================================
     function calcularPreviaProximoChamado(ano) {
-      let maior = (dadosSAC.maior_sac_ano && dadosSAC.maior_sac_ano[ano]) || 0;
+      let maior = dadosSAC.maior_sac_ano[ano] || 0;
       listaChamadosSAC.forEach(c => {
         if (c.chamado) {
           const m = c.chamado.match(new RegExp('SAC-' + ano + '-(\\d+)', 'i'));
@@ -1413,49 +1289,6 @@
         }
       });
       return 'SAC-' + ano + '-' + String(maior + 1).padStart(4, '0');
-    }
-
-    function extrairListaTexto(fonte, propriedadesChave = []) {
-      if (!Array.isArray(fonte)) return [];
-      const resultado = [];
-      fonte.forEach(item => {
-        if (typeof item === 'string' || typeof item === 'number') {
-          const s = limparTextoEntrada(item);
-          if (s) resultado.push(s);
-        } else if (item && typeof item === 'object') {
-          for (const chave of propriedadesChave) {
-            if (item[chave]) {
-              const s = limparTextoEntrada(item[chave]);
-              if (s) { resultado.push(s); break; }
-            }
-          }
-        }
-      });
-      return [...new Set(resultado)].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-    }
-
-    // =========================================================================
-    // FORMULÁRIO SAC & VÍNCULO AUTOMÁTICO (TABELAS "clientes" E "produtos")
-    // =========================================================================
-    function obterBaseClientesUnificada() {
-      const base = [];
-      const adicionar = (obj) => {
-        if (!obj) return;
-        const cliente = limparTextoEntrada(obj.cliente || obj.Cliente);
-        const localInterno = limparTextoEntrada(
-          obj.localInterno || obj.local_interno || obj['Local interno'] || obj['Local Interno'] || obj.local || obj.Local
-        );
-        const filial = limparTextoEntrada(
-          obj.filialResponsavel || obj.filial_responsavel || obj['Filial Responsavel'] || obj.cidade || obj.Cidade
-        );
-        if (cliente) {
-          base.push({ cliente, localInterno, filial });
-        }
-      };
-
-      (listaCadastroClientes || []).forEach(adicionar);
-      (dadosSAC.clientes || []).forEach(adicionar);
-      return base;
     }
 
     function inicializarFormularioSAC() {
@@ -1480,151 +1313,58 @@
       document.getElementById('sacObservacao').value = "";
       document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
 
-      const baseClientes = obterBaseClientesUnificada();
-
-      // 1. Cliente * -> Tabela "clientes"
       const dlCli = document.getElementById('listaSACClientes');
       dlCli.innerHTML = '';
-      [...new Set(baseClientes.map(c => c.cliente).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, 'pt-BR'))
-        .forEach(cli => {
-          const opt = document.createElement('option');
-          opt.value = cli;
-          dlCli.appendChild(opt);
-        });
+      [...new Set(dadosSAC.clientes.map(c => c.cliente).filter(Boolean))].sort().forEach(cli => {
+        const opt = document.createElement('option'); opt.value = cli; dlCli.appendChild(opt);
+      });
 
-      // 2. Filial Responsável * -> Tabela "clientes"
       const dlCid = document.getElementById('listaSACCidades');
       dlCid.innerHTML = '';
-      const cidadesSet = new Set([
-        ...(dadosSAC.cidades || []).map(limparTextoEntrada),
-        ...baseClientes.map(c => c.filial)
-      ]);
-      [...cidadesSet].filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(cid => {
-        const opt = document.createElement('option');
-        opt.value = cid;
-        dlCid.appendChild(opt);
+      (dadosSAC.cidades?.length ? dadosSAC.cidades : [...new Set(dadosSAC.clientes.map(c => c.cidade).filter(Boolean))]).sort().forEach(cid => {
+        const opt = document.createElement('option'); opt.value = cid; dlCid.appendChild(opt);
       });
 
-      // 3. Descrição * -> Tabela "produtos"
-      const listaProdutos = extrairListaTexto(
-        dadosSAC.produtos || dadosSAC.descricoes || [],
-        ['descricao', 'produto', 'nome', 'descricao_produto', 'item']
-      );
       const dlDesc = document.getElementById('listaSACDescricoes');
       dlDesc.innerHTML = '';
-      listaProdutos.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d;
-        dlDesc.appendChild(opt);
-      });
+      dadosSAC.descricoes.forEach(d => { const opt = document.createElement('option'); opt.value = d; dlDesc.appendChild(opt); });
 
-      // 4. Problemas * -> Tabela "problemas"
-      const listaProblemas = extrairListaTexto(
-        dadosSAC.problemas || [],
-        ['problema', 'problemas', 'descricao', 'motivo', 'nome']
-      );
       const dlProb = document.getElementById('listaSACProblemas');
       dlProb.innerHTML = '';
-      listaProblemas.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p;
-        dlProb.appendChild(opt);
-      });
+      dadosSAC.problemas.forEach(p => { const opt = document.createElement('option'); opt.value = p; dlProb.appendChild(opt); });
 
-      // 5. Forma de Pagamento * -> Tabela "formas_pgt"
-      const listaFormasPgt = extrairListaTexto(
-        dadosSAC.formas_pgt || dadosSAC.formas_pagamento || [],
-        ['forma_pgt', 'forma_pagamento', 'forma', 'descricao', 'nome']
-      );
       const dlPgto = document.getElementById('listaSACFormasPgto');
       dlPgto.innerHTML = '';
-      listaFormasPgt.forEach(f => {
-        const opt = document.createElement('option');
-        opt.value = f;
-        dlPgto.appendChild(opt);
-      });
+      dadosSAC.formas_pagamento.forEach(f => { const opt = document.createElement('option'); opt.value = f; dlPgto.appendChild(opt); });
     }
 
-    function aoDigitarOuSelecionarClienteSAC() {
-      const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
-      if (!cli) {
-        document.getElementById('sacLocalInterno').innerHTML = '<option value="">Selecione primeiro o Cliente...</option>';
-        document.getElementById('sacCidade').value = '';
-        return;
-      }
-      const baseClientes = obterBaseClientesUnificada();
-      const existeExato = baseClientes.some(
-        c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR')
-      );
-      if (existeExato) {
-        aoMudarClienteSAC();
-      }
-    }
-
-   function aoMudarClienteSAC() {
-      const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
+    function aoMudarClienteSAC() {
+      const cli = (document.getElementById('sacCliente').value || '').trim();
       const selectLocal = document.getElementById('sacLocalInterno');
-      const inputFilial = document.getElementById('sacCidade');
-      const valorAnterior = limparTextoEntrada(selectLocal.value);
-
       selectLocal.innerHTML = '<option value="">Selecione o Local Interno...</option>';
-      if (!cli) {
-        inputFilial.value = '';
-        return;
-      }
+      if (!cli) return;
 
-      const baseClientes = obterBaseClientesUnificada();
-      const registrosCliente = baseClientes.filter(
-        c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR')
-      );
+      const locaisDoCliente = dadosSAC.clientes.filter(c => c.cliente.toLowerCase() === cli.toLowerCase());
+      if (!locaisDoCliente.length) return;
 
-      if (!registrosCliente.length) return;
-
-      const locaisUnicos = [...new Set(registrosCliente.map(r => r.localInterno).filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
+      const locaisUnicos = [...new Set(locaisDoCliente.map(l => l.local).filter(Boolean))].sort();
       locaisUnicos.forEach(loc => {
         const opt = document.createElement('option');
-        opt.value = loc;
-        opt.textContent = loc;
+        opt.value = loc; opt.textContent = loc;
         selectLocal.appendChild(opt);
       });
-
-      // Preserva a seleção anterior se ela pertencer ao mesmo cliente
-      const matchAnterior = locaisUnicos.find(
-        loc => loc.toLocaleLowerCase('pt-BR') === valorAnterior.toLocaleLowerCase('pt-BR')
-      );
-
-      if (matchAnterior) {
-        selectLocal.value = matchAnterior;
-        aoMudarLocalInternoSAC();
-      } else if (locaisUnicos.length === 1) {
+      if (locaisUnicos.length === 1) {
         selectLocal.value = locaisUnicos[0];
         aoMudarLocalInternoSAC();
-      } else {
-        const filiaisUnicas = [...new Set(registrosCliente.map(r => r.filial).filter(Boolean))];
-        if (filiaisUnicas.length === 1) {
-          inputFilial.value = filiaisUnicas[0];
-        }
       }
     }
 
     function aoMudarLocalInternoSAC() {
-      const cli = limparTextoEntrada(document.getElementById('sacCliente').value);
-      const loc = limparTextoEntrada(document.getElementById('sacLocalInterno').value);
-      const inputFilial = document.getElementById('sacCidade');
-      if (!cli) return;
-
-      const baseClientes = obterBaseClientesUnificada();
-      const achado = baseClientes.find(
-        c => c.cliente.toLocaleLowerCase('pt-BR') === cli.toLocaleLowerCase('pt-BR') &&
-             (!loc || c.localInterno.toLocaleLowerCase('pt-BR') === loc.toLocaleLowerCase('pt-BR'))
-      );
-
-      if (achado && achado.filial) {
-        inputFilial.value = achado.filial;
-      }
+      const cli = (document.getElementById('sacCliente').value || '').trim();
+      const loc = document.getElementById('sacLocalInterno').value;
+      if (!cli || !loc) return;
+      const achado = dadosSAC.clientes.find(c => c.cliente.toLowerCase() === cli.toLowerCase() && c.local === loc);
+      if (achado && achado.cidade) document.getElementById('sacCidade').value = achado.cidade;
     }
 
     function limparFormSAC() {
@@ -1650,7 +1390,7 @@
       document.getElementById('alertSACEditMode').classList.add('hidden');
       document.getElementById('sacFormTitleText').innerText = "Lançamento de Ocorrências do SAC";
       document.getElementById('btnSalvarSACText').innerText = "Lançar Ocorrência SAC";
-
+      
       const anoAtual = new Date().getFullYear();
       document.getElementById('sacChamado').value = calcularPreviaProximoChamado(anoAtual);
       document.getElementById('sacData').value = new Date().toISOString().split('T')[0];
@@ -1659,77 +1399,30 @@
       lucide.createIcons();
     }
 
-    // =========================================================================
-    // EDIÇÃO E EXCLUSÃO DE CHAMADO SAC
-    // =========================================================================
     function editarChamadoSAC(numeroChamado, origem = 'sac') {
-      const alvo = String(numeroChamado).trim().toUpperCase();
-      const item =
-        listaChamadosSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === alvo) ||
-        itensPaginaSAC.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === alvo) ||
-        itensPaginaAbertos.find(c => String(c.chamado || c.Chamado).trim().toUpperCase() === alvo);
-
-      if (!item) {
-        alert('⚠️ Chamado ' + numeroChamado + ' não localizado na memória.');
-        return;
-      }
+      const item = listaChamadosSAC.find(c => c.chamado === numeroChamado);
+      if (!item) return;
 
       origemEdicaoSAC = origem;
       switchPage('sac');
       chamadoEmEdicao = item;
-
-      document.getElementById('sacChamado').value = limparTextoEntrada(item.chamado || item.Chamado || '');
-      const dataOriginal = limparTextoEntrada(item.data || item.Data || '');
-      document.getElementById('sacData').value = dataOriginal.includes('/') ? dataPtBrParaIso(dataOriginal) : dataOriginal;
-
-      const clienteVal = limparTextoEntrada(item.cliente || item.Cliente || '');
-      document.getElementById('sacCliente').value = clienteVal;
+      document.getElementById('sacChamado').value = item.chamado;
+      document.getElementById('sacData').value = dataPtBrParaIso(item.data);
+      document.getElementById('sacCliente').value = item.cliente;
       aoMudarClienteSAC();
+      document.getElementById('sacLocalInterno').value = item.localInterno;
+      document.getElementById('sacCidade').value = item.cidade;
+      document.getElementById('sacDescricao').value = item.descricao;
+      document.getElementById('sacProduto').value = item.produto || '';
+      document.getElementById('sacDataTransacao').value = dataPtBrParaIso(item.dataTransacao) || '';
+      document.getElementById('sacHoraTransacao').value = item.horaTransacao || '';
+      document.getElementById('sacValor').value = parseValorNumerico(item.valor) || '';
+      document.getElementById('sacNome').value = item.nomeSobrenome;
+      document.getElementById('sacCelular').value = item.celular;
+      document.getElementById('sacProblema').value = item.problemas;
+      document.getElementById('sacFormaPgto').value = item.formaPgto || '';
 
-      const localVal = limparTextoEntrada(item.local_interno || item.localInterno || item['Local Interno'] || item.local || '');
-      const selectLocal = document.getElementById('sacLocalInterno');
-      if (localVal) {
-        const optExiste = Array.from(selectLocal.options).some(
-          o => o.value.toLocaleLowerCase('pt-BR') === localVal.toLocaleLowerCase('pt-BR')
-        );
-        if (!optExiste) {
-          const novaOpt = document.createElement('option');
-          novaOpt.value = localVal;
-          novaOpt.textContent = localVal;
-          selectLocal.appendChild(novaOpt);
-        }
-        selectLocal.value = localVal;
-      }
-
-      document.getElementById('sacCidade').value = limparTextoEntrada(item.cidade || item.Cidade || item.filial || '');
-      document.getElementById('sacDescricao').value = limparTextoEntrada(item.descricao || item.Descricao || item['Descrição'] || '');
-
-      const prodVal = limparTextoEntrada(item.produto || item.Produto || '');
-      const selectProduto = document.getElementById('sacProduto');
-      if (prodVal.toLowerCase().includes('café') || prodVal.toLowerCase().includes('cafe')) {
-        selectProduto.value = 'Café';
-      } else if (prodVal.toLowerCase().includes('snak')) {
-        selectProduto.value = 'Snaky';
-      } else {
-        selectProduto.value = prodVal;
-      }
-
-      const dtTrans = limparTextoEntrada(item.data_transacao || item.dataTransacao || item['Data da Transação'] || '');
-      document.getElementById('sacDataTransacao').value = dtTrans.includes('/') ? dataPtBrParaIso(dtTrans) : dtTrans;
-
-      let hrTrans = limparTextoEntrada(item.hora_transacao || item.horaTransacao || item['Hora da Transação'] || '');
-      if (hrTrans && hrTrans.length > 5) hrTrans = hrTrans.substring(0, 5);
-      document.getElementById('sacHoraTransacao').value = hrTrans;
-
-      const valNum = parseValorNumerico(item.valor || item.Valor);
-      document.getElementById('sacValor').value = valNum ? valNum : '';
-
-      document.getElementById('sacNome').value = limparTextoEntrada(item.nome_sobrenome || item.nomeSobrenome || item['Nome/Sobrenome'] || item.nome || '');
-      document.getElementById('sacCelular').value = limparTextoEntrada(item.celular || item.Celular || '');
-      document.getElementById('sacProblema').value = limparTextoEntrada(item.problemas || item.Problemas || item.problema || '');
-      document.getElementById('sacFormaPgto').value = limparTextoEntrada(item.forma_pgto || item.formaPgto || item['Forma de Pagamento'] || '');
-
-      const rmbVal = limparTextoEntrada(item.reembolso || item.Reembolso || '').toLowerCase();
+      const rmbVal = (item.reembolso || '').trim().toLowerCase();
       if (rmbVal.includes('remoto') || rmbVal.includes('crédito') || rmbVal.includes('credito')) {
         document.getElementById('sacReembolso').value = 'Crédito Remoto';
       } else if (rmbVal.includes('pendente')) {
@@ -1737,24 +1430,21 @@
       } else if (rmbVal.includes('stone') || rmbVal.includes('devolução') || rmbVal.includes('devolucao')) {
         document.getElementById('sacReembolso').value = 'Devolução Stone';
       } else {
-        document.getElementById('sacReembolso').value = limparTextoEntrada(item.reembolso || item.Reembolso || '');
+        document.getElementById('sacReembolso').value = '';
       }
 
-      document.getElementById('sacPix').value = limparTextoEntrada(item.pix || item.Pix || item['Pix - Reembolso'] || '');
-      document.getElementById('sacObservacao').value = limparTextoEntrada(item.observacao || item.observação || item.obs || item.Observação || '');
-
-      const rReal = limparTextoEntrada(item.reembolso_realizado || item.reembolsoRealizado || item['Reembolso Realizado'] || 'Não').toLowerCase();
+      document.getElementById('sacPix').value = item.pix || '';
+      document.getElementById('sacObservacao').value = item.observacao || '';
+      var rReal = (item.reembolsoRealizado || 'Não').trim().toLowerCase();
       document.getElementById('sacReembolsoRealizado').value = (rReal === 'sim' || rReal === 's' || rReal === 'true') ? 'Sim' : 'Não';
-
-      document.getElementById('sacAtendente').value = limparTextoEntrada(item.atendente || item.Atendente || atendenteSACLogado);
-      document.getElementById('sacDataHoraAuto').value = limparTextoEntrada(item.data_hora_lancamento || item.dataHoraLancamento || item['Data/Hora do lançamento'] || 'Original Preservado');
+      document.getElementById('sacAtendente').value = item.atendente || atendenteSACLogado;
+      document.getElementById('sacDataHoraAuto').value = item.dataHoraLancamento || 'Original Preservado';
 
       document.getElementById('alertSACEditMode').classList.remove('hidden');
-      document.getElementById('labelSACEditChamado').innerText = item.chamado || item.Chamado;
-      document.getElementById('sacFormTitleText').innerText = 'Edição da Ocorrência: ' + (item.chamado || item.Chamado);
+      document.getElementById('labelSACEditChamado').innerText = item.chamado;
+      document.getElementById('sacFormTitleText').innerText = 'Edição da Ocorrência: ' + item.chamado;
       document.getElementById('btnSalvarSACText').innerText = 'Salvar Alterações';
       document.getElementById('sacForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-
       lucide.createIcons();
     }
 
@@ -1765,54 +1455,34 @@
       origemEdicaoSAC = 'sac';
     }
 
-    async function excluirChamadoSAC(numeroChamado) {
-      if (!confirm('Deseja realmente excluir o chamado ' + numeroChamado + '? Esta ação removerá o registro do banco Supabase.')) return;
-
+    function excluirChamadoSAC(numeroChamado) {
+      if (!confirm('Deseja realmente excluir o chamado ' + numeroChamado + '? Esta ação solicitará a remoção do banco SQL.')) return;
       abrirModalLoading('Excluindo Ocorrência...', 'Removendo a ocorrência ' + numeroChamado + ' do banco de dados.', 'loading');
-      const item =
-        listaChamadosSAC.find(c => c.chamado === numeroChamado) ||
-        itensPaginaSAC.find(c => c.chamado === numeroChamado) ||
-        itensPaginaAbertos.find(c => c.chamado === numeroChamado);
+      const item = listaChamadosSAC.find(c => c.chamado === numeroChamado);
 
-      const resultado = await enviarParaBancoGarantido({
-        "action": "excluir",
-        "acao": "excluir",
-        "tipo": "excluir_sac",
-        "Chamado": numeroChamado,
-        "chamado": numeroChamado,
-        "id": item?.id || item?.linha || "",
-        "linha": item?.id || item?.linha || ""
+      enviarParaBancoGarantido({
+        "action": "excluir", "acao": "excluir", "tipo": "excluir_sac",
+        "Chamado": numeroChamado, "chamado": numeroChamado,
+        "linha": item?.linha || ""
       });
 
-      if (resultado.status === "error") {
-        fecharModalLoading();
-        alert('❌ Falha ao excluir chamado:\n' + resultado.message);
-        return;
-      }
-
       listaChamadosSAC = listaChamadosSAC.filter(c => c.chamado !== numeroChamado);
-      totalGeralBanco = Math.max(0, totalGeralBanco - 1);
-      const headerTotal = document.getElementById('headerTotalChamados');
-      if (headerTotal) headerTotal.innerText = totalGeralBanco;
-
-      await carregarPaginaChamadosSAC(paginaAtualSAC);
-      await carregarPaginaChamadosAbertos(paginaAtualAbertos);
+      renderizarTabelaChamadosSAC();
+      renderizarTabelaChamadosAbertos();
       atualizarDashboardSAC();
 
-      if (chamadoEmEdicao && chamadoEmEdicao.chamado === numeroChamado) {
-        limparFormSAC();
-      }
+      if (chamadoEmEdicao && chamadoEmEdicao.chamado === numeroChamado) limparFormSAC();
 
-      abrirModalLoading('Chamado Excluído!', 'A ocorrência ' + numeroChamado + ' foi removida da base com sucesso.', 'excluir');
-      exibirMensagemTopo('🗑️ Chamado ' + numeroChamado + ' excluído!', 'A ocorrência foi removida do sistema e do banco de dados.', 'excluir');
-
-      setTimeout(fecharModalLoading, 1000);
+      setTimeout(() => {
+        abrirModalLoading('Chamado Excluído!', 'A ocorrência ' + numeroChamado + ' foi removida da base com sucesso.', 'excluir');
+        exibirMensagemTopo('🗑️ Chamado ' + numeroChamado + ' excluído!', 'A ocorrência foi removida do sistema e do banco de dados.', 'excluir');
+        setTimeout(fecharModalLoading, 1000);
+      }, 500);
     }
 
-    async function handleSACSubmit(e) {
+    function handleSACSubmit(e) {
       e.preventDefault();
-
-   if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', false)) return;
+      if (!validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente')) return;
       const selectLocal = document.getElementById('sacLocalInterno');
       if (!selectLocal.value) { alert('⛔ Selecione um Local Interno.'); selectLocal.focus(); return; }
       if (!validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')) return;
@@ -1823,465 +1493,204 @@
       if (!selectProduto.value) { alert('⛔ Selecione o Produto (Café ou Snaky).'); selectProduto.focus(); return; }
 
       const ehEdicao = (chamadoEmEdicao !== null);
-      let chamado = limparTextoEntrada(document.getElementById('sacChamado').value);
+      let chamado = document.getElementById('sacChamado').value.trim();
       const anoAtual = new Date().getFullYear();
       if (!ehEdicao) chamado = calcularPreviaProximoChamado(anoAtual);
+
+      if (!ehEdicao && listaChamadosSAC.some(c => c.chamado.toUpperCase() === chamado.toUpperCase())) {
+        alert('⛔ Chamado Duplicado! O número "' + chamado + '" já existe.');
+        document.getElementById('sacChamado').value = calcularPreviaProximoChamado(anoAtual);
+        return;
+      }
+
+      abrirModalLoading(
+        ehEdicao ? 'Atualizando Ocorrência...' : 'Lançando no Sistema...',
+        ehEdicao ? 'Gravando alterações do chamado ' + chamado + ' no banco de dados.' : 'Registrando a ocorrência ' + chamado + ' no banco de dados.',
+        'loading'
+      );
 
       const dataIso = document.getElementById('sacData').value;
       const data = dataIsoParaPtBr(dataIso);
 
-      const cliente = limparTextoEntrada(document.getElementById('sacCliente').value);
-      const localInterno = limparTextoEntrada(document.getElementById('sacLocalInterno').value);
-      const cidade = limparTextoEntrada(document.getElementById('sacCidade').value);
-      const descricao = limparTextoEntrada(document.getElementById('sacDescricao').value);
-      const produto = limparTextoEntrada(document.getElementById('sacProduto').value);
+      const cliente = document.getElementById('sacCliente').value.trim();
+      const localInterno = document.getElementById('sacLocalInterno').value;
+      const cidade = document.getElementById('sacCidade').value.trim();
+      const descricao = document.getElementById('sacDescricao').value.trim();
+      const produto = document.getElementById('sacProduto').value;
       const dataTransacaoIso = document.getElementById('sacDataTransacao').value;
       const dataTransacao = dataIsoParaPtBr(dataTransacaoIso);
-      const horaTransacao = limparTextoEntrada(document.getElementById('sacHoraTransacao').value);
+      const horaTransacao = document.getElementById('sacHoraTransacao').value;
       const valor = parseFloat(document.getElementById('sacValor').value) || 0;
-      const nomeSobrenome = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('sacNome').value));
-      const celular = limparTextoEntrada(document.getElementById('sacCelular').value);
-      const problemas = limparTextoEntrada(document.getElementById('sacProblema').value);
-      const formaPgto = limparTextoEntrada(document.getElementById('sacFormaPgto').value);
-      const reembolso = limparTextoEntrada(document.getElementById('sacReembolso').value);
-      const pix = limparTextoEntrada(document.getElementById('sacPix').value);
-      const reembolsoRealizado = limparTextoEntrada(document.getElementById('sacReembolsoRealizado').value) || "Não";
-      const observacao = limparTextoEntrada(document.getElementById('sacObservacao').value);
+      const nomeSobrenome = converterParaPrimeirasMaiusculas(document.getElementById('sacNome').value.trim());
+      const celular = document.getElementById('sacCelular').value.trim();
+      const problemas = document.getElementById('sacProblema').value.trim();
+      const formaPgto = document.getElementById('sacFormaPgto').value.trim();
+      const reembolso = (document.getElementById('sacReembolso').value || '').trim();
+      const pix = document.getElementById('sacPix').value.trim();
+      const reembolsoRealizado = document.getElementById('sacReembolsoRealizado').value || "Não";
+      const observacao = document.getElementById('sacObservacao').value.trim();
 
-      const atendente = ehEdicao && chamadoEmEdicao?.atendente
-        ? limparTextoEntrada(chamadoEmEdicao.atendente)
-        : limparTextoEntrada(atendenteSACLogado || document.getElementById('sacAtendente').value);
-
-      const dataHoraLancamento = ehEdicao && (chamadoEmEdicao?.data_hora_lancamento || chamadoEmEdicao?.dataHoraLancamento)
-        ? limparTextoEntrada(chamadoEmEdicao.data_hora_lancamento || chamadoEmEdicao.dataHoraLancamento)
-        : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
-
-      const financeiroResponsavel = (reembolsoRealizado === "Sim")
-        ? limparTextoEntrada(atendenteSACLogado || chamadoEmEdicao?.financeiro_responsavel || chamadoEmEdicao?.financeiroResponsavel || "")
-        : limparTextoEntrada(chamadoEmEdicao?.financeiro_responsavel || chamadoEmEdicao?.financeiroResponsavel || "");
-
-      const registroId = ehEdicao ? (chamadoEmEdicao.id || chamadoEmEdicao.linha || "") : "";
+      let atendente = ehEdicao && chamadoEmEdicao?.atendente ? chamadoEmEdicao.atendente : (atendenteSACLogado || document.getElementById('sacAtendente').value);
+      let dataHoraLancamento = ehEdicao && chamadoEmEdicao?.dataHoraLancamento ? chamadoEmEdicao.dataHoraLancamento : (new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR'));
+      let financeiroResponsavel = (reembolsoRealizado === "Sim") ? (atendenteSACLogado || chamadoEmEdicao?.financeiroResponsavel || "") : (chamadoEmEdicao?.financeiroResponsavel || "");
 
       const payloadSAC = {
-        "acao": ehEdicao ? "editar" : "inserir",
-        "action": ehEdicao ? "editar" : "inserir",
-        "id": registroId,
-        "linha": registroId,
-        "chamado": chamado,
-        "Chamado": chamado,
-        "data": data,
-        "Data": data,
-        "cliente": cliente,
-        "Cliente": cliente,
-        "local_interno": localInterno,
-        "Local Interno": localInterno,
-        "cidade": cidade,
-        "Cidade": cidade,
-        "descricao": descricao,
-        "Descrição": descricao,
-        "produto": produto,
-        "Produto": produto,
-        "data_transacao": dataTransacao,
-        "Data da Transação": dataTransacao,
-        "hora_transacao": horaTransacao,
-        "Hora da Transação": horaTransacao,
-        "valor": valor,
-        "Valor": valor,
-        "nome_sobrenome": nomeSobrenome,
-        "Nome/Sobrenome": nomeSobrenome,
-        "celular": celular,
-        "Celular": celular,
-        "problemas": problemas,
-        "Problemas": problemas,
-        "forma_pgto": formaPgto,
-        "Forma de Pagamento": formaPgto,
-        "reembolso": reembolso,
-        "Reembolso": reembolso,
-        "pix": pix,
-        "Pix - Reembolso": pix,
-        "atendente": atendente,
-        "Atendente": atendente,
-        "data_hora_lancamento": dataHoraLancamento,
-        "Data/Hora do lançamento": dataHoraLancamento,
-        "reembolso_realizado": reembolsoRealizado,
-        "Reembolso Realizado": reembolsoRealizado,
-        "financeiro_responsavel": financeiroResponsavel,
-        "Financeiro Responsavel": financeiroResponsavel,
-        "observacao": observacao,
+        "acao": ehEdicao ? "editar" : "inserir", "action": ehEdicao ? "editar" : "inserir",
+        "linha": ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : "",
+        "Chamado": chamado, "Data": data, "Cliente": cliente, "Local Interno": localInterno,
+        "Cidade": cidade, "Descrição": descricao, "Produto": produto,
+        "Data da Transação": dataTransacao, "Hora da Transação": horaTransacao,
+        "Valor": valor, "Nome/Sobrenome": nomeSobrenome, "Celular": celular,
+        "Problemas": problemas, "Forma de Pagamento": formaPgto, "Reembolso": reembolso,
+        "Pix - Reembolso": pix, "Atendente": atendente, "Data/Hora do lançamento": dataHoraLancamento,
+        "Reembolso Realizado": reembolsoRealizado, "Financeiro Responsavel": financeiroResponsavel,
         "Observação": observacao
       };
 
-      abrirModalLoading(
-        ehEdicao ? 'Atualizando Ocorrência...' : 'Lançando no Sistema...',
-        ehEdicao ? 'Gravando alterações do chamado ' + chamado + ' no Supabase.' : 'Registrando a ocorrência ' + chamado + ' no Supabase.',
-        'loading'
-      );
+      enviarParaBancoGarantido(payloadSAC);
 
-      const btnSalvar = document.getElementById('btnSalvarSAC');
-      if (btnSalvar) btnSalvar.disabled = true;
-
-      const resultado = await enviarParaBancoGarantido(payloadSAC);
-
-      if (btnSalvar) btnSalvar.disabled = false;
-
-      if (resultado.status === "error") {
-        fecharModalLoading();
-        alert('❌ Falha ao gravar chamado no banco de dados:\n' + resultado.message);
-        return;
-      }
-
-      const registroBanco = (resultado.data && resultado.data.data) ? resultado.data.data : null;
-      if (registroBanco && registroBanco.chamado) {
-        chamado = limparTextoEntrada(registroBanco.chamado);
-      } else if (resultado.data && resultado.data.chamado) {
-        chamado = limparTextoEntrada(resultado.data.chamado);
-      }
-
-      const novoItem = registroBanco || {
-        id: ehEdicao ? registroId : (resultado.data?.linha || Date.now()),
-        linha: ehEdicao ? registroId : (resultado.data?.linha || Date.now()),
-        chamado,
-        data,
-        cliente,
-        local_interno: localInterno,
-        localInterno: localInterno,
-        cidade,
-        descricao,
-        produto,
-        data_transacao: dataTransacao,
-        dataTransacao: dataTransacao,
-        hora_transacao: horaTransacao,
-        horaTransacao: horaTransacao,
-        valor,
-        nome_sobrenome: nomeSobrenome,
-        nomeSobrenome: nomeSobrenome,
-        celular,
-        problemas,
-        forma_pgto: formaPgto,
-        formaPgto: formaPgto,
-        reembolso,
-        pix,
-        atendente,
-        data_hora_lancamento: dataHoraLancamento,
-        dataHoraLancamento: dataHoraLancamento,
-        reembolso_realizado: reembolsoRealizado,
-        reembolsoRealizado: reembolsoRealizado,
-        financeiro_responsavel: financeiroResponsavel,
-        financeiroResponsavel: financeiroResponsavel,
-        observacao,
-        obs: observacao
+      const novoItem = {
+        linha: ehEdicao && chamadoEmEdicao.linha ? chamadoEmEdicao.linha : listaChamadosSAC.length + 2,
+        chamado, data, cliente, localInterno, cidade, descricao, produto,
+        dataTransacao, horaTransacao, valor: formatCurrency(valor),
+        nomeSobrenome, celular, problemas, formaPgto, reembolso, pix, atendente,
+        dataHoraLancamento, reembolsoRealizado, financeiroResponsavel, observacao
       };
 
       if (ehEdicao) {
         listaChamadosSAC = listaChamadosSAC.map(c => c.chamado === chamado ? novoItem : c);
       } else {
         listaChamadosSAC.unshift(novoItem);
-        totalGeralBanco += 1;
-        const headerTotal = document.getElementById('headerTotalChamados');
-        if (headerTotal) headerTotal.innerText = totalGeralBanco;
-
-        paginaAtualSAC = 1;
-        paginaAtualAbertos = 1;
-        if (document.getElementById('searchSACChamados')) document.getElementById('searchSACChamados').value = '';
-        if (document.getElementById('searchAbertos')) document.getElementById('searchAbertos').value = '';
       }
 
       const m = chamado.match(/SAC-(\d{4})-(\d+)/i);
-      if (m) {
-        if (!dadosSAC.maior_sac_ano) dadosSAC.maior_sac_ano = {};
-        dadosSAC.maior_sac_ano[m[1]] = Math.max(dadosSAC.maior_sac_ano[m[1]] || 0, parseInt(m[2], 10));
-      }
+      if (m) dadosSAC.maior_sac_ano[m[1]] = Math.max(dadosSAC.maior_sac_ano[m[1]] || 0, parseInt(m[2], 10));
 
       const destinoAposSalvar = (ehEdicao && origemEdicaoSAC === 'chamadosAbertos') ? 'chamadosAbertos' : 'sac';
       limparFormSAC();
-      await carregarPaginaChamadosSAC(paginaAtualSAC);
-      await carregarPaginaChamadosAbertos(paginaAtualAbertos);
+      renderizarTabelaChamadosSAC();
+      renderizarTabelaChamadosAbertos();
       atualizarDashboardSAC();
       origemEdicaoSAC = 'sac';
 
-      abrirModalLoading(ehEdicao ? 'Ocorrência Atualizada!' : 'Lançamento Concluído!', 'Ocorrência gravada no Supabase com sucesso.', 'sucesso');
-      if (destinoAposSalvar === 'chamadosAbertos') switchPage('chamadosAbertos');
-      exibirMensagemTopo('✅ Ocorrência ' + chamado + ' gravada no Supabase!', 'Valor: ' + formatCurrency(valor) + ' · Forma Pgto: ' + (formaPgto || '-'));
-
-      setTimeout(fecharModalLoading, 1000);
+      setTimeout(() => {
+        abrirModalLoading(ehEdicao ? 'Ocorrência Atualizada!' : 'Lançamento Concluído!', 'Ocorrência gravada com sucesso.', 'sucesso');
+        if (destinoAposSalvar === 'chamadosAbertos') switchPage('chamadosAbertos');
+        exibirMensagemTopo('✅ Ocorrência ' + chamado + ' registrada com sucesso!', 'Valor: ' + formatCurrency(valor) + ' · Forma Pgto: ' + (formaPgto || '-'));
+        setTimeout(fecharModalLoading, 1000);
+      }, 500);
     }
 
     // =========================================================================
-    // PAGINAÇÃO SERVER-SIDE DE 50 EM 50 (LANÇAMENTO SAC & CHAMADOS ABERTOS)
+    // RENDERIZAÇÃO DAS TABELAS
     // =========================================================================
-    const ITENS_POR_PAGINA = 50;
-
-    let paginaAtualSAC = 1;
-    let totalPaginasSAC = 1;
-    let itensPaginaSAC = [];
-    let debounceTimerSAC = null;
-
-    let paginaAtualAbertos = 1;
-    let totalPaginasAbertos = 1;
-    let itensPaginaAbertos = [];
-    let debounceTimerAbertos = null;
-
-    async function consultarChamadosPaginadosAPI(page, search, aba) {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(ITENS_POR_PAGINA),
-        search: search || '',
-        aba: aba || 'todos'
-      });
-
-      const resp = await fetch(`${BACKEND_PAGINACAO_URL}?${params.toString()}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json; charset=UTF-8' }
-      });
-
-      const buffer = await resp.arrayBuffer();
-      const texto = new TextDecoder('utf-8').decode(buffer);
-      return normalizarObjetoProfundo(JSON.parse(texto));
-    }
-
     function filtrarChamadosSAC() {
-      clearTimeout(debounceTimerSAC);
-      debounceTimerSAC = setTimeout(() => {
-        paginaAtualSAC = 1;
-        carregarPaginaChamadosSAC(1);
-      }, 280);
+      const termo = (document.getElementById('searchSACChamados')?.value || '').trim().toLowerCase();
+      if (!termo) { renderizarTabelaChamadosSAC(listaChamadosSAC); return; }
+      const filtrados = listaChamadosSAC.filter(c => 
+        Object.values(c).some(val => String(val || '').toLowerCase().includes(termo))
+      );
+      renderizarTabelaChamadosSAC(filtrados);
     }
 
-    function mudarPaginaSAC(delta) {
-      const novaPagina = paginaAtualSAC + delta;
-      if (novaPagina >= 1 && novaPagina <= totalPaginasSAC) {
-        carregarPaginaChamadosSAC(novaPagina);
-      }
-    }
-
-    async function carregarPaginaChamadosSAC(pagina = 1) {
-      const badge = document.getElementById('badgeContadorSAC');
-      const termo = limparTextoEntrada(document.getElementById('searchSACChamados')?.value || '');
-
-      try {
-        const res = await consultarChamadosPaginadosAPI(pagina, termo, 'sac');
-        if (res && res.status === 'success') {
-          paginaAtualSAC = res.page || 1;
-          totalPaginasSAC = res.total_pages || 1;
-          itensPaginaSAC = Array.isArray(res.items) ? res.items : [];
-          const totalRegistros = res.total || 0;
-
-          if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
-          renderizarLinhasTabelaSAC(itensPaginaSAC, totalRegistros, paginaAtualSAC, totalPaginasSAC);
-          return;
-        }
-      } catch (err) {
-        console.warn('Fallback local na paginação SAC:', err);
-      }
-
-      const filtrados = termo
-        ? listaChamadosSAC.filter(c => Object.values(c).some(v => normalizarCodificacaoTexto(String(v || '')).toLocaleLowerCase('pt-BR').includes(termo.toLocaleLowerCase('pt-BR'))))
-        : listaChamadosSAC;
-
-      totalPaginasSAC = Math.max(1, Math.ceil(filtrados.length / ITENS_POR_PAGINA));
-      paginaAtualSAC = Math.min(Math.max(1, pagina), totalPaginasSAC);
-      const ini = (paginaAtualSAC - 1) * ITENS_POR_PAGINA;
-      itensPaginaSAC = filtrados.slice(ini, ini + ITENS_POR_PAGINA);
-      if (badge) badge.innerText = filtrados.length.toLocaleString('pt-BR') + ' chamado(s)';
-      renderizarLinhasTabelaSAC(itensPaginaSAC, filtrados.length, paginaAtualSAC, totalPaginasSAC);
-    }
-
-    function renderizarLinhasTabelaSAC(listaPaginada, totalRegistros, pagina, totalPaginas) {
+    function renderizarTabelaChamadosSAC(lista = listaChamadosSAC) {
       const tbody = document.getElementById('tableSACChamadosBody');
+      const badge = document.getElementById('badgeContadorSAC');
+      if (badge) badge.innerText = lista.length + ' chamado(s)';
       if (!tbody) return;
-
-      if (!listaPaginada || listaPaginada.length === 0 || totalRegistros === 0) {
+      if (!lista || lista.length === 0) {
         tbody.innerHTML = '<tr><td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhuma ocorrência encontrada.</td></tr>';
-        atualizarControlesPaginacaoSAC(0, 0, 0, 1, 1);
         return;
       }
-
-      const indiceInicio = (pagina - 1) * ITENS_POR_PAGINA;
-      const indiceFim = indiceInicio + listaPaginada.length;
-
-      tbody.innerHTML = listaPaginada.map(c => {
-        const rVal = limparTextoEntrada(c.reembolso_realizado || c.reembolsoRealizado || 'Não').toLowerCase();
+      tbody.innerHTML = lista.map(c => {
+        const rVal = (c.reembolsoRealizado || 'Não').toString().trim().toLowerCase();
         const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
         const badgePago = pago 
           ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
           : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
-
-        const numChamado = limparTextoEntrada(c.chamado || c.Chamado || '');
-        const dtChamado = limparTextoEntrada(c.data || c.Data || '-');
-        const nomeCliente = limparTextoEntrada(c.cliente || c.Cliente || '-');
-        const localInt = limparTextoEntrada(c.local_interno || c.localInterno || c['Local Interno'] || c.local || '-');
-        const filialCid = limparTextoEntrada(c.cidade || c.Cidade || '-');
-        const prod = limparTextoEntrada(c.produto || c.Produto || '-');
-        const valFormatado = formatCurrency(parseValorNumerico(c.valor || c.Valor));
-        const contatoNome = limparTextoEntrada(c.nome_sobrenome || c.nomeSobrenome || c['Nome/Sobrenome'] || '-');
-        const formaPag = limparTextoEntrada(c.forma_pgto || c.formaPgto || c['Forma de Pagamento'] || '-');
-        const tipoReembolso = limparTextoEntrada(c.reembolso || c.Reembolso || '-');
-        const finResp = limparTextoEntrada(c.financeiro_responsavel || c.financeiroResponsavel || c['Financeiro Responsavel'] || '-');
-        const obs = limparTextoEntrada(c.observacao || c.Observação || c.obs || '-');
-        const atend = limparTextoEntrada(c.atendente || c.Atendente || '-');
 
         return `
           <tr class="hover:bg-slate-50 transition border-b border-slate-100">
             <td class="text-center whitespace-nowrap">
               <div class="inline-flex items-center gap-1 justify-center">
-                <button type="button" onclick="editarChamadoSAC('${numChamado}', 'sac')" title="Editar chamado ${numChamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
+                <button type="button" onclick="editarChamadoSAC('${c.chamado}', 'sac')" title="Editar chamado ${c.chamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer">
                   <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
                 </button>
-                <button type="button" onclick="excluirChamadoSAC('${numChamado}')" title="Excluir chamado ${numChamado}" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
+                <button type="button" onclick="excluirChamadoSAC('${c.chamado}')" title="Excluir chamado ${c.chamado}" class="p-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer">
                   <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
               </div>
             </td>
-            <td class="font-mono font-bold text-sky-700 truncate" title="${numChamado}">${numChamado}</td>
-            <td class="truncate" title="${dtChamado}">${dtChamado}</td>
-            <td class="font-semibold text-slate-800 truncate" title="${nomeCliente}">${nomeCliente}</td>
-            <td class="text-slate-600 truncate" title="${localInt}">${localInt}</td>
-            <td class="text-slate-600 truncate" title="${filialCid}">${filialCid}</td>
-            <td class="font-medium text-slate-700 truncate" title="${prod}">${prod}</td>
-            <td class="text-right font-bold text-emerald-700 truncate" title="${valFormatado}">${valFormatado}</td>
-            <td class="font-medium text-slate-800 truncate" title="${contatoNome}">${contatoNome}</td>
-            <td class="text-slate-700 font-medium truncate" title="${formaPag}">${formaPag}</td>
-            <td class="text-sky-900 font-semibold truncate" title="${tipoReembolso}">${tipoReembolso}</td>
+            <td class="font-mono font-bold text-sky-700 truncate" title="${c.chamado}">${c.chamado}</td>
+            <td class="truncate" title="${c.data || '-'}">${c.data || '-'}</td>
+            <td class="font-semibold text-slate-800 truncate" title="${c.cliente || ''}">${c.cliente || '-'}</td>
+            <td class="text-slate-600 truncate" title="${c.localInterno || ''}">${c.localInterno || '-'}</td>
+            <td class="text-slate-600 truncate" title="${c.cidade || ''}">${c.cidade || '-'}</td>
+            <td class="font-medium text-slate-700 truncate" title="${c.produto || '-'}">${c.produto || '-'}</td>
+            <td class="text-right font-bold text-emerald-700 truncate" title="${c.valor || ''}">${formatCurrency(parseValorNumerico(c.valor))}</td>
+            <td class="font-medium text-slate-800 truncate" title="${c.nomeSobrenome || ''}">${c.nomeSobrenome || '-'}</td>
+            <td class="text-slate-700 font-medium truncate" title="${c.formaPgto || ''}">${c.formaPgto || '-'}</td>
+            <td class="text-sky-900 font-semibold truncate" title="${c.reembolso || ''}">${c.reembolso || '-'}</td>
             <td class="text-center whitespace-nowrap">${badgePago}</td>
-            <td class="font-semibold text-emerald-800 truncate" title="${finResp}">${finResp}</td>
-            <td class="text-slate-600 truncate" title="${obs}">${obs}</td>
-            <td class="font-medium text-slate-600 truncate" title="${atend}">${atend}</td>
+            <td class="font-semibold text-emerald-800 truncate" title="${c.financeiroResponsavel || ''}">${c.financeiroResponsavel || '-'}</td>
+            <td class="text-slate-600 truncate" title="${c.observacao || ''}">${c.observacao || '-'}</td>
+            <td class="font-medium text-slate-600 truncate" title="${c.atendente || ''}">${c.atendente || '-'}</td>
           </tr>
         `;
       }).join('');
-
-      atualizarControlesPaginacaoSAC(indiceInicio + 1, indiceFim, totalRegistros, pagina, totalPaginas);
       lucide.createIcons();
     }
 
-    function atualizarControlesPaginacaoSAC(de, ate, total, pagina, totalPaginas) {
-      const info = document.getElementById('infoPaginacaoSAC');
-      const badge = document.getElementById('badgePaginaSAC');
-      const btnAnt = document.getElementById('btnPagAntSAC');
-      const btnProx = document.getElementById('btnPagProxSAC');
-
-      if (info) info.innerText = `Exibindo ${de.toLocaleString('pt-BR')} a ${ate.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} chamados`;
-      if (badge) badge.innerText = `Página ${pagina} de ${totalPaginas}`;
-      if (btnAnt) btnAnt.disabled = (pagina <= 1);
-      if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
-    }
-
     function filtrarChamadosAbertos() {
-      clearTimeout(debounceTimerAbertos);
-      debounceTimerAbertos = setTimeout(() => {
-        paginaAtualAbertos = 1;
-        carregarPaginaChamadosAbertos(1);
-      }, 280);
+      const termo = (document.getElementById('searchAbertos')?.value || '').trim().toLowerCase();
+      if (!termo) { renderizarTabelaChamadosAbertos(listaChamadosSAC); return; }
+      const filtrados = listaChamadosSAC.filter(c => 
+        Object.values(c).some(val => String(val || '').toLowerCase().includes(termo))
+      );
+      renderizarTabelaChamadosAbertos(filtrados);
     }
 
-    function mudarPaginaAbertos(delta) {
-      const novaPagina = paginaAtualAbertos + delta;
-      if (novaPagina >= 1 && novaPagina <= totalPaginasAbertos) {
-        carregarPaginaChamadosAbertos(novaPagina);
-      }
-    }
-
-    async function carregarPaginaChamadosAbertos(pagina = 1) {
-      const badge = document.getElementById('badgeContadorAbertos');
-      const termo = limparTextoEntrada(document.getElementById('searchAbertos')?.value || '');
-
-      try {
-        const res = await consultarChamadosPaginadosAPI(pagina, termo, 'abertos');
-        if (res && res.status === 'success') {
-          paginaAtualAbertos = res.page || 1;
-          totalPaginasAbertos = res.total_pages || 1;
-          itensPaginaAbertos = Array.isArray(res.items) ? res.items : [];
-          const totalRegistros = res.total || 0;
-
-          if (badge) badge.innerText = totalRegistros.toLocaleString('pt-BR') + ' chamado(s)';
-          renderizarLinhasTabelaAbertos(itensPaginaAbertos, totalRegistros, paginaAtualAbertos, totalPaginasAbertos);
-          return;
-        }
-      } catch (err) {
-        console.warn('Fallback local na paginação Chamados Abertos:', err);
-      }
-
-      const filtrados = termo
-        ? listaChamadosSAC.filter(c => Object.values(c).some(v => normalizarCodificacaoTexto(String(v || '')).toLocaleLowerCase('pt-BR').includes(termo.toLocaleLowerCase('pt-BR'))))
-        : listaChamadosSAC;
-
-      totalPaginasAbertos = Math.max(1, Math.ceil(filtrados.length / ITENS_POR_PAGINA));
-      paginaAtualAbertos = Math.min(Math.max(1, pagina), totalPaginasAbertos);
-      const ini = (paginaAtualAbertos - 1) * ITENS_POR_PAGINA;
-      itensPaginaAbertos = filtrados.slice(ini, ini + ITENS_POR_PAGINA);
-      if (badge) badge.innerText = filtrados.length.toLocaleString('pt-BR') + ' chamado(s)';
-      renderizarLinhasTabelaAbertos(itensPaginaAbertos, filtrados.length, paginaAtualAbertos, totalPaginasAbertos);
-    }
-
-    function renderizarLinhasTabelaAbertos(listaPaginada, totalRegistros, pagina, totalPaginas) {
+    function renderizarTabelaChamadosAbertos(lista = listaChamadosSAC) {
       const tbody = document.getElementById('tableChamadosAbertosBody');
+      const badge = document.getElementById('badgeContadorAbertos');
+      if (badge) badge.innerText = lista.length + ' chamado(s)';
       if (!tbody) return;
-
-      if (!listaPaginada || listaPaginada.length === 0 || totalRegistros === 0) {
+      if (!lista || lista.length === 0) {
         tbody.innerHTML = '<tr><td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto encontrado.</td></tr>';
-        atualizarControlesPaginacaoAbertos(0, 0, 0, 1, 1);
         return;
       }
-
-      const indiceInicio = (pagina - 1) * ITENS_POR_PAGINA;
-      const indiceFim = indiceInicio + listaPaginada.length;
-
-      tbody.innerHTML = listaPaginada.map(c => {
-        const rVal = limparTextoEntrada(c.reembolso_realizado || c.reembolsoRealizado || 'Não').toLowerCase();
+      tbody.innerHTML = lista.map(c => {
+        const rVal = (c.reembolsoRealizado || 'Não').toString().trim().toLowerCase();
         const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
         const badgePago = pago 
           ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
           : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
 
-        const numChamado = limparTextoEntrada(c.chamado || c.Chamado || '');
-        const dtChamado = limparTextoEntrada(c.data || c.Data || '-');
-        const nomeCliente = limparTextoEntrada(c.cliente || c.Cliente || '-');
-        const valFormatado = formatCurrency(parseValorNumerico(c.valor || c.Valor));
-        const contatoNome = limparTextoEntrada(c.nome_sobrenome || c.nomeSobrenome || c['Nome/Sobrenome'] || '-');
-        const formaPag = limparTextoEntrada(c.forma_pgto || c.formaPgto || c['Forma de Pagamento'] || '-');
-        const chavePix = limparTextoEntrada(c.pix || c.Pix || c['Pix - Reembolso'] || '-');
-        const finResp = limparTextoEntrada(c.financeiro_responsavel || c.financeiroResponsavel || c['Financeiro Responsavel'] || '-');
-        const obs = limparTextoEntrada(c.observacao || c.Observação || c.obs || '-');
-
         return `
           <tr class="hover:bg-slate-50 transition border-b border-slate-100">
-            <td class="font-mono font-bold text-sky-700 truncate" title="${numChamado}">${numChamado}</td>
-            <td class="text-slate-700 truncate" title="${dtChamado}">${dtChamado}</td>
-            <td class="font-semibold text-slate-800 truncate" title="${nomeCliente}">${nomeCliente}</td>
-            <td class="text-right font-bold text-emerald-700 truncate" title="${valFormatado}">${valFormatado}</td>
-            <td class="font-medium text-slate-800 truncate" title="${contatoNome}">${contatoNome}</td>
-            <td class="text-slate-700 font-semibold truncate" title="${formaPag}">${formaPag}</td>
-            <td class="font-mono text-slate-600 truncate" title="${chavePix}">${chavePix}</td>
+            <td class="font-mono font-bold text-sky-700 truncate" title="${c.chamado}">${c.chamado}</td>
+            <td class="text-slate-700 truncate" title="${c.data || '-'}">${c.data || '-'}</td>
+            <td class="font-semibold text-slate-800 truncate" title="${c.cliente || ''}">${c.cliente || '-'}</td>
+            <td class="text-right font-bold text-emerald-700 truncate" title="${c.valor || ''}">${formatCurrency(parseValorNumerico(c.valor))}</td>
+            <td class="font-medium text-slate-800 truncate" title="${c.nomeSobrenome || ''}">${c.nomeSobrenome || '-'}</td>
+            <td class="text-slate-700 font-semibold truncate" title="${c.formaPgto || ''}">${c.formaPgto || '-'}</td>
+            <td class="font-mono text-slate-600 truncate" title="${c.pix || ''}">${c.pix || '-'}</td>
             <td class="text-center whitespace-nowrap">${badgePago}</td>
-            <td class="font-semibold text-emerald-800 truncate" title="${finResp}">${finResp}</td>
-            <td class="text-slate-600 truncate" title="${obs}">${obs}</td>
+            <td class="font-semibold text-emerald-800 truncate" title="${c.financeiroResponsavel || ''}">${c.financeiroResponsavel || '-'}</td>
+            <td class="text-slate-600 truncate" title="${c.observacao || ''}">${c.observacao || '-'}</td>
             <td class="text-center whitespace-nowrap">
-              <button type="button" onclick="editarChamadoSAC('${numChamado}', 'chamadosAbertos')" title="Editar chamado ${numChamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer inline-flex items-center justify-center">
+              <button type="button" onclick="editarChamadoSAC('${c.chamado}', 'chamadosAbertos')" title="Editar chamado ${c.chamado}" class="p-1 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 transition cursor-pointer inline-flex items-center justify-center">
                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
               </button>
             </td>
           </tr>
         `;
       }).join('');
-
-      atualizarControlesPaginacaoAbertos(indiceInicio + 1, indiceFim, totalRegistros, pagina, totalPaginas);
       lucide.createIcons();
     }
 
-    function atualizarControlesPaginacaoAbertos(de, ate, total, pagina, totalPaginas) {
-      const info = document.getElementById('infoPaginacaoAbertos');
-      const badge = document.getElementById('badgePaginaAbertos');
-      const btnAnt = document.getElementById('btnPagAntAbertos');
-      const btnProx = document.getElementById('btnPagProxAbertos');
-
-      if (info) info.innerText = `Exibindo ${de.toLocaleString('pt-BR')} a ${ate.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} chamados`;
-      if (badge) badge.innerText = `Página ${pagina} de ${totalPaginas}`;
-      if (btnAnt) btnAnt.disabled = (pagina <= 1);
-      if (btnProx) btnProx.disabled = (pagina >= totalPaginas);
-    }
-
     // =========================================================================
-    // CADASTRO DE CLIENTES (CRUD)
+    // CADASTRO DE CLIENTES
     // =========================================================================
     function limparFormCliente() {
       clienteEmEdicao = null;
@@ -2292,9 +1701,7 @@
       lucide.createIcons();
     }
 
-    function cancelarEdicaoCliente() { 
-      limparFormCliente(); 
-    }
+    function cancelarEdicaoCliente() { limparFormCliente(); }
 
     function editarCliente(index) {
       if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
@@ -2307,64 +1714,51 @@
       clienteEmEdicao = { ...item, indexOriginal: index };
       document.getElementById('cadCliCliente').value = converterParaPrimeirasMaiusculas(item.cliente || '');
       document.getElementById('cadCliLocal').value = converterParaPrimeirasMaiusculas(item.local || '');
-      document.getElementById('cadCliLocalInterno').value = converterParaPrimeirasMaiusculas(item.localInterno || item.local_interno || item.local || '');
+      document.getElementById('cadCliLocalInterno').value = converterParaPrimeirasMaiusculas(item.localInterno || item.local || '');
       document.getElementById('cadCliMaquina').value = converterParaPrimeirasMaiusculas(item.maquina || '');
-      document.getElementById('cadCliModeloMaquina').value = converterParaPrimeirasMaiusculas(item.modeloMaquina || item.modelo_maquina || '');
-      document.getElementById('cadCliFilial').value = converterParaPrimeirasMaiusculas(item.filialResponsavel || item.filial_responsavel || '');
+      document.getElementById('cadCliModeloMaquina').value = converterParaPrimeirasMaiusculas(item.modeloMaquina || '');
+      document.getElementById('cadCliFilial').value = converterParaPrimeirasMaiusculas(item.filialResponsavel || '');
 
       document.getElementById('alertCliEditMode').classList.remove('hidden');
-      document.getElementById('labelCliEditNome').innerText = limparTextoEntrada(item.cliente) + ' (' + limparTextoEntrada(item.localInterno || item.local || '') + ')';
-      document.getElementById('cliFormTitleText').innerText = 'Edição de Ponto: ' + limparTextoEntrada(item.cliente);
+      document.getElementById('labelCliEditNome').innerText = item.cliente + ' (' + (item.localInterno || item.local || '') + ')';
+      document.getElementById('cliFormTitleText').innerText = 'Edição de Ponto: ' + item.cliente;
       document.getElementById('btnSalvarClienteText').innerText = 'Salvar Alterações';
       document.getElementById('clienteForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
       lucide.createIcons();
     }
 
-    async function excluirCliente(index) {
+    function excluirCliente(index) {
       if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
         alert('⛔ Operação não permitida: Apenas usuários com perfil Geral podem excluir clientes.');
         return;
       }
       const item = listaCadastroClientes[index];
       if (!item) return;
-      const descr = limparTextoEntrada(item.cliente) + ' - ' + limparTextoEntrada(item.localInterno || item.local || '');
+      const descr = item.cliente + ' - ' + (item.localInterno || item.local || '');
       if (!confirm('Deseja realmente excluir o cadastro de "' + descr + '"?')) return;
 
       abrirModalLoading('Excluindo Cliente...', 'Removendo o ponto "' + descr + '" do banco de dados.', 'loading');
-
-      const resultado = await enviarParaBancoGarantido({
-        "action": "excluir_cliente",
-        "acao": "excluir_cliente",
-        "tipo": "excluir_cliente",
-        "id": item.id || item.linha || "",
-        "linha": item.id || item.linha || "",
-        "Cliente": limparTextoEntrada(item.cliente),
-        "Local": limparTextoEntrada(item.local),
-        "Local interno": limparTextoEntrada(item.localInterno || item.local_interno),
-        "Máquina": limparTextoEntrada(item.maquina),
-        "Modelo de máquina": limparTextoEntrada(item.modeloMaquina || item.modelo_maquina),
-        "Filial Responsavel": limparTextoEntrada(item.filialResponsavel || item.filial_responsavel)
+      enviarParaBancoGarantido({
+        "action": "excluir_cliente", "acao": "excluir_cliente", "tipo": "excluir_cliente",
+        "linha": item.linha || "",
+        "Cliente": item.cliente, "Local": item.local, "Local interno": item.localInterno,
+        "Máquina": item.maquina, "Modelo de máquina": item.modeloMaquina, "Filial Responsavel": item.filialResponsavel
       });
-
-      if (resultado.status === "error") {
-        fecharModalLoading();
-        alert('❌ Falha ao excluir cliente:\n' + resultado.message);
-        return;
-      }
 
       listaCadastroClientes.splice(index, 1);
       renderizarTabelaClientes();
-      inicializarFormularioSAC();
       if (clienteEmEdicao && clienteEmEdicao.indexOriginal === index) limparFormCliente();
 
-      abrirModalLoading('Cliente Excluído!', 'O cadastro foi removido com sucesso.', 'excluir');
-      setTimeout(fecharModalLoading, 1000);
+      setTimeout(() => {
+        abrirModalLoading('Cliente Excluído!', 'O cadastro foi removido com sucesso.', 'excluir');
+        setTimeout(fecharModalLoading, 1000);
+      }, 500);
     }
 
     function filtrarClientesCadastrados() {
-      const termo = limparTextoEntrada(document.getElementById('searchClientesCadastrados')?.value || '').toLocaleLowerCase('pt-BR');
+      const termo = (document.getElementById('searchClientesCadastrados')?.value || '').trim().toLowerCase();
       if (!termo) { renderizarTabelaClientes(listaCadastroClientes); return; }
-      const filtrados = listaCadastroClientes.filter(c => Object.values(c).some(val => normalizarCodificacaoTexto(String(val || '')).toLocaleLowerCase('pt-BR').includes(termo)));
+      const filtrados = listaCadastroClientes.filter(c => Object.values(c).some(val => String(val || '').toLowerCase().includes(termo)));
       renderizarTabelaClientes(filtrados);
     }
 
@@ -2374,7 +1768,7 @@
       if (badge) badge.innerText = lista.length + ' cliente(s)';
       if (!tbody) return;
       if (!lista || lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 font-semibold">Nenhum cliente carregado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 font-semibold">Nenhum cliente encontrado.</td></tr>';
         return;
       }
       tbody.innerHTML = lista.map((c, idx) => `
@@ -2389,93 +1783,67 @@
               </button>
             </div>
           </td>
-          <td class="font-bold text-slate-800 truncate" title="${limparTextoEntrada(c.cliente)}">${limparTextoEntrada(c.cliente) || '-'}</td>
-          <td class="text-slate-600 truncate" title="${limparTextoEntrada(c.local)}">${limparTextoEntrada(c.local) || '-'}</td>
-          <td class="text-slate-700 font-medium truncate" title="${limparTextoEntrada(c.localInterno || c.local_interno)}">${limparTextoEntrada(c.localInterno || c.local_interno) || '-'}</td>
-          <td class="text-slate-600 font-mono truncate" title="${limparTextoEntrada(c.maquina)}">${limparTextoEntrada(c.maquina) || '-'}</td>
-          <td class="text-slate-600 truncate" title="${limparTextoEntrada(c.modeloMaquina || c.modelo_maquina)}">${limparTextoEntrada(c.modeloMaquina || c.modelo_maquina) || '-'}</td>
-          <td class="font-semibold text-sky-800 truncate" title="${limparTextoEntrada(c.filialResponsavel || c.filial_responsavel)}">${limparTextoEntrada(c.filialResponsavel || c.filial_responsavel) || '-'}</td>
+          <td class="font-bold text-slate-800 truncate" title="${c.cliente || ''}">${c.cliente || '-'}</td>
+          <td class="text-slate-600 truncate" title="${c.local || ''}">${c.local || '-'}</td>
+          <td class="text-slate-700 font-medium truncate" title="${c.localInterno || ''}">${c.localInterno || '-'}</td>
+          <td class="text-slate-600 font-mono truncate" title="${c.maquina || ''}">${c.maquina || '-'}</td>
+          <td class="text-slate-600 truncate" title="${c.modeloMaquina || ''}">${c.modeloMaquina || '-'}</td>
+          <td class="font-semibold text-sky-800 truncate" title="${c.filialResponsavel || ''}">${c.filialResponsavel || '-'}</td>
         </tr>
       `).join('');
       lucide.createIcons();
     }
 
-    async function handleClienteSubmit(e) {
+    function handleClienteSubmit(e) {
       e.preventDefault();
       if ((nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
         alert('⛔ Apenas perfil Geral pode cadastrar clientes.'); return;
       }
-      const cliente = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliCliente').value));
-      const local = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliLocal').value));
-      const localInterno = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliLocalInterno').value));
-      const maquina = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliMaquina').value));
-      const modeloMaquina = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliModeloMaquina').value));
-      const filialResponsavel = converterParaPrimeirasMaiusculas(limparTextoEntrada(document.getElementById('cadCliFilial').value));
+      const cliente = converterParaPrimeirasMaiusculas(document.getElementById('cadCliCliente').value.trim());
+      const local = converterParaPrimeirasMaiusculas(document.getElementById('cadCliLocal').value.trim());
+      const localInterno = converterParaPrimeirasMaiusculas(document.getElementById('cadCliLocalInterno').value.trim());
+      const maquina = converterParaPrimeirasMaiusculas(document.getElementById('cadCliMaquina').value.trim());
+      const modeloMaquina = converterParaPrimeirasMaiusculas(document.getElementById('cadCliModeloMaquina').value.trim());
+      const filialResponsavel = converterParaPrimeirasMaiusculas(document.getElementById('cadCliFilial').value.trim());
       if (!cliente || !local || !localInterno || !maquina || !modeloMaquina || !filialResponsavel) {
         alert('Preencha todos os campos obrigatórios.'); return;
       }
 
       const ehEdicao = (clienteEmEdicao !== null);
-      abrirModalLoading(ehEdicao ? 'Atualizando Cliente...' : 'Cadastrando Cliente...', 'Gravando no banco Supabase...', 'loading');
+      abrirModalLoading(ehEdicao ? 'Atualizando Cliente...' : 'Cadastrando Cliente...', 'Gravando no banco SQL...', 'loading');
 
-      const btnSalvarCli = document.getElementById('btnSalvarCliente');
-      if (btnSalvarCli) btnSalvarCli.disabled = true;
-
-      const cliId = ehEdicao ? (clienteEmEdicao.id || clienteEmEdicao.linha || "") : "";
-
-      const resultado = await enviarParaBancoGarantido({
+      enviarParaBancoGarantido({
         "acao": ehEdicao ? "editar_cliente" : "inserir_cliente",
         "action": ehEdicao ? "editar_cliente" : "inserir_cliente",
         "tipo": "cadastro_cliente",
-        "id": cliId,
-        "linha": cliId,
-        "Cliente": cliente,
-        "Local": local,
-        "Local interno": localInterno,
-        "Máquina": maquina,
-        "Modelo de máquina": modeloMaquina,
-        "Filial Responsavel": filialResponsavel
+        "linha": ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : "",
+        "Cliente": cliente, "Local": local, "Local interno": localInterno,
+        "Máquina": maquina, "Modelo de máquina": modeloMaquina, "Filial Responsavel": filialResponsavel
       });
 
-      if (btnSalvarCli) btnSalvarCli.disabled = false;
-
-      if (resultado.status === "error") {
-        fecharModalLoading();
-        alert('❌ Falha ao salvar cliente:\n' + resultado.message);
-        return;
-      }
-
       const novoItem = {
-        id: ehEdicao ? cliId : (resultado.data?.linha || Date.now()),
-        linha: ehEdicao ? cliId : (resultado.data?.linha || Date.now()),
-        cliente,
-        local,
-        localInterno,
-        local_interno: localInterno,
-        maquina,
-        modeloMaquina,
-        modelo_maquina: modeloMaquina,
-        filialResponsavel,
-        filial_responsavel: filialResponsavel,
-        cidade: filialResponsavel
+        linha: ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : listaCadastroClientes.length + 2,
+        cliente, local, localInterno, maquina, modeloMaquina, filialResponsavel
       };
-
       if (ehEdicao) listaCadastroClientes[clienteEmEdicao.indexOriginal] = novoItem;
       else listaCadastroClientes.unshift(novoItem);
 
-      if (!dadosSAC.clientes) dadosSAC.clientes = [];
-      dadosSAC.clientes.push(novoItem);
+      dadosSAC.clientes.push({ cliente, local: localInterno, cidade: filialResponsavel });
       limparFormCliente();
       renderizarTabelaClientes();
-      inicializarFormularioSAC();
-
-      abrirModalLoading('Cliente Salvo!', 'Registro gravado com sucesso no Supabase.', 'sucesso');
-      setTimeout(fecharModalLoading, 1000);
+      setTimeout(() => {
+        abrirModalLoading('Cliente Salvo!', 'Registro gravado com sucesso no banco de dados.', 'sucesso');
+        setTimeout(fecharModalLoading, 1000);
+      }, 500);
     }
 
     // =========================================================================
-    // GRÁFICOS E INDICADORES DO DASHBOARD SAC
+    // CONFIGURAÇÃO DOS GRÁFICOS (CHART.JS)
     // =========================================================================
+    const filterSACCliente = document.getElementById('filterSACCliente');
+    const filterSACProduto = document.getElementById('filterSACProduto');
+    const filterSACAtendente = document.getElementById('filterSACAtendente');
+
     function getHorizontalSACBarOptions() {
       const textColor = '#475569';
       const gridColor = 'rgba(226, 232, 240, 0.7)';
@@ -2503,10 +1871,6 @@
         }
       };
     }
-
-    const filterSACCliente = document.getElementById('filterSACCliente');
-    const filterSACProduto = document.getElementById('filterSACProduto');
-    const filterSACAtendente = document.getElementById('filterSACAtendente');
 
     const chartTopProblemasSAC = new Chart(document.getElementById('chartTopProblemasSAC').getContext('2d'), {
       type: 'bar',
@@ -2652,6 +2016,9 @@
       options: getHorizontalSACBarOptions()
     });
 
+    // =========================================================================
+    // ATUALIZAÇÃO DOS GRÁFICOS DINÂMICOS
+    // =========================================================================
     function parseDateToYMD(dStr) {
       if (!dStr) return '';
       dStr = dStr.trim();
@@ -2671,12 +2038,12 @@
       listaChamadosSAC.forEach(c => {
         const ymd = parseDateToYMD(c.data);
         if (ymd && ymd.startsWith(mesAntInput)) {
-          const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
+          const loc = (c.localInterno || c.cliente || 'Outros').trim();
           cont[loc] = (cont[loc] || 0) + 1;
         }
       });
       const truncar = (t, max = 22) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 5);
+      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 5);
       chartLocaisAnterior.data.labels = top5.map(t => truncar(t.nome));
       chartLocaisAnterior.data.datasets[0].data = top5.map(t => t.qt);
       chartLocaisAnterior.update();
@@ -2689,12 +2056,12 @@
       listaChamadosSAC.forEach(c => {
         const ymd = parseDateToYMD(c.data);
         if (ymd && ymd.startsWith(mesAtualInput)) {
-          const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
+          const loc = (c.localInterno || c.cliente || 'Outros').trim();
           cont[loc] = (cont[loc] || 0) + 1;
         }
       });
       const truncar = (t, max = 22) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 5);
+      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 5);
       chartLocaisAtual.data.labels = top5.map(t => truncar(t.nome));
       chartLocaisAtual.data.datasets[0].data = top5.map(t => t.qt);
       chartLocaisAtual.update();
@@ -2805,12 +2172,12 @@
         if (!ymd) return;
         if (dtIni && ymd < dtIni) return;
         if (dtFim && ymd > dtFim) return;
-        const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
+        const loc = (c.localInterno || c.cliente || 'Outros').trim();
         cont[loc] = (cont[loc] || 0) + 1;
       });
 
       const truncar = (t, max = 26) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top10 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 10);
+      const top10 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
       chartTop10Semana.data.labels = top10.map(t => truncar(t.nome));
       chartTop10Semana.data.datasets[0].data = top10.map(t => t.qt);
       chartTop10Semana.update();
@@ -2827,27 +2194,27 @@
         if (!ymd) return;
         if (dtIni && ymd < dtIni) return;
         if (dtFim && ymd > dtFim) return;
-        if (filial !== 'ALL' && limparTextoEntrada(c.cidade).toLocaleLowerCase('pt-BR') !== filial.toLocaleLowerCase('pt-BR')) return;
-        const loc = limparTextoEntrada(c.localInterno || c.local_interno || c.cliente || 'Outros');
+        if (filial !== 'ALL' && (c.cidade || '').toLowerCase() !== filial.toLowerCase()) return;
+        const loc = (c.localInterno || c.cliente || 'Outros').trim();
         cont[loc] = (cont[loc] || 0) + 1;
       });
 
       const truncar = (t, max = 26) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top3 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 3);
+      const top3 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 3);
       chartTop3Filial.data.labels = top3.map(t => truncar(t.nome));
       chartTop3Filial.data.datasets[0].data = top3.map(t => t.qt);
       chartTop3Filial.update();
     }
 
     function inicializarFiltrosDashboardSAC() {
-      const clientesUnicos = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.cliente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      const clientesUnicos = [...new Set(listaChamadosSAC.map(c => c.cliente).filter(Boolean))].sort();
       filterSACCliente.innerHTML = '<option value="ALL">Todos os Clientes</option>';
       clientesUnicos.forEach(cli => {
         const opt = document.createElement('option'); opt.value = cli; opt.textContent = cli;
         filterSACCliente.appendChild(opt);
       });
 
-      const atendentesUnicos = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.atendente)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      const atendentesUnicos = [...new Set(listaChamadosSAC.map(c => c.atendente).filter(Boolean))].sort();
       filterSACAtendente.innerHTML = '<option value="ALL">Todos os Atendentes</option>';
       atendentesUnicos.forEach(a => {
         const opt = document.createElement('option'); opt.value = a; opt.textContent = a;
@@ -2912,7 +2279,7 @@
 
       const selFilial = document.getElementById('filterTopFilialSelect');
       selFilial.innerHTML = '<option value="ALL">Todas as Filiais</option>';
-      const filiais = [...new Set(listaChamadosSAC.map(c => limparTextoEntrada(c.cidade)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      const filiais = [...new Set(listaChamadosSAC.map(c => c.cidade).filter(Boolean))].sort();
       filiais.forEach(f => {
         const opt = document.createElement('option'); opt.value = f; opt.textContent = f;
         selFilial.appendChild(opt);
@@ -2926,9 +2293,9 @@
       const atendVal = filterSACAtendente.value;
 
       const filtrados = listaChamadosSAC.filter(item => {
-        const matchCli = (cliVal === 'ALL' || (item.cliente && limparTextoEntrada(item.cliente).toLocaleLowerCase('pt-BR') === cliVal.toLocaleLowerCase('pt-BR')));
-        const matchProd = (prodVal === 'ALL' || (item.produto && limparTextoEntrada(item.produto).toLocaleLowerCase('pt-BR') === prodVal.toLocaleLowerCase('pt-BR')));
-        const matchAtend = (atendVal === 'ALL' || (item.atendente && limparTextoEntrada(item.atendente).toLocaleLowerCase('pt-BR') === atendVal.toLocaleLowerCase('pt-BR')));
+        const matchCli = (cliVal === 'ALL' || (item.cliente && item.cliente.toLowerCase() === cliVal.toLowerCase()));
+        const matchProd = (prodVal === 'ALL' || (item.produto && item.produto.toLowerCase() === prodVal.toLowerCase()));
+        const matchAtend = (atendVal === 'ALL' || (item.atendente && item.atendente.toLowerCase() === atendVal.toLowerCase()));
         return matchCli && matchProd && matchAtend;
       });
 
@@ -2941,7 +2308,7 @@
 
       filtrados.forEach(c => {
         somaValor += parseValorNumerico(c.valor);
-        const pLower = limparTextoEntrada(c.produto).toLowerCase();
+        const pLower = (c.produto || '').toLowerCase();
         if (pLower.includes('café') || pLower.includes('cafe')) chamadosCafe++;
         else if (pLower.includes('snaky') || pLower.includes('snack')) chamadosSnaky++;
       });
@@ -2951,36 +2318,39 @@
       const ticketMedio = totalChamados > 0 ? (somaValor / totalChamados) : 0;
 
       document.getElementById('kpiSACTotal').innerText = totalChamados.toLocaleString('pt-BR');
-      document.getElementById('kpiSACTotalSub').innerText = totalChamados + ' ocorrências (amostra recente)';
+      document.getElementById('kpiSACTotalSub').innerText = totalChamados + ' ocorrências registradas';
       document.getElementById('kpiSACValorTotal').innerText = formatCurrency(somaValor);
       document.getElementById('kpiSACCafé').innerText = chamadosCafe.toLocaleString('pt-BR');
       document.getElementById('kpiSACCaféPct').innerText = pctCafe + '%';
       document.getElementById('kpiSACSnaky').innerText = chamadosSnaky.toLocaleString('pt-BR');
       document.getElementById('kpiSACSnakyPct').innerText = pctSnaky + '%';
-      document.getElementById('kpiSACClientes').innerText = new Set(filtrados.map(c => limparTextoEntrada(c.cliente))).size;
+      document.getElementById('kpiSACClientes').innerText = new Set(filtrados.map(c => c.cliente)).size;
       document.getElementById('kpiSACTicketMedio').innerText = formatCurrency(ticketMedio);
 
+      // Atualiza Top Problemas
       const probContagem = {};
       filtrados.forEach(c => {
-        const p = limparTextoEntrada(c.problemas || 'Outros');
+        const p = (c.problemas || 'Outros').trim();
         probContagem[p] = (probContagem[p] || 0) + 1;
       });
       const truncar = (t, max = 28) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top10Problemas = Object.entries(probContagem).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 10);
+      const top10Problemas = Object.entries(probContagem).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
       chartTopProblemasSAC.data.labels = top10Problemas.map(p => truncar(p.nome));
       chartTopProblemasSAC.data.datasets[0].data = top10Problemas.map(p => p.qt);
       chartTopProblemasSAC.update();
 
+      // Atualiza Chamados por Atendente
       const atendContagem = {};
       filtrados.forEach(c => {
-        const a = limparTextoEntrada(c.atendente || 'Não Informado');
+        const a = (c.atendente || 'Não Informado').trim();
         atendContagem[a] = (atendContagem[a] || 0) + 1;
       });
-      const topAtendentes = Object.entries(atendContagem).map(([nome, qt]) => ({ nome, qt })).sort((a, b) => b.qt - a.qt).slice(0, 10);
+      const topAtendentes = Object.entries(atendContagem).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
       chartAtendentesSAC.data.labels = topAtendentes.map(a => truncar(a.nome));
       chartAtendentesSAC.data.datasets[0].data = topAtendentes.map(a => a.qt);
       chartAtendentesSAC.update();
 
+      // Gráficos divididos
       atualizarGraficoLocaisAnterior();
       atualizarGraficoLocaisAtual();
       atualizarGraficoMesesQtd();
