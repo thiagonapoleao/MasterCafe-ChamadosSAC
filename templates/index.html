@@ -3639,15 +3639,44 @@
         }
       });
 
-      const truncar = (t, max = 24) => t.length > max ? t.substring(0, max) + '...' : t;
+      const formatarLabelCompleto = (texto, maxPorLinha = 24) => {
+        const limpo = String(texto || '').trim();
+        if (limpo.length <= maxPorLinha) return limpo;
+        const palavras = limpo.split(/\s+/);
+        const linhas = [];
+        let linhaAtual = '';
+        for (const palavra of palavras) {
+          if ((linhaAtual + ' ' + palavra).trim().length <= maxPorLinha) {
+            linhaAtual = (linhaAtual + ' ' + palavra).trim();
+          } else {
+            if (linhaAtual) linhas.push(linhaAtual);
+            linhaAtual = palavra;
+          }
+        }
+        if (linhaAtual) linhas.push(linhaAtual);
+        return linhas.length > 1 ? linhas : limpo;
+      };
+
       const top3 = Object.entries(agrupado)
         .map(([nome, dados]) => ({ nome, qtd: dados.qtd, valor: dados.valor }))
         .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor)
         .slice(0, 3);
 
-      chartTop3LocalMes.data.labels = top3.map(t => truncar(t.nome));
+      chartTop3LocalMes.data.labels = top3.map(t => formatarLabelCompleto(t.nome));
       chartTop3LocalMes.data.datasets[0].data = top3.map(t => t.qtd);
       chartTop3LocalMes.data.datasets[1].data = top3.map(t => t.valor);
+
+      if (chartTop3LocalMes.options && chartTop3LocalMes.options.scales) {
+        if (chartTop3LocalMes.options.scales.x && chartTop3LocalMes.options.scales.x.ticks) {
+          chartTop3LocalMes.options.scales.x.ticks.autoSkip = false;
+          chartTop3LocalMes.options.scales.x.ticks.maxRotation = 0;
+          chartTop3LocalMes.options.scales.x.ticks.minRotation = 0;
+        }
+        if (chartTop3LocalMes.options.scales.y && chartTop3LocalMes.options.scales.y.ticks) {
+          chartTop3LocalMes.options.scales.y.ticks.autoSkip = false;
+        }
+      }
+
       chartTop3LocalMes.update();
     }
     // =========================================================================
