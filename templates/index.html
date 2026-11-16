@@ -84,9 +84,9 @@
       <div class="text-center space-y-3">
         <div class="inline-flex items-center justify-center p-2 bg-white rounded-2xl border border-slate-200 shadow-sm mx-auto overflow-hidden" style="height: 64px; min-width: 64px;">
           <img src="{{ logo_base64_src }}" alt="Logotipo" class="max-h-12 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('loginFallbackIcon').style.display='flex';">
-          <div id="loginFallbackIcon" style="display: {{ 'none' if logo_base64_src else 'flex' }};" class="w-12 h-12 bg-amber-700 text-white rounded-xl items-center justify-center font-black text-base">
-            ☕
-          </div>
+          <div id="loginFallbackIcon" class="{{ 'hidden' if logo_base64_src else 'flex' }} w-12 h-12 bg-amber-700 text-white rounded-xl items-center justify-center font-black text-base">
+  ☕
+</div>
         </div>
         <div>
           <h2 class="text-xl font-black text-slate-900">Acesso ao Sistema</h2>
@@ -122,9 +122,9 @@
         <div class="flex items-center gap-4">
           <div class="flex items-center justify-center p-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" style="height: 54px; min-width: 54px;">
             <img id="headerLogoImg" src="{{ logo_base64_src }}" alt="Logotipo" class="max-h-12 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('headerFallbackIcon').style.display='flex';">
-            <div id="headerFallbackIcon" style="display: {{ 'none' if logo_base64_src else 'flex' }};" class="w-10 h-10 bg-amber-700 text-white rounded-lg items-center justify-center font-black text-sm">
-              ☕
-            </div>
+            <div id="headerFallbackIcon" class="{{ 'hidden' if logo_base64_src else 'flex' }} w-10 h-10 bg-amber-700 text-white rounded-lg items-center justify-center font-black text-sm">
+  ☕
+</div>
           </div>
           <div>
             <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
@@ -509,19 +509,21 @@
           </div>
         </section>
 
-        <!-- TABELA: TOP 3 LOCAIS INTERNOS DO DIA COM PROBLEMAS RESUMIDOS -->
+        <!-- TABELA 2: TOP 5 LOCAIS INTERNOS DO DIA POR FILIAL COM PROBLEMAS RESUMIDOS -->
         <section class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 overflow-hidden">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
               <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
-                <i data-lucide="clipboard-list" class="w-4 h-4 text-rose-600"></i>
-                Top 3 Locais Internos do Dia — Problemas Resumidos
+                <i data-lucide="building-2" class="w-4 h-4 text-amber-600"></i>
+                Top 5 Locais Internos do Dia por Filial — Problemas Resumidos
               </h3>
-              <p class="text-xs text-slate-400">Detalhamento das ocorrências agrupadas por local interno na data selecionada</p>
+              <p class="text-xs text-slate-400">Ranking diário filtrado por filial responsável e problemas agrupados</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <label class="text-[11px] font-bold text-slate-500">Filial:</label>
+              <select id="filterTabelaTop5FilialSelect" onchange="atualizarTabelaTop5LocaisFilialDia()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700 font-semibold"></select>
               <label class="text-[11px] font-bold text-slate-500">Data:</label>
-              <input type="date" id="filterTabelaTop3Dia" onchange="atualizarTabelaTop3LocaisDia()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700">
+              <input type="date" id="filterTabelaTop5FilialDia" onchange="atualizarTabelaTop5LocaisFilialDia()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700">
             </div>
           </div>
 
@@ -531,21 +533,61 @@
                 <tr>
                   <th class="py-2.5 px-3 rounded-l-lg w-14 text-center">Rank</th>
                   <th class="py-2.5 px-3 w-1/4">Local Interno (Cliente)</th>
+                  <th class="py-2.5 px-3 w-28">Filial</th>
                   <th class="py-2.5 px-3 w-24 text-center">Chamados</th>
                   <th class="py-2.5 px-3 w-28 text-right">Valor Total</th>
                   <th class="py-2.5 px-3 rounded-r-lg">Problemas Resumidos</th>
                 </tr>
               </thead>
-              <tbody id="tableTop3LocaisDiaBody" class="divide-y divide-slate-100">
+              <tbody id="tableTop5LocaisFilialDiaBody" class="divide-y divide-slate-100">
                 <tr>
-                  <td colspan="5" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado na data selecionada.</td>
+                  <td colspan="6" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para a filial/data selecionada.</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </section>
 
-        
+        <!-- TABELA 3: TODOS OS LOCAIS INTERNOS DO DIA COM PESQUISA DE CLIENTE -->
+        <section class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4 overflow-hidden">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+                <i data-lucide="search-check" class="w-4 h-4 text-sky-600"></i>
+                Locais Internos do Dia — Problemas Resumidos por Cliente
+              </h3>
+              <p class="text-xs text-slate-400">Listagem completa do dia com pesquisa rápida por cliente ou local interno</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2"></i>
+                <input type="text" id="searchTabelaLocaisCliente" placeholder="Pesquisar cliente ou local..." oninput="atualizarTabelaLocaisDiaPorCliente()" class="text-xs pl-8 pr-3 py-1 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-56">
+              </div>
+              <label class="text-[11px] font-bold text-slate-500">Data:</label>
+              <input type="date" id="filterTabelaLocaisClienteDia" onchange="atualizarTabelaLocaisDiaPorCliente()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700">
+            </div>
+          </div>
+
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs text-slate-600">
+              <thead class="bg-slate-50 uppercase font-bold text-slate-500 text-[10px]">
+                <tr>
+                  <th class="py-2.5 px-3 rounded-l-lg w-1/4">Cliente</th>
+                  <th class="py-2.5 px-3 w-1/5">Local Interno</th>
+                  <th class="py-2.5 px-3 w-28">Filial</th>
+                  <th class="py-2.5 px-3 w-24 text-center">Chamados</th>
+                  <th class="py-2.5 px-3 w-28 text-right">Valor Total</th>
+                  <th class="py-2.5 px-3 rounded-r-lg">Problemas Resumidos</th>
+                </tr>
+              </thead>
+              <tbody id="tableLocaisClienteDiaBody" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="6" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para os critérios informados.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>        
       </div>
 
       <!-- PÁGINA 2: LANÇAMENTO SAC -->
@@ -1025,21 +1067,122 @@
     </main>
   </div>
 
-  <script>
+  <script id="dados-sac-b64" type="text/plain">{{ dados_sac_b64 }}</script>
+  
+  <script>   
+    
     lucide.createIcons();
     Chart.register(ChartDataLabels);
+    
 
-    // =========================================================================
+// =========================================================================
     // INÍCIO: normalizarTextoUtf8
     // =========================================================================
     function normalizarTextoUtf8(valor) {
       if (valor === null || valor === undefined) return '';
       let str = String(valor);
-      try {
-        if (/Ã[\x80-\xBF]|Â[\x80-\xBF]/.test(str)) {
-          str = decodeURIComponent(escape(str));
+      if (!str) return '';
+
+      // 1. Decodifica entidades HTML caso venham escapadas do template/banco
+      if (str.indexOf('&') !== -1 && str.indexOf(';') !== -1) {
+        const txtArea = document.createElement('textarea');
+        txtArea.innerHTML = str;
+        str = txtArea.value;
+      }
+
+      // 2. Repara dupla codificação UTF-8 lida como Latin-1 / Windows-1252
+      const mapaCp1252ParaByte = {
+        0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85,
+        0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A,
+        0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92,
+        0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
+        0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C,
+        0x017E: 0x9E, 0x0178: 0x9F
+      };
+
+      for (let pass = 0; pass < 2; pass++) {
+        if (str.indexOf('\u00C3') === -1 && str.indexOf('\u00C2') === -1 && str.indexOf('\u00E2') === -1) {
+          break;
         }
-      } catch (e) {}
+        try {
+          const bytes = new Uint8Array(str.length);
+          let conversivel = true;
+          for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            if (code <= 0xFF) {
+              bytes[i] = code;
+            } else if (mapaCp1252ParaByte[code] !== undefined) {
+              bytes[i] = mapaCp1252ParaByte[code];
+            } else {
+              conversivel = false;
+              break;
+            }
+          }
+          if (conversivel) {
+            const decodificado = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+            if (decodificado && decodificado !== str) {
+              str = decodificado;
+            } else {
+              break;
+            }
+          } else {
+            break;
+          }
+        } catch (e) {
+          break;
+        }
+      }
+
+      // 3. Converte a sequência literal "ï¿½" (\u00EF\u00BF\u00BD) para \uFFFD antes do mapeamento
+      if (str.indexOf('\u00EF\u00BF\u00BD') !== -1) {
+        str = str.split('\u00EF\u00BF\u00BD').join('\uFFFD');
+      }
+
+      // 4. Restaura palavras PT-BR somente quando existir o caractere \uFFFD explícito
+      if (str.indexOf('\uFFFD') !== -1) {
+        const mapaFffd = [
+          ['\uFFFD\uFFFDo', 'ção'], ['\uFFFD\uFFFDO', 'ÇÃO'],
+          ['\uFFFD\uFFFDes', 'ções'], ['\uFFFD\uFFFDES', 'ÇÕES'],
+          ['\uFFFD\uFFFDa', 'ça'], ['\uFFFD\uFFFDA', 'ÇA'],
+          ['S\uFFFDo ', 'São '], ['S\uFFFDO ', 'SÃO '],
+          ['Ribeir\uFFFDo', 'Ribeirão'], ['RIBEIR\uFFFDO', 'RIBEIRÃO'],
+          ['Ja\uFFFD', 'Jaú'], ['Goi\uFFFDnia', 'Goiânia'],
+          ['Bras\uFFFDlia', 'Brasília'], ['Cuiab\uFFFD', 'Cuiabá'],
+          ['Bel\uFFFDm', 'Belém'], ['Macei\uFFFD', 'Maceió'],
+          ['N\uFFFDo', 'Não'], ['N\uFFFDO', 'NÃO'],
+          ['Caf\uFFFD', 'Café'], ['CAF\uFFFD', 'CAFÉ'],
+          ['Cr\uFFFDdito', 'Crédito'], ['D\uFFFDbito', 'Débito'],
+          ['Devolu\uFFFD\uFFFDo', 'Devolução'], ['Transa\uFFFD\uFFFDo', 'Transação'],
+          ['Observa\uFFFD\uFFFDo', 'Observação'], ['Descri\uFFFD\uFFFDo', 'Descrição'],
+          ['Manuten\uFFFD\uFFFDo', 'Manutenção'], ['Refeit\uFFFDrio', 'Refeitório'],
+          ['Recep\uFFFD\uFFFDo', 'Recepção'], ['F\uFFFDbrica', 'Fábrica'],
+          ['M\uFFFDquina', 'Máquina'], ['M\uFFFDquinas', 'Máquinas'],
+          ['Pr\uFFFDdio', 'Prédio'], ['T\uFFFDrreo', 'Térreo'],
+          ['M\uFFFDdio', 'Médio'], ['M\uFFFDdia', 'Média'],
+          ['Cart\uFFFDo', 'Cartão'], ['cart\uFFFDo', 'cartão'],
+          ['Aleat\uFFFDria', 'Aleatória'], ['N\uFFFDmero', 'Número'],
+          ['Hor\uFFFDrio', 'Horário'], ['Relat\uFFFDrio', 'Relatório'],
+          ['Usu\uFFFDrio', 'Usuário'], ['Funcion\uFFFDrio', 'Funcionário'],
+          ['\uFFFDgua', 'Água'], ['A\uFFFD\uFFFDcar', 'Açúcar'],
+          ['Eug\uFFFDnio', 'Eugênio'], ['EUG\uFFFDNIO', 'EUGÊNIO'],
+          ['Jo\uFFFDo', 'João'], ['Jos\uFFFD', 'José'],
+          ['Ant\uFFFDnio', 'Antônio'], ['S\uFFFDrgio', 'Sérgio'],
+          ['M\uFFFDrcio', 'Márcio'], ['M\uFFFDrcia', 'Márcia'],
+          ['Andr\uFFFD', 'André'], ['L\uFFFDcia', 'Lúcia'],
+          ['Patr\uFFFDcia', 'Patrícia'], ['Cl\uFFFDudia', 'Cláudia'],
+          ['Fl\uFFFDvia', 'Flávia'], ['Vit\uFFFDria', 'Vitória'],
+          ['Val\uFFFDria', 'Valéria'], ['Rog\uFFFDrio', 'Rogério'],
+          ['C\uFFFDsar', 'César'], ['V\uFFFDtor', 'Vítor'],
+          ['N\uFFFD', 'Nº'], ['n\uFFFD', 'nº']
+        ];
+        for (const [errado, certo] of mapaFffd) {
+          if (str.indexOf(errado) !== -1) {
+            str = str.split(errado).join(certo);
+          }
+        }
+        str = str.replace(/\uFFFDo(\s|$)/g, 'ão$1').replace(/\uFFFDes(\s|$)/g, 'ões$1');
+      }
+
       return str.normalize('NFC');
     }
     // =========================================================================
@@ -1055,7 +1198,8 @@
       if (obj && typeof obj === 'object') {
         const limpo = {};
         for (const [k, v] of Object.entries(obj)) {
-          limpo[k] = sanitizarObjetoUtf8(v);
+          const chaveLimpa = normalizarTextoUtf8(k);
+          limpo[chaveLimpa] = sanitizarObjetoUtf8(v);
         }
         return limpo;
       }
@@ -1064,9 +1208,142 @@
     // =========================================================================
     // TÉRMINO: sanitizarObjetoUtf8
     // =========================================================================
+    
+    
+    // =========================================================================
+    // INÍCIO: normalizarTextoUtf8
+    // =========================================================================
+    function normalizarTextoUtf8(valor) {
+      if (valor === null || valor === undefined) return '';
+      let str = String(valor);
+      if (!str) return '';
+
+      // 1. Decodifica entidades HTML caso venham escapadas do template/banco (ex: &ccedil;, &#227;)
+      if (str.includes('&') && str.includes(';')) {
+        const txtArea = document.createElement('textarea');
+        txtArea.innerHTML = str;
+        str = txtArea.value;
+      }
+
+      // 2. Repara dupla codificação UTF-8 lida como Latin-1 / Windows-1252 (ex: Ã§ -> ç, Ã£ -> ã, Âº -> º, Âª -> ª)
+      // Executa até 2 passes para corrigir casos duplamente corrompidos
+      const mapaCp1252ParaByte = {
+        0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85,
+        0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A,
+        0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92,
+        0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
+        0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C,
+        0x017E: 0x9E, 0x0178: 0x9F
+      };
+
+      for (let pass = 0; pass < 2; pass++) {
+        if (!/(Ã[\x80-\xBF\u0080-\u024F\u2018-\u203A\u0152-\u017E]|Â[\x80-\xBFºª°§©®±²³µ¶·¹]|â[\x80-\x9F\u2013-\u2026])/.test(str)) {
+          break;
+        }
+        try {
+          const bytes = new Uint8Array(str.length);
+          let conversivel = true;
+          for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            if (code <= 0xFF) {
+              bytes[i] = code;
+            } else if (mapaCp1252ParaByte[code] !== undefined) {
+              bytes[i] = mapaCp1252ParaByte[code];
+            } else {
+              conversivel = false;
+              break;
+            }
+          }
+          if (conversivel) {
+            const decodificado = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+            if (decodificado && decodificado !== str) {
+              str = decodificado;
+            } else {
+              break;
+            }
+          } else {
+            break;
+          }
+        } catch (e) {
+          break;
+        }
+      }
+
+      // 3. Normaliza para forma canônica composta NFC (garante ã, ç, é, ê, ô, ú, º, ª íntegros)
+      return str.normalize('NFC');
+    }
+    // =========================================================================
+    // TÉRMINO: normalizarTextoUtf8
+    // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: sanitizarObjetoUtf8
+    // =========================================================================
+    function sanitizarObjetoUtf8(obj) {
+      if (typeof obj === 'string') return normalizarTextoUtf8(obj);
+      if (Array.isArray(obj)) return obj.map(item => sanitizarObjetoUtf8(item));
+      if (obj && typeof obj === 'object') {
+        const limpo = {};
+        for (const [k, v] of Object.entries(obj)) {
+          const chaveLimpa = normalizarTextoUtf8(k);
+          limpo[chaveLimpa] = sanitizarObjetoUtf8(v);
+        }
+        return limpo;
+      }
+      return obj;
+    }
+    // =========================================================================
+    // TÉRMINO: sanitizarObjetoUtf8
+    // =========================================================================
+    
+    
+    // =========================================================================
+    // TÉRMINO: sanitizarObjetoUtf8
+    // =========================================================================
 
     const BACKEND_API_URL = "/api/action";
-    const dadosSAC = sanitizarObjetoUtf8({{ dados_sac_json | safe }});
+
+    // =========================================================================
+    // INÍCIO: decodificarBase64Utf8
+    // =========================================================================
+    function decodificarBase64Utf8(b64Str) {
+      if (!b64Str) return {};
+      const binString = atob(b64Str.trim());
+      const bytes = new Uint8Array(binString.length);
+      for (let i = 0; i < binString.length; i++) {
+        bytes[i] = binString.charCodeAt(i);
+      }
+      const jsonUtf8 = new TextDecoder('utf-8').decode(bytes);
+      return JSON.parse(jsonUtf8);
+    }
+    // =========================================================================
+    // TÉRMINO: decodificarBase64Utf8
+    // =========================================================================
+
+    const b64El = document.getElementById('dados-sac-b64');
+    const dadosSACBrutos = (b64El && b64El.textContent.trim())
+      ? decodificarBase64Utf8(b64El.textContent)
+      : {};
+    const dadosSAC = sanitizarObjetoUtf8(dadosSACBrutos);
+
+    // =========================================================================
+    // INÍCIO: aplicarNormalizacaoUtf8NosInputs
+    // =========================================================================
+    function aplicarNormalizacaoUtf8NosInputs() {
+      document.addEventListener('change', (e) => {
+        const el = e.target;
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && el.type !== 'password' && el.type !== 'file') {
+          if (el.value) {
+            el.value = normalizarTextoUtf8(el.value);
+          }
+        }
+      }, true);
+    }
+    // =========================================================================
+    // TÉRMINO: aplicarNormalizacaoUtf8NosInputs
+    // =========================================================================
+    
+    aplicarNormalizacaoUtf8NosInputs();
     let listaChamadosSAC = Array.isArray(dadosSAC.chamados) ? dadosSAC.chamados : [];
     let listaCadastroClientes = Array.isArray(dadosSAC.cadastro_clientes) ? dadosSAC.cadastro_clientes : [];
     let chamadoEmEdicao = null;
@@ -1208,33 +1485,58 @@
     // INÍCIO: realizarLoginGlobal
     // =========================================================================
     function realizarLoginGlobal(e) {
-      e.preventDefault();
-      const u = normalizarTextoUtf8(document.getElementById('globalLoginUser').value || '').trim().toLowerCase();
-      const p = normalizarTextoUtf8(document.getElementById('globalLoginPass').value || '').trim().toLowerCase();
-      const erroBox = document.getElementById('globalLoginErro');
-
-      const userValido = (dadosSAC.usuarios || []).find(x => 
-        normalizarTextoUtf8(x.usuario || '').trim().toLowerCase() === u && 
-        normalizarTextoUtf8(x.senha || '').trim().toLowerCase() === p
-      );
-
-      if (userValido) {
-        erroBox.classList.add('hidden');
-        atendenteSACLogado = normalizarTextoUtf8(userValido.nome || userValido.usuario);
-        loginUsuarioConectado = normalizarTextoUtf8(userValido.usuario);
-        nivelAcessoLogado = normalizarTextoUtf8(userValido.acesso || "Atendente");
-
-        try {
-          sessionStorage.setItem('sac_atendente_conectado', atendenteSACLogado);
-          sessionStorage.setItem('sac_usuario_login', loginUsuarioConectado);
-          sessionStorage.setItem('sac_nivel_acesso', nivelAcessoLogado);
-          sessionStorage.setItem('aba_ativa_atual', 'dashboardSAC');
-        } catch(e) {}
-
-        verificarEstadoAutenticacao();
-      } else {
-        erroBox.classList.remove('hidden');
+      if (e && typeof e.preventDefault === 'function') {
+        e.preventDefault();
+        e.stopPropagation();
       }
+
+      try {
+        const userEl = document.getElementById('globalLoginUser');
+        const passEl = document.getElementById('globalLoginPass');
+        const erroBox = document.getElementById('globalLoginErro');
+
+        const u = normalizarTextoUtf8(userEl ? userEl.value : '').trim().toLowerCase();
+        const p = normalizarTextoUtf8(passEl ? passEl.value : '').trim().toLowerCase();
+
+        const listaUsuarios = (dadosSAC && Array.isArray(dadosSAC.usuarios)) ? dadosSAC.usuarios : [];
+
+        if (listaUsuarios.length === 0) {
+          alert('⚠️ Atenção: Nenhum usuário foi carregado do banco de dados (dadosSAC.usuarios está vazio). Verifique a conexão com o banco.');
+          return false;
+        }
+
+        const userValido = listaUsuarios.find(x => {
+          const usrBanco = normalizarTextoUtf8(x.usuario || x.Usuario || x.login || '').trim().toLowerCase();
+          const senBanco = normalizarTextoUtf8(x.senha || x.Senha || '').trim().toLowerCase();
+          return usrBanco === u && senBanco === p;
+        });
+
+        if (userValido) {
+          if (erroBox) erroBox.classList.add('hidden');
+          atendenteSACLogado = normalizarTextoUtf8(userValido.nome || userValido.Nome || userValido.usuario || u);
+          loginUsuarioConectado = normalizarTextoUtf8(userValido.usuario || u);
+          nivelAcessoLogado = normalizarTextoUtf8(userValido.acesso || userValido.Acesso || "Atendente");
+
+          try {
+            sessionStorage.setItem('sac_atendente_conectado', atendenteSACLogado);
+            sessionStorage.setItem('sac_usuario_login', loginUsuarioConectado);
+            sessionStorage.setItem('sac_nivel_acesso', nivelAcessoLogado);
+            sessionStorage.setItem('aba_ativa_atual', 'dashboardSAC');
+          } catch (storageErr) {}
+
+          verificarEstadoAutenticacao();
+        } else {
+          if (erroBox) {
+            erroBox.classList.remove('hidden');
+          } else {
+            alert('Usuário ou senha incorretos!');
+          }
+        }
+      } catch (err) {
+        console.error('Erro crítico no login:', err);
+        alert('❌ Erro ao executar login: ' + err.message);
+      }
+      return false;
     }
     // =========================================================================
     // TÉRMINO: realizarLoginGlobal
@@ -1468,19 +1770,35 @@
     // =========================================================================
     // INÍCIO: enviarParaBancoGarantido
     // =========================================================================
+   // =========================================================================
+    // INÍCIO: enviarParaBancoGarantido
+    // =========================================================================
     async function enviarParaBancoGarantido(payload) {
       try {
         const payloadUtf8 = sanitizarObjetoUtf8(payload);
+        const jsonString = JSON.stringify(payloadUtf8).normalize('NFC');
+        const utf8Bytes = new TextEncoder().encode(jsonString);
+        const utf8Blob = new Blob([utf8Bytes], { type: 'application/json; charset=utf-8' });
+
         const resp = await fetch(BACKEND_API_URL, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json; charset=utf-8",
             "Accept": "application/json; charset=utf-8"
           },
-          body: JSON.stringify(payloadUtf8)
+          body: utf8Blob
         });
 
-        const rawJson = await resp.json().catch(() => null);
+        // Lê o buffer bruto e decodifica estritamente como UTF-8
+        const arrayBuffer = await resp.arrayBuffer();
+        const textoResposta = new TextDecoder('utf-8').decode(arrayBuffer);
+        let rawJson = null;
+        try {
+          rawJson = textoResposta ? JSON.parse(textoResposta) : null;
+        } catch (parseErr) {
+          rawJson = null;
+        }
+
         const dadosResposta = sanitizarObjetoUtf8(rawJson);
 
         if (!resp.ok) {
@@ -1507,6 +1825,9 @@
         };
       }
     }
+    // =========================================================================
+    // TÉRMINO: enviarParaBancoGarantido
+    // =========================================================================
     // =========================================================================
     // TÉRMINO: enviarParaBancoGarantido
     // =========================================================================
@@ -2176,6 +2497,35 @@
     // =========================================================================
 
     // =========================================================================
+    // INÍCIO: ordenarChamadosMaisRecentesPrimeiro
+    // =========================================================================
+    function ordenarChamadosMaisRecentesPrimeiro(lista) {
+      if (!Array.isArray(lista)) return [];
+      return [...lista].sort((a, b) => {
+        const chA = normalizarTextoUtf8(a.chamado || a.Chamado || '').trim();
+        const chB = normalizarTextoUtf8(b.chamado || b.Chamado || '').trim();
+
+        const matchA = chA.match(/SAC-(\d{4})-(\d+)/i);
+        const matchB = chB.match(/SAC-(\d{4})-(\d+)/i);
+
+        if (matchA && matchB) {
+          const anoDiff = parseInt(matchB[1], 10) - parseInt(matchA[1], 10);
+          if (anoDiff !== 0) return anoDiff;
+          return parseInt(matchB[2], 10) - parseInt(matchA[2], 10);
+        }
+
+        const dtA = parseDateToYMD(a.data || a.Data || '');
+        const dtB = parseDateToYMD(b.data || b.Data || '');
+        if (dtA !== dtB) return dtB.localeCompare(dtA);
+
+        return chB.localeCompare(chA, 'pt-BR', { numeric: true });
+      });
+    }
+    // =========================================================================
+    // TÉRMINO: ordenarChamadosMaisRecentesPrimeiro
+    // =========================================================================
+
+    // =========================================================================
     // INÍCIO: mudarPaginaSAC
     // =========================================================================
     function mudarPaginaSAC(delta) {
@@ -2216,7 +2566,7 @@
     // INÍCIO: renderizarTabelaChamadosSAC
     // =========================================================================
     function renderizarTabelaChamadosSAC(lista = listaFiltradaSACAtual) {
-      listaFiltradaSACAtual = Array.isArray(lista) ? lista : [];
+      listaFiltradaSACAtual = ordenarChamadosMaisRecentesPrimeiro(Array.isArray(lista) ? lista : []);
       const tbody = document.getElementById('tableSACChamadosBody');
       const badge = document.getElementById('badgeContadorSAC');
       const infoEl = document.getElementById('paginacaoSACInfo');
@@ -2350,7 +2700,7 @@
     // INÍCIO: renderizarTabelaChamadosAbertos
     // =========================================================================
     function renderizarTabelaChamadosAbertos(lista = listaFiltradaAbertosAtual) {
-      listaFiltradaAbertosAtual = Array.isArray(lista) ? lista : [];
+      listaFiltradaAbertosAtual = ordenarChamadosMaisRecentesPrimeiro(Array.isArray(lista) ? lista : []);
       const tbody = document.getElementById('tableChamadosAbertosBody');
       const badge = document.getElementById('badgeContadorAbertos');
       const infoEl = document.getElementById('paginacaoAbertosInfo');
@@ -3304,65 +3654,205 @@
     // TÉRMINO: atualizarGraficoTop3LocalMes
     // =========================================================================
 
+  // =========================================================================
+    // INÍCIO: renderizarBadgesProblemasResumidos
     // =========================================================================
-    // INÍCIO: atualizarTabelaTop3LocaisDia
+    function renderizarBadgesProblemasResumidos(mapaProblemas) {
+      return Object.entries(mapaProblemas)
+        .sort((a, b) => b[1] - a[1])
+        .map(([nomeProb, qtProb]) => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 font-medium mr-1 mb-1">${nomeProb} <strong class="text-sky-700">(${qtProb})</strong></span>`)
+        .join('');
+    }
     // =========================================================================
-    function atualizarTabelaTop3LocaisDia() {
-      const dtDia = document.getElementById('filterTabelaTop3Dia')?.value;
-      const tbody = document.getElementById('tableTop3LocaisDiaBody');
+    // TÉRMINO: renderizarBadgesProblemasResumidos
+    // =========================================================================
+
+    
+    // =========================================================================
+    // INÍCIO: atualizarTabelaTop5LocaisFilialDia
+    // =========================================================================
+    function atualizarTabelaTop5LocaisFilialDia() {
+      const selFilialEl = document.getElementById('filterTabelaTop5FilialSelect');
+      const dtDiaEl = document.getElementById('filterTabelaTop5FilialDia');
+      const tbody = document.getElementById('tableTop5LocaisFilialDiaBody');
+      if (!tbody || !dtDiaEl) return;
+
+      // Garante que o dropdown esteja populado mesmo se chamado antes da inicialização
+      if (selFilialEl && selFilialEl.options.length <= 1) {
+        const valorAtual = selFilialEl.value || 'ALL';
+        const filiais = obterListaFiliaisUnicas();
+        selFilialEl.innerHTML = '<option value="ALL">Todas as Filiais</option>';
+        filiais.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f;
+          opt.textContent = f;
+          selFilialEl.appendChild(opt);
+        });
+        selFilialEl.value = valorAtual;
+      }
+
+      const dtDia = dtDiaEl.value;
+      const filialSel = selFilialEl ? selFilialEl.value : 'ALL';
+      if (!dtDia) return;
+
+      const agrupado = {};
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data || c.Data);
+        if (ymd !== dtDia) return;
+
+        const filialItem = normalizarTextoUtf8(c.cidade || c.Cidade || c.filial || 'Não Informada').trim();
+        if (filialSel !== 'ALL' && filialItem.toLowerCase() !== filialSel.toLowerCase()) return;
+
+        const loc = normalizarTextoUtf8(c.localInterno || c.local_interno || c['Local Interno'] || 'Não Informado').trim();
+        const cli = normalizarTextoUtf8(c.cliente || c.Cliente || '').trim();
+        const prob = normalizarTextoUtf8(c.problemas || c.Problemas || c.problema || 'Outros').trim();
+        const chave = loc + '||' + cli + '||' + filialItem;
+
+        if (!agrupado[chave]) {
+          agrupado[chave] = { local: loc, cliente: cli, filial: filialItem, qtd: 0, valor: 0, problemas: {} };
+        }
+        agrupado[chave].qtd += 1;
+        agrupado[chave].valor += parseValorNumerico(c.valor || c.Valor);
+        agrupado[chave].problemas[prob] = (agrupado[chave].problemas[prob] || 0) + 1;
+      });
+
+      const top5 = Object.values(agrupado)
+        .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor)
+        .slice(0, 5);
+
+      if (top5.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para os filtros selecionados em ' + dataIsoParaPtBr(dtDia) + '.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = top5.map((item, idx) => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-2.5 px-3 text-center font-black text-amber-700">#${idx + 1}</td>
+          <td class="py-2.5 px-3">
+            <div class="font-bold text-slate-800">${item.local}</div>
+            <div class="text-[11px] text-slate-400">${item.cliente}</div>
+          </td>
+          <td class="py-2.5 px-3 font-semibold text-slate-700">${item.filial}</td>
+          <td class="py-2.5 px-3 text-center">
+            <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 font-bold border border-amber-200">${item.qtd}</span>
+          </td>
+          <td class="py-2.5 px-3 text-right font-bold text-emerald-700">${formatCurrency(item.valor)}</td>
+          <td class="py-2.5 px-3">${renderizarBadgesProblemasResumidos(item.problemas)}</td>
+        </tr>
+      `).join('');
+    }
+    // =========================================================================
+    // TÉRMINO: atualizarTabelaTop5LocaisFilialDia
+    // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: atualizarTabelaLocaisDiaPorCliente
+    // =========================================================================
+    function atualizarTabelaLocaisDiaPorCliente() {
+      const dtDia = document.getElementById('filterTabelaLocaisClienteDia')?.value;
+      const termoPesquisa = normalizarTextoUtf8(document.getElementById('searchTabelaLocaisCliente')?.value || '').trim().toLowerCase();
+      const tbody = document.getElementById('tableLocaisClienteDiaBody');
       if (!tbody || !dtDia) return;
 
       const agrupado = {};
       listaChamadosSAC.forEach(c => {
         const ymd = parseDateToYMD(c.data);
-        if (ymd === dtDia) {
-          const loc = normalizarTextoUtf8(c.localInterno || c.local_interno || 'Não Informado').trim();
-          const cli = normalizarTextoUtf8(c.cliente || '').trim();
-          const prob = normalizarTextoUtf8(c.problemas || 'Outros').trim();
-          const chave = loc + '||' + cli;
+        if (ymd !== dtDia) return;
 
-          if (!agrupado[chave]) {
-            agrupado[chave] = { local: loc, cliente: cli, qtd: 0, valor: 0, problemas: {} };
-          }
-          agrupado[chave].qtd += 1;
-          agrupado[chave].valor += parseValorNumerico(c.valor);
-          agrupado[chave].problemas[prob] = (agrupado[chave].problemas[prob] || 0) + 1;
+        const cli = normalizarTextoUtf8(c.cliente || 'Não Informado').trim();
+        const loc = normalizarTextoUtf8(c.localInterno || c.local_interno || 'Não Informado').trim();
+        const filialItem = normalizarTextoUtf8(c.cidade || '-').trim();
+
+        if (termoPesquisa && !cli.toLowerCase().includes(termoPesquisa) && !loc.toLowerCase().includes(termoPesquisa)) {
+          return;
         }
+
+        const prob = normalizarTextoUtf8(c.problemas || 'Outros').trim();
+        const chave = cli + '||' + loc + '||' + filialItem;
+
+        if (!agrupado[chave]) {
+          agrupado[chave] = { cliente: cli, local: loc, filial: filialItem, qtd: 0, valor: 0, problemas: {} };
+        }
+        agrupado[chave].qtd += 1;
+        agrupado[chave].valor += parseValorNumerico(c.valor);
+        agrupado[chave].problemas[prob] = (agrupado[chave].problemas[prob] || 0) + 1;
       });
 
-      const top3 = Object.values(agrupado)
-        .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor)
-        .slice(0, 3);
+      const resultados = Object.values(agrupado)
+        .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor);
 
-      if (top3.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para ' + dataIsoParaPtBr(dtDia) + '.</td></tr>';
+      if (resultados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400 font-semibold">Nenhum local interno encontrado para ' + dataIsoParaPtBr(dtDia) + '.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = top3.map((item, idx) => {
-        const resumoProblemas = Object.entries(item.problemas)
-          .sort((a, b) => b[1] - a[1])
-          .map(([nomeProb, qtProb]) => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 font-medium mr-1 mb-1">${nomeProb} <strong class="text-sky-700">(${qtProb})</strong></span>`)
-          .join('');
-
-        return `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="py-2.5 px-3 text-center font-black text-sky-700">#${idx + 1}</td>
-            <td class="py-2.5 px-3">
-              <div class="font-bold text-slate-800">${item.local}</div>
-              <div class="text-[11px] text-slate-400">${item.cliente}</div>
-            </td>
-            <td class="py-2.5 px-3 text-center">
-              <span class="px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 font-bold border border-sky-200">${item.qtd}</span>
-            </td>
-            <td class="py-2.5 px-3 text-right font-bold text-emerald-700">${formatCurrency(item.valor)}</td>
-            <td class="py-2.5 px-3">${resumoProblemas}</td>
-          </tr>
-        `;
-      }).join('');
+      tbody.innerHTML = resultados.map(item => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-2.5 px-3 font-bold text-slate-800">${item.cliente}</td>
+          <td class="py-2.5 px-3 font-semibold text-sky-900">${item.local}</td>
+          <td class="py-2.5 px-3 text-slate-600">${item.filial}</td>
+          <td class="py-2.5 px-3 text-center">
+            <span class="px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 font-bold border border-sky-200">${item.qtd}</span>
+          </td>
+          <td class="py-2.5 px-3 text-right font-bold text-emerald-700">${formatCurrency(item.valor)}</td>
+          <td class="py-2.5 px-3">${renderizarBadgesProblemasResumidos(item.problemas)}</td>
+        </tr>
+      `).join('');
     }
     // =========================================================================
-    // TÉRMINO: atualizarTabelaTop3LocaisDia
+    // TÉRMINO: atualizarTabelaLocaisDiaPorCliente
+    // =========================================================================
+    
+// =========================================================================
+    // INÍCIO: obterListaFiliaisUnicas
+    // =========================================================================
+    function obterListaFiliaisUnicas() {
+      const conjunto = new Set();
+
+      (dadosSAC.cidades || []).forEach(cid => {
+        const s = normalizarTextoUtf8(cid).trim();
+        if (s) conjunto.add(s);
+      });
+
+      (dadosSAC.clientes || []).forEach(c => {
+        const s = normalizarTextoUtf8(c.cidade || c.filial || c.filialResponsavel || '').trim();
+        if (s) conjunto.add(s);
+      });
+
+      (listaChamadosSAC || []).forEach(c => {
+        const s = normalizarTextoUtf8(c.cidade || c.Cidade || c.filial || '').trim();
+        if (s) conjunto.add(s);
+      });
+
+      return [...conjunto].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    }
+    // =========================================================================
+    // TÉRMINO: obterListaFiliaisUnicas
+    // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: obterDataFocoInicialDia
+    // =========================================================================
+    function obterDataFocoInicialDia() {
+      const hoje = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const hojeLocalYMD = hoje.getFullYear() + '-' + pad(hoje.getMonth() + 1) + '-' + pad(hoje.getDate());
+
+      // Verifica se existem chamados na data local de hoje
+      const temChamadoHoje = listaChamadosSAC.some(c => parseDateToYMD(c.data || c.Data) === hojeLocalYMD);
+      if (temChamadoHoje) return hojeLocalYMD;
+
+      // Se não houver chamado hoje, busca a data mais recente existente na base para não iniciar vazio
+      let maiorData = '';
+      listaChamadosSAC.forEach(c => {
+        const ymd = parseDateToYMD(c.data || c.Data);
+        if (ymd && ymd > maiorData) maiorData = ymd;
+      });
+
+      return maiorData || hojeLocalYMD;
+    }
+    // =========================================================================
+    // TÉRMINO: obterDataFocoInicialDia
     // =========================================================================
 
     // =========================================================================
@@ -3424,10 +3914,10 @@
       const elDiasVal = document.getElementById('filterMesDiasVal');
       if (elDiasVal) elDiasVal.value = strMesAtual;
 
-      const dFim = hoje.toISOString().split('T')[0];
-      const dIniDate = new Date();
+      const dFim = obterDataFocoInicialDia();
+      const dIniDate = new Date(dFim + 'T12:00:00');
       dIniDate.setDate(dIniDate.getDate() - 7);
-      const dIni = dIniDate.toISOString().split('T')[0];
+      const dIni = dIniDate.getFullYear() + '-' + pad(dIniDate.getMonth() + 1) + '-' + pad(dIniDate.getDate());
 
       const sDtIni = document.getElementById('filterTopSemanaDtIni');
       const sDtFim = document.getElementById('filterTopSemanaDtFim');
@@ -3445,16 +3935,32 @@
       const elTop3Mes = document.getElementById('filterTop3LocalMes');
       if (elTop3Mes) elTop3Mes.value = dFim;
 
-      const elTabTop3Dia = document.getElementById('filterTabelaTop3Dia');
-      if (elTabTop3Dia) elTabTop3Dia.value = dFim;
+      const elTabTop5FilialDia = document.getElementById('filterTabelaTop5FilialDia');
+      if (elTabTop5FilialDia) elTabTop5FilialDia.value = dFim;
+
+      const elTabClienteDia = document.getElementById('filterTabelaLocaisClienteDia');
+      if (elTabClienteDia) elTabClienteDia.value = dFim;
+
+      // Única declaração de 'filiais' populando ambos os seletores
+      const filiais = obterListaFiliaisUnicas();
 
       const selFilial = document.getElementById('filterTopFilialSelect');
-      selFilial.innerHTML = '<option value="ALL">Todas as Filiais</option>';
-      const filiais = [...new Set(listaChamadosSAC.map(c => normalizarTextoUtf8(c.cidade)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-      filiais.forEach(f => {
-        const opt = document.createElement('option'); opt.value = f; opt.textContent = f;
-        selFilial.appendChild(opt);
-      });
+      if (selFilial) {
+        selFilial.innerHTML = '<option value="ALL">Todas as Filiais</option>';
+        filiais.forEach(f => {
+          const opt = document.createElement('option'); opt.value = f; opt.textContent = f;
+          selFilial.appendChild(opt);
+        });
+      }
+
+      const selTabFilial = document.getElementById('filterTabelaTop5FilialSelect');
+      if (selTabFilial) {
+        selTabFilial.innerHTML = '<option value="ALL">Todas as Filiais</option>';
+        filiais.forEach(f => {
+          const opt = document.createElement('option'); opt.value = f; opt.textContent = f;
+          selTabFilial.appendChild(opt);
+        });
+      }
     }
     // =========================================================================
     // TÉRMINO: inicializarFiltrosDashboardSAC
@@ -3538,7 +4044,8 @@
       atualizarGraficoTopFilial();
       atualizarGraficoTop3LocalDia();
       atualizarGraficoTop3LocalMes();
-      atualizarTabelaTop3LocaisDia();
+      atualizarTabelaTop5LocaisFilialDia();
+      atualizarTabelaLocaisDiaPorCliente();
     }
     // =========================================================================
     // TÉRMINO: atualizarDashboardSAC
@@ -3553,6 +4060,26 @@
     });
 
     verificarEstadoAutenticacao();
+
+    // =========================================================================
+    // INÍCIO: Inicialização Segura da Aplicação
+    // =========================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const formLogin = document.getElementById('globalLoginForm');
+      if (formLogin) {
+        formLogin.addEventListener('submit', realizarLoginGlobal);
+      }
+    });
+
+    try {
+      verificarEstadoAutenticacao();
+    } catch (errInit) {
+      console.error("Erro na inicialização:", errInit);
+    }
+    // =========================================================================
+    // TÉRMINO: Inicialização Segura da Aplicação
+    // =========================================================================
+  </script>
   </script>
 </body>
 </html>
