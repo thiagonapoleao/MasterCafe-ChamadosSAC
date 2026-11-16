@@ -144,17 +144,19 @@ def normalizar_utf8_seguro(valor: Any) -> str:
 # INÍCIO: obter_logo_base64
 # =========================================================================
 def obter_logo_base64():
+    diretorios_busca = [BASE_DIR / "static/img", BASE_DIR]
     nomes_alvo = [
-        "Logotipo.PNG", "Logotipo.png", "logotipo.PNG", "logotipo.png",
-        "LOGOTIPO.PNG", "logo.PNG", "logo.png"
+        "Logotipo.png", "Logotipo.PNG", "logotipo.png", "logotipo.PNG",
+        "LOGOTIPO.PNG", "logo.png", "logo.PNG"
     ]
-    for nome in nomes_alvo:
-        caminho = BASE_DIR / nome
-        if caminho.is_file():
-            ext = caminho.suffix.lower().replace(".", "")
-            mime = "jpeg" if ext in ["jpg", "jpeg"] else "png"
-            with open(caminho, "rb") as f:
-                return f"data:image/{mime};base64,{base64.b64encode(f.read()).decode('utf-8')}"
+    for pasta in diretorios_busca:
+        for nome in nomes_alvo:
+            caminho = pasta / nome
+            if caminho.is_file():
+                ext = caminho.suffix.lower().replace(".", "")
+                mime = "jpeg" if ext in ["jpg", "jpeg"] else "png"
+                with open(caminho, "rb") as f:
+                    return f"data:image/{mime};base64,{base64.b64encode(f.read()).decode('utf-8')}"
     return ""
 # =========================================================================
 # TÉRMINO: obter_logo_base64
