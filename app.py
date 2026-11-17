@@ -286,11 +286,14 @@ async def carregar_pagina_principal(request: Request):
             with conn.cursor() as cur:
                 # 1. Usuários
                 try:
-                    cur.execute("SELECT nome, usuario, senha, acesso FROM usuarios")
+                    cur.execute("SELECT id, nome, usuario, senha, acesso FROM usuarios ORDER BY nome ASC")
                     usuarios = [sanitizar_estrutura_utf8(dict(u)) for u in (cur.fetchall() or [])]
                 except Exception:
-                    usuarios = []
-                
+                    try:
+                        cur.execute("SELECT nome, usuario, senha, acesso FROM usuarios ORDER BY nome ASC")
+                        usuarios = [sanitizar_estrutura_utf8(dict(u)) for u in (cur.fetchall() or [])]
+                    except Exception:
+                        usuarios = []
                 # 2. Clientes
                 try:
                     cur.execute("""
@@ -572,6 +575,85 @@ async def processar_acao_api(request: Request):
                 conn.commit()
                 return JSONResponse(
                     content={"status": "success", "message": "Cliente excluído com sucesso."},
+                    media_type="application/json; charset=utf-8"
+                )
+            # =========================================================================
+            # 4. USUÁRIOS (INSERIR, EDITAR, EXCLUIR)
+            # =========================================================================
+            elif acao in ["inserir_usuario", "editar_usuario"]:
+                nome_usr = normalizar_utf8_seguro(payload.get("nome") or payload.get("Nome") or "").strip()
+                login_usr = normalizar_utf8_seguro(payload.get("usuario") or payload.get("Usuario") or "").strip().lower()
+                senha_usr = normalizar_utf8_seguro(payload.get("senha") or payload.get("Senha") or "").strip()
+                acesso_usr = normalizar_utf8_seguro(payload.get("acesso") or payload.get("Acesso") or "Atendente").strip()
+
+                if not nome_usr or not login_usr or not senha_usr:
+                    raise ValueError("Nome, usuário e senha numérica são obrigatórios.")
+                if not senha_usr.isdigit():
+                    raise ValueError("A senha deve conter apenas números.")
+                if acesso_usr not in ["Geral", "Atendente"]:
+                    acesso_usr = "Atendente"
+
+                # Formata a primeira letra de cada palavra do nome em maiúscula (preservando preposições comuns)
+                preposicoes = {"de", "da", "do", "das", "dos", "e"}
+                partes_nome = nome_usr.split()
+                nome_formatado = " ".join(
+                    p.lower() if (i > 0 and p.lower() in preposicoes) else p.capitalize()
+                    for i, p in enumerate(partes_nome)
+                )
+
+                cur.execute("SELECT * FROM usuarios LIMIT 0")
+                cols_usr = [d[0].lower() for d in (cur.description or [])]
+                tem_id = "id" in cols_usr
+
+                if acao == "inserir_usuario":
+                    cur.execute("SELECT 1 FROM usuarios WHERE LOWER(TRIM(usuario)) = %s", (login_usr,))
+                    if cur.fetchone():
+                        raise ValueError(f"O usuário '{login_usr}' já está cadastrado.")
+                    cur.execute("""
+                        INSERT INTO usuarios (nome, usuario, senha, acesso)
+                        VALUES (%s, %s, %s, %s)
+                    """, (nome_formatado, login_usr, senha_usr, acesso_usr))
+                else:
+                    usr_id = payload.get("id")
+                    usuario_original = normalizar_utf8_seguro(payload.get("usuarioOriginal") or login_usr).strip().lower()
+
+                    if tem_id and usr_id:
+                        cur.execute("""
+                            UPDATE usuarios
+                            SET nome = %s, usuario = %s, senha = %s, acesso = %s
+                            WHERE id = %s
+                        """, (nome_formatado, login_usr, senha_usr, acesso_usr, usr_id))
+                    else:
+                        cur.execute("""
+                            UPDATE usuarios
+                            SET nome = %s, usuario = %s, senha = %s, acesso = %s
+                            WHERE LOWER(TRIM(usuario)) = %s
+                        """, (nome_formatado, login_usr, senha_usr, acesso_usr, usuario_original))
+
+                conn.commit()
+                return JSONResponse(
+                    content={"status": "success", "message": f"Usuário '{login_usr}' salvo com sucesso."},
+                    media_type="application/json; charset=utf-8"
+                )
+
+            elif acao == "excluir_usuario":
+                usr_id = payload.get("id")
+                login_del = normalizar_utf8_seguro(payload.get("usuario") or "").strip().lower()
+
+                cur.execute("SELECT * FROM usuarios LIMIT 0")
+                cols_usr = [d[0].lower() for d in (cur.description or [])]
+                tem_id = "id" in cols_usr
+
+                if tem_id and usr_id:
+                    cur.execute("DELETE FROM usuarios WHERE id = %s", (usr_id,))
+                elif login_del:
+                    cur.execute("DELETE FROM usuarios WHERE LOWER(TRIM(usuario)) = %s", (login_del,))
+                else:
+                    raise ValueError("Identificador do usuário ausente para exclusão.")
+
+                conn.commit()
+                return JSONResponse(
+                    content={"status": "success", "message": f"Usuário '{login_del}' excluído com sucesso."},
                     media_type="application/json; charset=utf-8"
                 )
 
