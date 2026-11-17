@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -10,31 +11,35 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    body { 
-      font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-      background-color: #f1f5f9; 
-      color: #1e293b; 
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
       margin: 0;
       padding: 0;
     }
+
     .kpi-card {
       background-color: #ffffff;
       border: 1px solid #e2e8f0;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
     .kpi-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
-    .nav-btn.active { 
-      background-color: #0284c7; 
-      color: #ffffff; 
-      box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.25); 
+
+    .nav-btn.active {
+      background-color: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.25);
     }
-    .nav-btn.inactive { 
-      background-color: #ffffff; 
-      color: #64748b; 
-      border: 1px solid #e2e8f0; 
+
+    .nav-btn.inactive {
+      background-color: #ffffff;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
     }
 
     .table-fixed-layout {
@@ -42,7 +47,8 @@
       width: 100% !important;
       border-collapse: collapse;
     }
-    .table-fixed-layout th, 
+
+    .table-fixed-layout th,
     .table-fixed-layout td {
       overflow: hidden !important;
       text-overflow: ellipsis !important;
@@ -55,13 +61,18 @@
     }
   </style>
 </head>
+
 <body class="bg-slate-100 min-h-screen">
 
   <!-- MODAL DE PROCESSAMENTO -->
-  <div id="modalLoadingAcao" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in duration-200">
-      <div id="modalIconContainer" class="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shadow-inner">
-        <svg id="modalSpinner" class="animate-spin h-8 w-8 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+  <div id="modalLoadingAcao"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center text-center space-y-4 animate-in fade-in zoom-in duration-200">
+      <div id="modalIconContainer"
+        class="w-16 h-16 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shadow-inner">
+        <svg id="modalSpinner" class="animate-spin h-8 w-8 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
         </svg>
@@ -70,7 +81,8 @@
       </div>
       <div>
         <h3 id="modalLoadingTitle" class="text-base font-bold text-slate-900">Processando Ação...</h3>
-        <p id="modalLoadingSub" class="text-xs text-slate-500 mt-1">Sua solicitação está sendo transmitida e registrada no banco de dados.</p>
+        <p id="modalLoadingSub" class="text-xs text-slate-500 mt-1">Sua solicitação está sendo transmitida e registrada
+          no banco de dados.</p>
       </div>
       <div id="modalProgressBar" class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
         <div class="bg-sky-500 h-full w-2/3 animate-pulse"></div>
@@ -82,11 +94,15 @@
   <div id="systemLoginScreen" class="w-full flex justify-center pt-8 sm:pt-12 px-4 pb-12">
     <div class="max-w-md w-full bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-2xl space-y-6">
       <div class="text-center space-y-3">
-        <div class="inline-flex items-center justify-center p-2 bg-white rounded-2xl border border-slate-200 shadow-sm mx-auto overflow-hidden" style="height: 64px; min-width: 64px;">
-          <img src="{{ logo_base64_src }}" alt="Logotipo" class="max-h-12 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('loginFallbackIcon').style.display='flex';">
-          <div id="loginFallbackIcon" class="{{ 'hidden' if logo_base64_src else 'flex' }} w-12 h-12 bg-amber-700 text-white rounded-xl items-center justify-center font-black text-base">
-  ☕
-</div>
+        <div
+          class="inline-flex items-center justify-center p-2 bg-white rounded-2xl border border-slate-200 shadow-sm mx-auto overflow-hidden"
+          style="height: 64px; min-width: 64px;">
+          <img src="{{ logo_base64_src }}" alt="Logotipo" class="max-h-12 w-auto object-contain"
+            onerror="this.style.display='none'; document.getElementById('loginFallbackIcon').style.display='flex';">
+          <div id="loginFallbackIcon"
+            class="{{ 'hidden' if logo_base64_src else 'flex' }} w-12 h-12 bg-amber-700 text-white rounded-xl items-center justify-center font-black text-base">
+            ☕
+          </div>
         </div>
         <div>
           <h2 class="text-xl font-black text-slate-900">Acesso ao Sistema</h2>
@@ -97,17 +113,23 @@
       <form id="globalLoginForm" accept-charset="UTF-8" onsubmit="realizarLoginGlobal(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Usuário para Login *</label>
-          <input type="text" id="globalLoginUser" placeholder="Digite seu usuário..." required oninput="this.value = this.value.toLowerCase()" class="w-full text-sm lowercase rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium">
+          <input type="text" id="globalLoginUser" placeholder="Digite seu usuário..." required
+            oninput="this.value = this.value.toLowerCase()"
+            class="w-full text-sm lowercase rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Senha *</label>
-          <input type="password" id="globalLoginPass" placeholder="••••••••" required oninput="this.value = this.value.toLowerCase()" class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+          <input type="password" id="globalLoginPass" placeholder="••••••••" required
+            oninput="this.value = this.value.toLowerCase()"
+            class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
         </div>
-        <div id="globalLoginErro" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+        <div id="globalLoginErro"
+          class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
           <i data-lucide="alert-circle" class="w-4 h-4"></i>
           <span>Usuário ou senha incorretos!</span>
         </div>
-        <button type="submit" class="w-full py-3 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-lg shadow-sky-600/25 transition flex items-center justify-center gap-2 cursor-pointer">
+        <button type="submit"
+          class="w-full py-3 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-lg shadow-sky-600/25 transition flex items-center justify-center gap-2 cursor-pointer">
           <i data-lucide="log-in" class="w-4 h-4"></i>
           Entrar no Sistema
         </button>
@@ -120,50 +142,71 @@
     <header class="sticky top-0 z-40 bg-white/95 border-b border-slate-200 backdrop-blur-md px-6 py-3">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center p-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" style="height: 54px; min-width: 54px;">
-            <img id="headerLogoImg" src="{{ logo_base64_src }}" alt="Logotipo" class="max-h-12 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('headerFallbackIcon').style.display='flex';">
-            <div id="headerFallbackIcon" class="{{ 'hidden' if logo_base64_src else 'flex' }} w-10 h-10 bg-amber-700 text-white rounded-lg items-center justify-center font-black text-sm">
-  ☕
-</div>
+          <div
+            class="flex items-center justify-center p-1 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+            style="height: 54px; min-width: 54px;">
+            <img id="headerLogoImg" src="{{ logo_base64_src }}" alt="Logotipo" class="max-h-12 w-auto object-contain"
+              onerror="this.style.display='none'; document.getElementById('headerFallbackIcon').style.display='flex';">
+            <div id="headerFallbackIcon"
+              class="{{ 'hidden' if logo_base64_src else 'flex' }} w-10 h-10 bg-amber-700 text-white rounded-lg items-center justify-center font-black text-sm">
+              ☕
+            </div>
           </div>
           <div>
             <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               Painel Executivo de Gestão & SAC
             </h1>
-            <p class="text-xs text-slate-500">Controle Operacional, Atendimento & Análises · {{ total_chamados_carregados }} chamados registrados</p>
+            <p class="text-xs text-slate-500">Controle Operacional, Atendimento & Análises · {{
+              total_chamados_carregados }} chamados registrados</p>
           </div>
         </div>
-        
+
         <div class="flex items-center gap-3 flex-wrap">
           <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 flex-wrap">
-            <button id="navDashboardSAC" type="button" class="nav-btn active flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer" onclick="switchPage('dashboardSAC')">
+            <button id="navDashboardSAC" type="button"
+              class="nav-btn active flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer"
+              onclick="switchPage('dashboardSAC')">
               <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
               Dashboard SAC
             </button>
-            <button id="navSAC" type="button" class="nav-btn inactive flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer" onclick="switchPage('sac')">
+            <button id="navSAC" type="button"
+              class="nav-btn inactive flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer"
+              onclick="switchPage('sac')">
               <i data-lucide="headphones" class="w-4 h-4"></i>
               Lançamento SAC
             </button>
-            <button id="navChamadosAbertos" type="button" class="nav-btn inactive flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer" onclick="switchPage('chamadosAbertos')">
+            <button id="navChamadosAbertos" type="button"
+              class="nav-btn inactive flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer"
+              onclick="switchPage('chamadosAbertos')">
               <i data-lucide="inbox" class="w-4 h-4"></i>
               Chamados Abertos
             </button>
-            <button id="navCadastroClientes" type="button" class="hidden nav-btn inactive flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer" onclick="switchPage('cadastroClientes')">
+            <button id="navCadastroClientes" type="button"
+              class="hidden nav-btn inactive flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer"
+              onclick="switchPage('cadastroClientes')">
               <i data-lucide="user-plus" class="w-4 h-4"></i>
               Cadastro de Clientes
             </button>
-            <button type="button" onclick="executarRefresh()" title="Clique para recarregar do banco SQL" class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 cursor-pointer transition">
+            <button id="navUsuarios" type="button"
+              class="hidden nav-btn inactive flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer"
+              onclick="switchPage('usuarios')">
+              <i data-lucide="user-cog" class="w-4 h-4"></i>
+              Usuários
+            </button>
+            <button type="button" onclick="executarRefresh()" title="Clique para recarregar do banco SQL"
+              class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 cursor-pointer transition">
               <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> Sincronizar 🔄
             </button>
-          </div>
-
-          <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="text-right">
-              <span id="labelHeaderAtendente" class="text-xs font-bold text-slate-800 block">Atendente</span>
-              <span id="badgeHeaderNivelAcesso" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">Geral</span>
+            <div
+              class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span id="labelHeaderAtendente" class="font-bold">Atendente</span>
+              <span id="badgeHeaderNivelAcesso"
+                class="text-[10px] font-bold bg-white/80 text-emerald-800 px-1.5 py-0.5 rounded-lg border border-emerald-200">Geral</span>
             </div>
-            <button type="button" onclick="realizarLogoutGlobal()" title="Sair do Sistema" class="p-2 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition cursor-pointer">
-              <i data-lucide="log-out" class="w-4 h-4"></i>
+            <button type="button" onclick="realizarLogoutGlobal()" title="Sair do Sistema"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-300 hover:bg-rose-100 cursor-pointer transition">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sair
             </button>
           </div>
         </div>
@@ -187,13 +230,15 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1">Cliente</label>
-              <select id="filterSACCliente" class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-slate-800">
+              <select id="filterSACCliente"
+                class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-slate-800">
                 <option value="ALL">Todos os Clientes</option>
               </select>
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1">Produto</label>
-              <select id="filterSACProduto" class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-slate-800">
+              <select id="filterSACProduto"
+                class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-slate-800">
                 <option value="ALL">Todos os Produtos</option>
                 <option value="Café">Café</option>
                 <option value="Snaky">Snaky</option>
@@ -201,12 +246,14 @@
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-500 mb-1">Atendente</label>
-              <select id="filterSACAtendente" class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-slate-800">
+              <select id="filterSACAtendente"
+                class="w-full text-sm rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-slate-800">
                 <option value="ALL">Todos os Atendentes</option>
               </select>
             </div>
             <div class="flex items-end">
-              <button id="btnLimparFiltrosSAC" class="w-full py-2 px-4 rounded-xl border border-slate-300 bg-slate-100 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <button id="btnLimparFiltrosSAC"
+                class="w-full py-2 px-4 rounded-xl border border-slate-300 bg-slate-100 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition flex items-center justify-center gap-1.5 cursor-pointer">
                 <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                 Limpar Filtros
               </button>
@@ -219,7 +266,8 @@
           <div class="kpi-card p-4 rounded-2xl shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total de Chamados</span>
-              <span class="p-1.5 rounded-lg bg-sky-50 text-sky-600"><i data-lucide="headphones" class="w-4 h-4"></i></span>
+              <span class="p-1.5 rounded-lg bg-sky-50 text-sky-600"><i data-lucide="headphones"
+                  class="w-4 h-4"></i></span>
             </div>
             <div class="mt-3">
               <span id="kpiSACTotal" class="text-xl font-bold tracking-tight text-slate-800">0</span>
@@ -230,7 +278,8 @@
           <div class="kpi-card p-4 rounded-2xl shadow-sm flex flex-col justify-between border-emerald-200">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">Valor Ressarcido</span>
-              <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><i data-lucide="badge-dollar-sign" class="w-4 h-4"></i></span>
+              <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><i data-lucide="badge-dollar-sign"
+                  class="w-4 h-4"></i></span>
             </div>
             <div class="mt-3">
               <span id="kpiSACValorTotal" class="text-xl font-bold tracking-tight text-emerald-600">R$ 0,00</span>
@@ -241,35 +290,40 @@
           <div class="kpi-card p-4 rounded-2xl shadow-sm flex flex-col justify-between border-amber-200">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Chamados Café</span>
-              <span class="p-1.5 rounded-lg bg-amber-50 text-amber-600"><i data-lucide="coffee" class="w-4 h-4"></i></span>
+              <span class="p-1.5 rounded-lg bg-amber-50 text-amber-600"><i data-lucide="coffee"
+                  class="w-4 h-4"></i></span>
             </div>
             <div class="mt-3 flex items-baseline justify-between">
               <div>
                 <span id="kpiSACCafé" class="text-xl font-bold tracking-tight text-amber-700">0</span>
                 <p class="text-[11px] text-slate-400 mt-0.5">Linha de Bebidas</p>
               </div>
-              <span id="kpiSACCaféPct" class="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">0%</span>
+              <span id="kpiSACCaféPct"
+                class="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">0%</span>
             </div>
           </div>
 
           <div class="kpi-card p-4 rounded-2xl shadow-sm flex flex-col justify-between border-indigo-200">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-semibold text-indigo-600 uppercase tracking-wider">Chamados Snaky</span>
-              <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600"><i data-lucide="cookie" class="w-4 h-4"></i></span>
+              <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600"><i data-lucide="cookie"
+                  class="w-4 h-4"></i></span>
             </div>
             <div class="mt-3 flex items-baseline justify-between">
               <div>
                 <span id="kpiSACSnaky" class="text-xl font-bold tracking-tight text-indigo-600">0</span>
                 <p class="text-[11px] text-slate-400 mt-0.5">Máquinas de Snacks</p>
               </div>
-              <span id="kpiSACSnakyPct" class="text-xs font-semibold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800">0%</span>
+              <span id="kpiSACSnakyPct"
+                class="text-xs font-semibold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800">0%</span>
             </div>
           </div>
 
           <div class="kpi-card p-4 rounded-2xl shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Clientes Únicos</span>
-              <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600"><i data-lucide="building" class="w-4 h-4"></i></span>
+              <span class="p-1.5 rounded-lg bg-blue-50 text-blue-600"><i data-lucide="building"
+                  class="w-4 h-4"></i></span>
             </div>
             <div class="mt-3">
               <span id="kpiSACClientes" class="text-xl font-bold tracking-tight text-slate-800">0</span>
@@ -280,7 +334,8 @@
           <div class="kpi-card p-4 rounded-2xl shadow-sm flex flex-col justify-between">
             <div class="flex items-center justify-between">
               <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Ticket Médio</span>
-              <span class="p-1.5 rounded-lg bg-cyan-50 text-cyan-600"><i data-lucide="calculator" class="w-4 h-4"></i></span>
+              <span class="p-1.5 rounded-lg bg-cyan-50 text-cyan-600"><i data-lucide="calculator"
+                  class="w-4 h-4"></i></span>
             </div>
             <div class="mt-3">
               <span id="kpiSACTicketMedio" class="text-xl font-bold tracking-tight text-slate-800">R$ 0,00</span>
@@ -300,7 +355,8 @@
                 </h3>
                 <p class="text-xs text-slate-400">Classificação de ocorrências no SAC</p>
               </div>
-              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">Ocorrências</span>
+              <span
+                class="text-[11px] font-semibold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200">Ocorrências</span>
             </div>
             <div class="relative h-80"><canvas id="chartTopProblemasSAC"></canvas></div>
           </div>
@@ -314,7 +370,8 @@
                 </h3>
                 <p class="text-xs text-slate-400">Volume de atendimentos realizados</p>
               </div>
-              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Volume</span>
+              <span
+                class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Volume</span>
             </div>
             <div class="relative h-80"><canvas id="chartAtendentesSAC"></canvas></div>
           </div>
@@ -333,7 +390,8 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-bold text-slate-500">Mês Anterior:</label>
-                <input type="month" id="filterMesLocaisAnterior" onchange="atualizarGraficoLocaisAnterior()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="month" id="filterMesLocaisAnterior" onchange="atualizarGraficoLocaisAnterior()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartLocaisAnterior"></canvas></div>
@@ -350,7 +408,8 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-bold text-slate-500">Mês Atual:</label>
-                <input type="month" id="filterMesLocaisAtual" onchange="atualizarGraficoLocaisAtual()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="month" id="filterMesLocaisAtual" onchange="atualizarGraficoLocaisAtual()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartLocaisAtual"></canvas></div>
@@ -370,7 +429,8 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-bold text-slate-500">Ano:</label>
-                <select id="filterAnoMesesQtd" onchange="atualizarGraficoMesesQtd()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700 font-semibold"></select>
+                <select id="filterAnoMesesQtd" onchange="atualizarGraficoMesesQtd()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700 font-semibold"></select>
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartMesesQtd"></canvas></div>
@@ -387,7 +447,8 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-bold text-slate-500">Ano:</label>
-                <select id="filterAnoMesesVal" onchange="atualizarGraficoMesesVal()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700 font-semibold"></select>
+                <select id="filterAnoMesesVal" onchange="atualizarGraficoMesesVal()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700 font-semibold"></select>
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartMesesVal"></canvas></div>
@@ -407,7 +468,8 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-bold text-slate-500">Mês:</label>
-                <input type="month" id="filterMesDiasQtd" onchange="atualizarGraficoDiasQtd()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="month" id="filterMesDiasQtd" onchange="atualizarGraficoDiasQtd()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartDiasQtd"></canvas></div>
@@ -424,7 +486,8 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-bold text-slate-500">Mês:</label>
-                <input type="month" id="filterMesDiasVal" onchange="atualizarGraficoDiasVal()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="month" id="filterMesDiasVal" onchange="atualizarGraficoDiasVal()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartDiasVal"></canvas></div>
@@ -443,9 +506,11 @@
                 <p class="text-xs text-slate-400">Foco dinâmico padrão nos últimos 7 dias</p>
               </div>
               <div class="flex items-center gap-1.5 flex-wrap">
-                <input type="date" id="filterTopSemanaDtIni" onchange="atualizarGraficoTopSemana()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="date" id="filterTopSemanaDtIni" onchange="atualizarGraficoTopSemana()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
                 <span class="text-xs text-slate-400">até</span>
-                <input type="date" id="filterTopSemanaDtFim" onchange="atualizarGraficoTopSemana()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="date" id="filterTopSemanaDtFim" onchange="atualizarGraficoTopSemana()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartTop10Semana"></canvas></div>
@@ -461,16 +526,19 @@
                 <p class="text-xs text-slate-400">Locais com maior volume por filial responsável</p>
               </div>
               <div class="flex items-center gap-2 flex-wrap">
-                <select id="filterTopFilialSelect" onchange="atualizarGraficoTopFilial()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700 font-semibold"></select>
-                <input type="date" id="filterTopFilialDtIni" onchange="atualizarGraficoTopFilial()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <select id="filterTopFilialSelect" onchange="atualizarGraficoTopFilial()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700 font-semibold"></select>
+                <input type="date" id="filterTopFilialDtIni" onchange="atualizarGraficoTopFilial()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
                 <span class="text-xs text-slate-400">até</span>
-                <input type="date" id="filterTopFilialDtFim" onchange="atualizarGraficoTopFilial()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="date" id="filterTopFilialDtFim" onchange="atualizarGraficoTopFilial()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartTop3Filial"></canvas></div>
           </div>
         </section>
-<!-- NOVOS GRÁFICOS: TOP 3 LOCAL INTERNO NO DIA E NO MÊS (QTD & VALOR) -->
+        <!-- NOVOS GRÁFICOS: TOP 3 LOCAL INTERNO NO DIA E NO MÊS (QTD & VALOR) -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- CARD 1: TOP 3 LOCAL INTERNO NO DIA -->
           <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
@@ -484,7 +552,8 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-bold text-slate-500">Data:</label>
-                <input type="date" id="filterTop3LocalDia" onchange="atualizarGraficoTop3LocalDia()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="date" id="filterTop3LocalDia" onchange="atualizarGraficoTop3LocalDia()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartTop3LocalDia"></canvas></div>
@@ -502,7 +571,8 @@
               </div>
               <div class="flex items-center gap-2">
                 <label class="text-[11px] font-bold text-slate-500">Dia Ref.:</label>
-                <input type="date" id="filterTop3LocalMes" onchange="atualizarGraficoTop3LocalMes()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
+                <input type="date" id="filterTop3LocalMes" onchange="atualizarGraficoTop3LocalMes()"
+                  class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-slate-700">
               </div>
             </div>
             <div class="relative h-80"><canvas id="chartTop3LocalMes"></canvas></div>
@@ -521,9 +591,11 @@
             </div>
             <div class="flex items-center gap-2 flex-wrap">
               <label class="text-[11px] font-bold text-slate-500">Filial:</label>
-              <select id="filterTabelaTop5FilialSelect" onchange="atualizarTabelaTop5LocaisFilialDia()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700 font-semibold"></select>
+              <select id="filterTabelaTop5FilialSelect" onchange="atualizarTabelaTop5LocaisFilialDia()"
+                class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700 font-semibold"></select>
               <label class="text-[11px] font-bold text-slate-500">Data:</label>
-              <input type="date" id="filterTabelaTop5FilialDia" onchange="atualizarTabelaTop5LocaisFilialDia()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700">
+              <input type="date" id="filterTabelaTop5FilialDia" onchange="atualizarTabelaTop5LocaisFilialDia()"
+                class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700">
             </div>
           </div>
 
@@ -541,7 +613,8 @@
               </thead>
               <tbody id="tableTop5LocaisFilialDiaBody" class="divide-y divide-slate-100">
                 <tr>
-                  <td colspan="6" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para a filial/data selecionada.</td>
+                  <td colspan="6" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para a
+                    filial/data selecionada.</td>
                 </tr>
               </tbody>
             </table>
@@ -556,15 +629,19 @@
                 <i data-lucide="search-check" class="w-4 h-4 text-sky-600"></i>
                 Locais Internos do Dia — Problemas Resumidos por Cliente
               </h3>
-              <p class="text-xs text-slate-400">Listagem completa do dia com pesquisa rápida por cliente ou local interno</p>
+              <p class="text-xs text-slate-400">Listagem completa do dia com pesquisa rápida por cliente ou local
+                interno</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
               <div class="relative">
                 <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2"></i>
-                <input type="text" id="searchTabelaLocaisCliente" placeholder="Pesquisar cliente ou local..." oninput="atualizarTabelaLocaisDiaPorCliente()" class="text-xs pl-8 pr-3 py-1 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-56">
+                <input type="text" id="searchTabelaLocaisCliente" placeholder="Pesquisar cliente ou local..."
+                  oninput="atualizarTabelaLocaisDiaPorCliente()"
+                  class="text-xs pl-8 pr-3 py-1 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-56">
               </div>
               <label class="text-[11px] font-bold text-slate-500">Data:</label>
-              <input type="date" id="filterTabelaLocaisClienteDia" onchange="atualizarTabelaLocaisDiaPorCliente()" class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700">
+              <input type="date" id="filterTabelaLocaisClienteDia" onchange="atualizarTabelaLocaisDiaPorCliente()"
+                class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-2.5 py-1 text-slate-700">
             </div>
           </div>
 
@@ -582,53 +659,63 @@
               </thead>
               <tbody id="tableLocaisClienteDiaBody" class="divide-y divide-slate-100">
                 <tr>
-                  <td colspan="6" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para os critérios informados.</td>
+                  <td colspan="6" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado para
+                    os critérios informados.</td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </section>        
+        </section>
       </div>
 
       <!-- PÁGINA 2: LANÇAMENTO SAC -->
       <div id="pageSAC" class="hidden space-y-4">
         <div id="sacMainPanel" class="space-y-4">
-          <div id="alertSACEditMode" class="hidden p-3 sm:p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 flex justify-between items-center shadow-sm">
+          <div id="alertSACEditMode"
+            class="hidden p-3 sm:p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 flex justify-between items-center shadow-sm">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-amber-500 text-white rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div>
               <div>
-                <p class="text-sm font-bold">Modo de Edição de Chamado: <span id="labelSACEditChamado" class="font-mono text-amber-800">SAC-0000-0000</span></p>
-                <p class="text-xs text-amber-700">Você está alterando este chamado do SAC. O atendente criador e a data/hora original de abertura serão mantidos.</p>
+                <p class="text-sm font-bold">Modo de Edição de Chamado: <span id="labelSACEditChamado"
+                    class="font-mono text-amber-800">SAC-0000-0000</span></p>
+                <p class="text-xs text-amber-700">Você está alterando este chamado do SAC. O atendente criador e a
+                  data/hora original de abertura serão mantidos.</p>
               </div>
             </div>
-            <button type="button" onclick="cancelarEdicaoSAC()" class="px-3 py-1.5 bg-amber-200 hover:bg-amber-300 rounded-xl text-xs font-bold text-amber-900 transition cursor-pointer">
+            <button type="button" onclick="cancelarEdicaoSAC()"
+              class="px-3 py-1.5 bg-amber-200 hover:bg-amber-300 rounded-xl text-xs font-bold text-amber-900 transition cursor-pointer">
               Cancelar Edição ✕
             </button>
           </div>
 
-          <div id="alertSACSuccess" class="hidden p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm transition">
+          <div id="alertSACSuccess"
+            class="hidden p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm transition">
             <div class="flex items-center gap-3">
               <div id="alertSACIconBadge" class="p-2 bg-emerald-600 text-white rounded-xl">
                 <i id="alertSACLucideIcon" data-lucide="check-circle" class="w-5 h-5"></i>
               </div>
               <div>
                 <p id="alertSACSuccessTitle" class="text-sm font-bold">Ação realizada com sucesso!</p>
-                <p id="alertSACSuccessSub" class="text-xs text-emerald-700">O banco de dados foi atualizado em tempo real.</p>
+                <p id="alertSACSuccessSub" class="text-xs text-emerald-700">O banco de dados foi atualizado em tempo
+                  real.</p>
               </div>
             </div>
-            <button type="button" onclick="document.getElementById('alertSACSuccess').classList.add('hidden')" class="px-3 py-2 rounded-xl hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition cursor-pointer">
+            <button type="button" onclick="document.getElementById('alertSACSuccess').classList.add('hidden')"
+              class="px-3 py-2 rounded-xl hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition cursor-pointer">
               Fechar
             </button>
           </div>
 
           <section class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-100 gap-3">
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-4 border-b border-slate-100 gap-3">
               <div class="flex items-center gap-3">
                 <div class="p-2 bg-sky-600 text-white rounded-xl shadow-lg shadow-sky-500/25">
                   <i data-lucide="headphones" class="w-5 h-5"></i>
                 </div>
                 <div>
-                  <h2 id="sacFormTitleText" class="text-base font-bold text-slate-900">Lançamento de Ocorrências do SAC</h2>
+                  <h2 id="sacFormTitleText" class="text-base font-bold text-slate-900">Lançamento de Ocorrências do SAC
+                  </h2>
                   <p class="text-xs text-slate-500">Registro de chamados, ressarcimentos e reembolsos</p>
                 </div>
               </div>
@@ -636,51 +723,70 @@
                 <div class="text-right">
                   <span class="text-[10px] uppercase font-bold text-slate-400 block">Atendente Conectado</span>
                   <div class="flex items-center gap-1.5 justify-end">
-                    <span id="labelSACAtendenteLogado" class="text-xs font-bold text-sky-800 bg-sky-50 px-2.5 py-0.5 rounded-lg border border-sky-200">Operador</span>
-                    <span id="badgeNivelAcesso" class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Geral</span>
+                    <span id="labelSACAtendenteLogado"
+                      class="text-xs font-bold text-sky-800 bg-sky-50 px-2.5 py-0.5 rounded-lg border border-sky-200">Operador</span>
+                    <span id="badgeNivelAcesso"
+                      class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Geral</span>
                   </div>
                 </div>
-                <button type="button" onclick="realizarLogoutGlobal()" title="Sair do Sistema" class="p-2 rounded-xl border border-slate-200 hover:bg-rose-50 text-slate-500 hover:text-rose-600 transition cursor-pointer">
+                <button type="button" onclick="realizarLogoutGlobal()" title="Sair do Sistema"
+                  class="p-2 rounded-xl border border-slate-200 hover:bg-rose-50 text-slate-500 hover:text-rose-600 transition cursor-pointer">
                   <i data-lucide="log-out" class="w-4 h-4"></i>
                 </button>
               </div>
             </div>
 
             <form id="sacForm" accept-charset="UTF-8" onsubmit="handleSACSubmit(event)" class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200">
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200">
                 <div>
                   <label class="block text-xs font-bold text-sky-900 mb-1">Chamado (Automático) *</label>
-                  <input type="text" id="sacChamado" readonly class="w-full text-sm font-mono font-black rounded-xl border border-sky-300 bg-white px-3 py-1.5 text-sky-700 cursor-not-allowed shadow-inner" placeholder="[Automático do Servidor]">
-                  <span class="text-[10px] text-slate-400 mt-0.5 block">🔒 Número sequencial único gerado no envio</span>
+                  <input type="text" id="sacChamado" readonly
+                    class="w-full text-sm font-mono font-black rounded-xl border border-sky-300 bg-white px-3 py-1.5 text-sky-700 cursor-not-allowed shadow-inner"
+                    placeholder="[Automático do Servidor]">
+                  <span class="text-[10px] text-slate-400 mt-0.5 block">🔒 Número sequencial único gerado no
+                    envio</span>
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Data *</label>
-                  <input type="date" id="sacData" required class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="date" id="sacData" required
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Cliente *</label>
-                  <input list="listaSACClientes" id="sacCliente" placeholder="Selecione o cliente..." required onchange="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" onblur="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)" class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACClientes" id="sacCliente" placeholder="Selecione o cliente..." required
+                    onchange="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)"
+                    onblur="validarInputComLista('sacCliente', 'listaSACClientes', 'Cliente', true)"
+                    class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACClientes"></datalist>
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Local Interno *</label>
-                  <select id="sacLocalInterno" required onchange="aoMudarLocalInternoSAC()" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <select id="sacLocalInterno" required onchange="aoMudarLocalInternoSAC()"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                     <option value="">Selecione primeiro o Cliente...</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Filial Responsável *</label>
-                  <input list="listaSACCidades" id="sacCidade" placeholder="Filial de atendimento..." required onchange="validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')" onblur="validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACCidades" id="sacCidade" placeholder="Filial de atendimento..." required
+                    onchange="validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')"
+                    onblur="validarInputComLista('sacCidade', 'listaSACCidades', 'Filial Responsável')"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACCidades"></datalist>
                 </div>
                 <div class="md:col-span-2 lg:col-span-3">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Descrição *</label>
-                  <input list="listaSACDescricoes" id="sacDescricao" placeholder="Selecione a descrição (Produtos)..." required onchange="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" onblur="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACDescricoes" id="sacDescricao" placeholder="Selecione a descrição (Produtos)..."
+                    required onchange="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')"
+                    onblur="validarInputComLista('sacDescricao', 'listaSACDescricoes', 'Descrição')"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACDescricoes"></datalist>
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Produto *</label>
-                  <select id="sacProduto" required class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <select id="sacProduto" required
+                    class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                     <option value="" selected disabled>Selecione o Produto...</option>
                     <option value="Café">Café</option>
                     <option value="Snaky">Snaky</option>
@@ -688,37 +794,50 @@
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Data da Transação *</label>
-                  <input type="date" id="sacDataTransacao" required class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="date" id="sacDataTransacao" required
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Hora da Transação *</label>
-                  <input type="time" id="sacHoraTransacao" required class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="time" id="sacHoraTransacao" required
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-emerald-800 mb-1">Valor (R$) *</label>
-                  <input type="number" step="0.01" min="0" id="sacValor" placeholder="0,00" required class="w-full text-sm font-bold rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  <input type="number" step="0.01" min="0" id="sacValor" placeholder="0,00" required
+                    class="w-full text-sm font-bold rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Nome / Sobrenome *</label>
-                  <input type="text" id="sacNome" placeholder="Ex: João Da Silva" required onblur="formatarNomeProprio(this)" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="text" id="sacNome" placeholder="Ex: João Da Silva" required
+                    onblur="formatarNomeProprio(this)"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Celular *</label>
-                  <input type="text" id="sacCelular" placeholder="(00) 00000-0000" required class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="text" id="sacCelular" placeholder="(00) 00000-0000" required
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Problemas *</label>
-                  <input list="listaSACProblemas" id="sacProblema" placeholder="Selecione o problema..." required onchange="validarInputComLista('sacProblema', 'listaSACProblemas', 'Problemas')" onblur="validarInputComLista('sacProblema', 'listaSACProblemas', 'Problemas')" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACProblemas" id="sacProblema" placeholder="Selecione o problema..." required
+                    onchange="validarInputComLista('sacProblema', 'listaSACProblemas', 'Problemas')"
+                    onblur="validarInputComLista('sacProblema', 'listaSACProblemas', 'Problemas')"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACProblemas"></datalist>
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Forma de Pagamento *</label>
-                  <input list="listaSACFormasPgto" id="sacFormaPgto" placeholder="Selecione a forma de pagamento..." required onchange="validarInputComLista('sacFormaPgto', 'listaSACFormasPgto', 'Forma de Pagamento')" onblur="validarInputComLista('sacFormaPgto', 'listaSACFormasPgto', 'Forma de Pagamento')" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACFormasPgto" id="sacFormaPgto" placeholder="Selecione a forma de pagamento..."
+                    required onchange="validarInputComLista('sacFormaPgto', 'listaSACFormasPgto', 'Forma de Pagamento')"
+                    onblur="validarInputComLista('sacFormaPgto', 'listaSACFormasPgto', 'Forma de Pagamento')"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                   <datalist id="listaSACFormasPgto"></datalist>
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-xs font-bold text-sky-900 mb-1">Reembolso</label>
-                  <select id="sacReembolso" class="w-full text-sm font-semibold rounded-xl border border-sky-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <select id="sacReembolso"
+                    class="w-full text-sm font-semibold rounded-xl border border-sky-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                     <option value="" selected>Selecione o reembolso...</option>
                     <option value="Devolução Stone">Devolução Stone</option>
                     <option value="Pendente">Pendente</option>
@@ -727,34 +846,42 @@
                 </div>
                 <div class="md:col-span-2">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Pix - Reembolso</label>
-                  <input type="text" id="sacPix" placeholder="Chave Pix (CPF, Celular, E-mail ou Aleatória)..." class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="text" id="sacPix" placeholder="Chave Pix (CPF, Celular, E-mail ou Aleatória)..."
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-emerald-800 mb-1">Reembolso Realizado? *</label>
-                  <select id="sacReembolsoRealizado" required class="w-full text-sm font-bold rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm">
+                  <select id="sacReembolsoRealizado" required
+                    class="w-full text-sm font-bold rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-emerald-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-sm">
                     <option value="Não" selected>Não</option>
                     <option value="Sim">Sim</option>
                   </select>
                 </div>
                 <div>
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Atendente *</label>
-                  <input type="text" id="sacAtendente" readonly class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-slate-100 px-3 py-1.5 text-slate-700 cursor-not-allowed">
+                  <input type="text" id="sacAtendente" readonly
+                    class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-slate-100 px-3 py-1.5 text-slate-700 cursor-not-allowed">
                 </div>
                 <div class="md:col-span-2 lg:col-span-2">
                   <label class="block text-xs font-bold text-indigo-900 mb-1">Observação</label>
-                  <input type="text" id="sacObservacao" placeholder="Notas, histórico de contato ou detalhes adicionais..." class="w-full text-sm rounded-xl border border-indigo-200 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                  <input type="text" id="sacObservacao"
+                    placeholder="Notas, histórico de contato ou detalhes adicionais..."
+                    class="w-full text-sm rounded-xl border border-indigo-200 bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="md:col-span-2 lg:col-span-2">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Data/Hora Lançamento</label>
-                  <input type="text" id="sacDataHoraAuto" readonly value="Automático no Envio" class="w-full text-sm rounded-xl border border-slate-300 bg-slate-100 px-3 py-1.5 text-slate-500 cursor-not-allowed">
+                  <input type="text" id="sacDataHoraAuto" readonly value="Automático no Envio"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-slate-100 px-3 py-1.5 text-slate-500 cursor-not-allowed">
                 </div>
               </div>
 
               <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                <button type="button" onclick="limparFormSAC()" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                <button type="button" onclick="limparFormSAC()"
+                  class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
                   Limpar Campos
                 </button>
-                <button type="submit" id="btnSalvarSAC" class="flex items-center gap-2 px-5 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold shadow-lg shadow-sky-500/25 hover:bg-sky-700 transition cursor-pointer">
+                <button type="submit" id="btnSalvarSAC"
+                  class="flex items-center gap-2 px-5 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold shadow-lg shadow-sky-500/25 hover:bg-sky-700 transition cursor-pointer">
                   <i data-lucide="send" class="w-4 h-4"></i>
                   <span id="btnSalvarSACText">Lançar Ocorrência SAC</span>
                 </button>
@@ -775,9 +902,12 @@
               <div class="flex items-center gap-3">
                 <div class="relative">
                   <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                  <input type="text" id="searchSACChamados" placeholder="Buscar chamado, cliente, obs..." oninput="filtrarChamadosSAC()" class="text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64">
+                  <input type="text" id="searchSACChamados" placeholder="Buscar chamado, cliente, obs..."
+                    oninput="filtrarChamadosSAC()"
+                    class="text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64">
                 </div>
-                <span id="badgeContadorSAC" class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 font-bold border border-sky-200">
+                <span id="badgeContadorSAC"
+                  class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 font-bold border border-sky-200">
                   0 chamado(s)
                 </span>
               </div>
@@ -806,23 +936,28 @@
                 </thead>
                 <tbody id="tableSACChamadosBody" class="divide-y divide-slate-100">
                   <tr>
-                    <td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado ainda.</td>
+                    <td colspan="15" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado registrado
+                      ainda.</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             <!-- CONTROLE DE PAGINAÇÃO: CHAMADOS SAC -->
-            <div id="paginacaoSACContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+            <div id="paginacaoSACContainer"
+              class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
               <span id="paginacaoSACInfo" class="text-slate-500 font-medium">Exibindo 0 a 0 de 0 chamados</span>
               <div class="flex items-center gap-2">
-                <button type="button" id="btnPrevSAC" onclick="mudarPaginaSAC(-1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                <button type="button" id="btnPrevSAC" onclick="mudarPaginaSAC(-1)"
+                  class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
                   <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Anterior
                 </button>
-                <span id="paginacaoSACIndicador" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
+                <span id="paginacaoSACIndicador"
+                  class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
                   Página 1 de 1
                 </span>
-                <button type="button" id="btnNextSAC" onclick="mudarPaginaSAC(1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                <button type="button" id="btnNextSAC" onclick="mudarPaginaSAC(1)"
+                  class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
                   Próxima <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                 </button>
               </div>
@@ -843,16 +978,20 @@
                 <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                   Todos os Chamados Abertos
                 </h2>
-                <p class="text-xs text-slate-500">Lista com status de reembolso, observações, financeiro responsável e edição SAC</p>
+                <p class="text-xs text-slate-500">Lista com status de reembolso, observações, financeiro responsável e
+                  edição SAC</p>
               </div>
             </div>
 
             <div class="flex items-center gap-3">
               <div class="relative">
                 <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                <input type="text" id="searchAbertos" placeholder="Filtrar chamado, cliente, obs..." oninput="filtrarChamadosAbertos()" class="text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64">
+                <input type="text" id="searchAbertos" placeholder="Filtrar chamado, cliente, obs..."
+                  oninput="filtrarChamadosAbertos()"
+                  class="text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64">
               </div>
-              <span id="badgeContadorAbertos" class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 font-bold border border-sky-200">
+              <span id="badgeContadorAbertos"
+                class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 font-bold border border-sky-200">
                 0 chamado(s)
               </span>
             </div>
@@ -877,23 +1016,28 @@
               </thead>
               <tbody id="tableChamadosAbertosBody" class="divide-y divide-slate-100">
                 <tr>
-                  <td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto encontrado.</td>
+                  <td colspan="11" class="text-center py-6 text-slate-400 font-semibold">Nenhum chamado aberto
+                    encontrado.</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <!-- CONTROLE DE PAGINAÇÃO: CHAMADOS ABERTOS -->
-          <div id="paginacaoAbertosContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+          <div id="paginacaoAbertosContainer"
+            class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
             <span id="paginacaoAbertosInfo" class="text-slate-500 font-medium">Exibindo 0 a 0 de 0 chamados</span>
             <div class="flex items-center gap-2">
-              <button type="button" id="btnPrevAbertos" onclick="mudarPaginaAbertos(-1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+              <button type="button" id="btnPrevAbertos" onclick="mudarPaginaAbertos(-1)"
+                class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
                 <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Anterior
               </button>
-              <span id="paginacaoAbertosIndicador" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
+              <span id="paginacaoAbertosIndicador"
+                class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
                 Página 1 de 1
               </span>
-              <button type="button" id="btnNextAbertos" onclick="mudarPaginaAbertos(1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+              <button type="button" id="btnNextAbertos" onclick="mudarPaginaAbertos(1)"
+                class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
                 Próxima <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
               </button>
             </div>
@@ -903,99 +1047,129 @@
 
       <!-- PÁGINA 4: CADASTRO DE CLIENTES -->
       <div id="pageCadastroClientes" class="hidden space-y-6">
-        <div id="bloqueioAcessoClientes" class="hidden max-w-lg mx-auto my-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
-          <div class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
+        <div id="bloqueioAcessoClientes"
+          class="hidden max-w-lg mx-auto my-12 bg-white p-8 rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
+          <div
+            class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto shadow-inner">
             <i data-lucide="shield-alert" class="w-8 h-8"></i>
           </div>
           <h2 class="text-lg font-black text-slate-800">Acesso Restrito ao Cadastro</h2>
           <p class="text-xs text-slate-500 leading-relaxed">
-            Seu perfil de login está categorizado como <span class="font-bold text-rose-600">Atendente</span>. O gerenciamento e cadastro de clientes é exclusivo para perfis com permissão de acesso <span class="font-bold text-emerald-700">Geral</span>.
+            Seu perfil de login está categorizado como <span class="font-bold text-rose-600">Atendente</span>. O
+            gerenciamento e cadastro de clientes é exclusivo para perfis com permissão de acesso <span
+              class="font-bold text-emerald-700">Geral</span>.
           </p>
-          <button type="button" onclick="switchPage('sac')" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md transition cursor-pointer">
+          <button type="button" onclick="switchPage('sac')"
+            class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md transition cursor-pointer">
             Voltar para Lançamento SAC
           </button>
         </div>
 
         <div id="containerAcessoClientes" class="space-y-6">
-          <div id="alertCliEditMode" class="hidden p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 flex justify-between items-center shadow-sm">
+          <div id="alertCliEditMode"
+            class="hidden p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 flex justify-between items-center shadow-sm">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-amber-500 text-white rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div>
               <div>
-                <p class="text-sm font-bold">Modo de Edição de Cliente: <span id="labelCliEditNome" class="font-bold text-amber-800">Cliente</span></p>
-                <p class="text-xs text-amber-700">Você está alterando os dados cadastrais deste ponto. Ao salvar, os dados serão atualizados no banco de dados.</p>
+                <p class="text-sm font-bold">Modo de Edição de Cliente: <span id="labelCliEditNome"
+                    class="font-bold text-amber-800">Cliente</span></p>
+                <p class="text-xs text-amber-700">Você está alterando os dados cadastrais deste ponto. Ao salvar, os
+                  dados serão atualizados no banco de dados.</p>
               </div>
             </div>
-            <button type="button" onclick="cancelarEdicaoCliente()" class="px-3 py-1.5 bg-amber-200 hover:bg-amber-300 rounded-xl text-xs font-bold text-amber-900 transition cursor-pointer">
+            <button type="button" onclick="cancelarEdicaoCliente()"
+              class="px-3 py-1.5 bg-amber-200 hover:bg-amber-300 rounded-xl text-xs font-bold text-amber-900 transition cursor-pointer">
               Cancelar Edição ✕
             </button>
           </div>
 
-          <div id="alertCliSuccess" class="hidden p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm transition">
+          <div id="alertCliSuccess"
+            class="hidden p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm transition">
             <div class="flex items-center gap-3">
               <div id="alertCliIconBadge" class="p-2 bg-emerald-600 text-white rounded-xl">
                 <i id="alertCliLucideIcon" data-lucide="check-circle" class="w-5 h-5"></i>
               </div>
               <div>
                 <p id="alertCliSuccessTitle" class="text-sm font-bold">Ação realizada com sucesso!</p>
-                <p id="alertCliSuccessSub" class="text-xs text-emerald-700">O cadastro de clientes foi atualizado com sucesso.</p>
+                <p id="alertCliSuccessSub" class="text-xs text-emerald-700">O cadastro de clientes foi atualizado com
+                  sucesso.</p>
               </div>
             </div>
-            <button type="button" onclick="document.getElementById('alertCliSuccess').classList.add('hidden')" class="px-3 py-2 rounded-xl hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition cursor-pointer">
+            <button type="button" onclick="document.getElementById('alertCliSuccess').classList.add('hidden')"
+              class="px-3 py-2 rounded-xl hover:bg-emerald-100 text-xs font-semibold text-emerald-800 transition cursor-pointer">
               Fechar
             </button>
           </div>
 
           <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-slate-100 gap-4">
+            <div
+              class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-slate-100 gap-4">
               <div class="flex items-center gap-3">
                 <div class="p-2.5 bg-sky-600 text-white rounded-xl shadow-lg shadow-sky-500/25">
                   <i data-lucide="building-2" class="w-6 h-6"></i>
                 </div>
                 <div>
-                  <h2 id="cliFormTitleText" class="text-base font-bold text-slate-900">Cadastro de Clientes e Pontos de Atendimento</h2>
+                  <h2 id="cliFormTitleText" class="text-base font-bold text-slate-900">Cadastro de Clientes e Pontos de
+                    Atendimento</h2>
                   <p class="text-xs text-slate-500">Gerenciamento de máquinas, locais e filiais responsáveis</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-xs px-3 py-1 rounded-lg bg-sky-50 text-sky-800 font-semibold border border-sky-200 flex items-center gap-1.5">
+                <span
+                  class="text-xs px-3 py-1 rounded-lg bg-sky-50 text-sky-800 font-semibold border border-sky-200 flex items-center gap-1.5">
                   <i data-lucide="database" class="w-3.5 h-3.5 text-sky-600"></i> Tabela Clientes
                 </span>
               </div>
             </div>
 
             <form id="clienteForm" accept-charset="UTF-8" onsubmit="handleClienteSubmit(event)" class="space-y-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-5 rounded-2xl bg-slate-50/90 border border-slate-200">
+              <div
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-5 rounded-2xl bg-slate-50/90 border border-slate-200">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Cliente *</label>
-                  <input type="text" id="cadCliCliente" placeholder="Ex: Embraer, Coca Cola..." required onblur="formatarNomeProprio(this)" class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="text" id="cadCliCliente" placeholder="Ex: Embraer, Coca Cola..." required
+                    onblur="formatarNomeProprio(this)"
+                    class="w-full text-sm font-semibold rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Local *</label>
-                  <input type="text" id="cadCliLocal" placeholder="Ex: Fábrica 1, Administrativo..." required onblur="formatarNomeProprio(this)" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="text" id="cadCliLocal" placeholder="Ex: Fábrica 1, Administrativo..." required
+                    onblur="formatarNomeProprio(this)"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Local interno *</label>
-                  <input type="text" id="cadCliLocalInterno" placeholder="Ex: Refeitório, Recepção, Bloco B..." required onblur="formatarNomeProprio(this)" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="text" id="cadCliLocalInterno" placeholder="Ex: Refeitório, Recepção, Bloco B..." required
+                    onblur="formatarNomeProprio(this)"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Máquina *</label>
-                  <input type="text" id="cadCliMaquina" placeholder="Ex: Máquina 01, M05..." required onblur="formatarNomeProprio(this)" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="text" id="cadCliMaquina" placeholder="Ex: Máquina 01, M05..." required
+                    onblur="formatarNomeProprio(this)"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Modelo de máquina *</label>
-                  <input type="text" id="cadCliModeloMaquina" placeholder="Ex: Lei Saeco, Krea, Snaky..." required onblur="formatarNomeProprio(this)" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input type="text" id="cadCliModeloMaquina" placeholder="Ex: Lei Saeco, Krea, Snaky..." required
+                    onblur="formatarNomeProprio(this)"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-700 mb-1">Filial Responsável *</label>
-                  <input list="listaSACCidades" id="cadCliFilial" placeholder="Ex: Ribeirão Preto, São Carlos..." required onblur="formatarNomeProprio(this)" class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <input list="listaSACCidades" id="cadCliFilial" placeholder="Ex: Ribeirão Preto, São Carlos..."
+                    required onblur="formatarNomeProprio(this)"
+                    class="w-full text-sm rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 </div>
               </div>
 
               <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onclick="limparFormCliente()" class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
+                <button type="button" onclick="limparFormCliente()"
+                  class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition cursor-pointer">
                   Limpar Campos
                 </button>
-                <button type="submit" id="btnSalvarCliente" class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-600 text-white text-xs font-bold shadow-lg shadow-sky-500/25 hover:bg-sky-700 transition cursor-pointer">
+                <button type="submit" id="btnSalvarCliente"
+                  class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-sky-600 text-white text-xs font-bold shadow-lg shadow-sky-500/25 hover:bg-sky-700 transition cursor-pointer">
                   <i data-lucide="save" class="w-4 h-4"></i>
                   <span id="btnSalvarClienteText">Cadastrar Cliente</span>
                 </button>
@@ -1016,9 +1190,12 @@
               <div class="flex items-center gap-3">
                 <div class="relative">
                   <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                  <input type="text" id="searchClientesCadastrados" placeholder="Buscar cliente, local, máquina, filial..." oninput="filtrarClientesCadastrados()" class="text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64">
+                  <input type="text" id="searchClientesCadastrados"
+                    placeholder="Buscar cliente, local, máquina, filial..." oninput="filtrarClientesCadastrados()"
+                    class="text-xs pl-9 pr-3 py-2 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64">
                 </div>
-                <span id="badgeContadorClientes" class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 font-bold border border-sky-200">
+                <span id="badgeContadorClientes"
+                  class="text-xs px-2.5 py-1 rounded-lg bg-sky-50 text-sky-700 font-bold border border-sky-200">
                   0 cliente(s)
                 </span>
               </div>
@@ -1046,16 +1223,20 @@
             </div>
 
             <!-- CONTROLE DE PAGINAÇÃO: CLIENTES CADASTRADOS -->
-            <div id="paginacaoClientesContainer" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+            <div id="paginacaoClientesContainer"
+              class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
               <span id="paginacaoClientesInfo" class="text-slate-500 font-medium">Exibindo 0 a 0 de 0 clientes</span>
               <div class="flex items-center gap-2">
-                <button type="button" id="btnPrevClientes" onclick="mudarPaginaClientes(-1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                <button type="button" id="btnPrevClientes" onclick="mudarPaginaClientes(-1)"
+                  class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
                   <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Anterior
                 </button>
-                <span id="paginacaoClientesIndicador" class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
+                <span id="paginacaoClientesIndicador"
+                  class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 font-bold border border-slate-200">
                   Página 1 de 1
                 </span>
-                <button type="button" id="btnNextClientes" onclick="mudarPaginaClientes(1)" class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
+                <button type="button" id="btnNextClientes" onclick="mudarPaginaClientes(1)"
+                  class="px-3 py-1.5 rounded-xl border border-slate-300 bg-white text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1">
                   Próxima <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                 </button>
               </div>
@@ -1063,19 +1244,113 @@
           </section>
         </div>
       </div>
+      <!-- ========================================================================= -->
+      <!-- INÍCIO: ABA CADASTRO DE USUÁRIOS                                          -->
+      <!-- ========================================================================= -->
+      <div id="pageUsuarios" class="hidden space-y-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-800">Cadastro e Controle de Usuários</h2>
+              <p class="text-xs text-slate-500">Gerencie acessos do sistema (login gerado automaticamente a partir do
+                nome completo).</p>
+            </div>
+            <span id="badgeModoUsuario" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+              Modo: Novo Cadastro
+            </span>
+          </div>
+
+          <form id="formCadastroUsuario" onsubmit="salvarUsuarioSistema(event)"
+            class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <input type="hidden" id="usrEditId" value="">
+            <input type="hidden" id="usrEditOriginal" value="">
+
+            <!-- Nome Completo -->
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nome Completo *</label>
+              <input type="text" id="usrNome" required placeholder="Ex: João Silva" oninput="atualizarPreviewUsuario()"
+                onblur="formatarCampoNomeUsuario()"
+                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+            </div>
+
+            <!-- Usuário (Gerado Automaticamente) -->
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Usuário (Automático) *</label>
+              <input type="text" id="usrLogin" required readonly placeholder="jsilva"
+                class="w-full px-3 py-2 text-sm bg-slate-100 text-slate-700 font-mono font-bold border border-slate-300 rounded-xl outline-none cursor-not-allowed">
+              <span class="text-[11px] text-slate-400">1ª letra do nome + último sobrenome</span>
+            </div>
+
+            <!-- Senha Numérica -->
+            <div class="md:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Senha (Numérica) *</label>
+              <input type="password" id="usrSenha" required inputmode="numeric" pattern="[0-9]+" maxlength="12"
+                placeholder="Somente números" oninput="this.value = this.value.replace(/\D/g, '')"
+                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+            </div>
+
+            <!-- Perfil de Acesso -->
+            <div class="md:col-span-3">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Nível de Acesso *</label>
+              <select id="usrAcesso" required
+                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                <option value="Atendente">Atendente (Sem Cadastro de Cliente)</option>
+                <option value="Geral">Geral (Acesso Total)</option>
+              </select>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="md:col-span-12 flex flex-wrap items-center justify-end gap-2 pt-2">
+              <button type="button" onclick="limparFormularioUsuario()"
+                class="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                Limpar / Cancelar Edição
+              </button>
+              <button type="submit" id="btnSalvarUsuario"
+                class="px-5 py-2 text-xs font-bold text-white bg-amber-700 hover:bg-amber-800 rounded-xl shadow-sm transition">
+                Salvar Usuário
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tabela de Usuários Cadastrados -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-slate-800">Usuários Cadastrados</h3>
+            <span id="contadorUsuarios" class="text-xs font-semibold text-slate-500">0 usuários</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider border-b border-slate-200">
+                  <th class="py-3 px-4 font-bold">Nome</th>
+                  <th class="py-3 px-4 font-bold">Usuário</th>
+                  <th class="py-3 px-4 font-bold">Senha</th>
+                  <th class="py-3 px-4 font-bold">Acesso</th>
+                  <th class="py-3 px-4 font-bold text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyUsuarios" class="divide-y divide-slate-100 text-xs text-slate-700"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- ========================================================================= -->
+      <!-- TÉRMINO: ABA CADASTRO DE USUÁRIOS                                         -->
+      <!-- ========================================================================= -->
 
     </main>
   </div>
 
   <script id="dados-sac-b64" type="text/plain">{{ dados_sac_b64 }}</script>
-  
-  <script>   
-    
+
+  <script>
+
     lucide.createIcons();
     Chart.register(ChartDataLabels);
-    
 
-// =========================================================================
+
+    // =========================================================================
     // INÍCIO: normalizarTextoUtf8
     // =========================================================================
     function normalizarTextoUtf8(valor) {
@@ -1119,7 +1394,7 @@
             }
           }
           if (conversivel) {
-            const decodificado = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+            const decodificado = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
             if (decodificado && decodificado !== str) {
               str = decodificado;
             } else {
@@ -1208,8 +1483,8 @@
     // =========================================================================
     // TÉRMINO: sanitizarObjetoUtf8
     // =========================================================================
-    
-    
+
+
     // =========================================================================
     // INÍCIO: normalizarTextoUtf8
     // =========================================================================
@@ -1255,7 +1530,7 @@
             }
           }
           if (conversivel) {
-            const decodificado = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+            const decodificado = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
             if (decodificado && decodificado !== str) {
               str = decodificado;
             } else {
@@ -1295,8 +1570,8 @@
     // =========================================================================
     // TÉRMINO: sanitizarObjetoUtf8
     // =========================================================================
-    
-    
+
+
     // =========================================================================
     // TÉRMINO: sanitizarObjetoUtf8
     // =========================================================================
@@ -1342,7 +1617,7 @@
     // =========================================================================
     // TÉRMINO: aplicarNormalizacaoUtf8NosInputs
     // =========================================================================
-    
+
     aplicarNormalizacaoUtf8NosInputs();
     let listaChamadosSAC = Array.isArray(dadosSAC.chamados) ? dadosSAC.chamados : [];
     let listaCadastroClientes = Array.isArray(dadosSAC.cadastro_clientes) ? dadosSAC.cadastro_clientes : [];
@@ -1360,7 +1635,7 @@
     let listaFiltradaSACAtual = listaChamadosSAC;
     let listaFiltradaAbertosAtual = listaChamadosSAC;
     let listaFiltradaClientesAtual = listaCadastroClientes;
-    
+
     let atendenteSACLogado = "";
     let loginUsuarioConectado = "";
     let nivelAcessoLogado = "";
@@ -1369,7 +1644,7 @@
       atendenteSACLogado = normalizarTextoUtf8(sessionStorage.getItem('sac_atendente_conectado') || "");
       loginUsuarioConectado = normalizarTextoUtf8(sessionStorage.getItem('sac_usuario_login') || "");
       nivelAcessoLogado = normalizarTextoUtf8(sessionStorage.getItem('sac_nivel_acesso') || "");
-    } catch(e) {}
+    } catch (e) { }
 
     // =========================================================================
     // INÍCIO: dataIsoParaPtBr
@@ -1435,10 +1710,30 @@
     // INÍCIO: formatCurrency
     // =========================================================================
     function formatCurrency(val) {
-      return (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      return (val || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
     }
     // =========================================================================
     // TÉRMINO: formatCurrency
+    // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: aplicarPermissoesPorPerfil
+    // =========================================================================
+    function aplicarPermissoesPorPerfil() {
+      const isGeral = normalizarTextoUtf8(nivelAcessoLogado).trim().toLowerCase() === 'geral';
+
+      const btnClientes = document.getElementById('navCadastroClientes') || document.getElementById('btnAbaClientes');
+      const btnUsuarios = document.getElementById('navUsuarios') || document.getElementById('btnAbaUsuarios');
+
+      if (btnClientes) {
+        btnClientes.classList.toggle('hidden', !isGeral);
+      }
+      if (btnUsuarios) {
+        btnUsuarios.classList.toggle('hidden', !isGeral);
+      }
+    }
+    // =========================================================================
+    // TÉRMINO: aplicarPermissoesPorPerfil
     // =========================================================================
 
     // =========================================================================
@@ -1459,7 +1754,7 @@
         document.getElementById('labelSACAtendenteLogado').innerText = normalizarTextoUtf8(atendenteSACLogado);
         document.getElementById('sacAtendente').value = normalizarTextoUtf8(atendenteSACLogado);
 
-        aplicarRegrasDeAcesso();
+        aplicarPermissoesPorPerfil();
         inicializarFormularioSAC();
         renderizarTabelaChamadosSAC();
         renderizarTabelaChamadosAbertos();
@@ -1467,9 +1762,10 @@
         let abaDesejada = 'dashboardSAC';
         try {
           abaDesejada = sessionStorage.getItem('aba_ativa_atual') || 'dashboardSAC';
-        } catch(e) {}
+        } catch (e) { }
 
-        if (abaDesejada === 'cadastroClientes' && (nivelAcessoLogado || '').toLowerCase() !== 'geral') {
+        const isGeral = normalizarTextoUtf8(nivelAcessoLogado).trim().toLowerCase() === 'geral';
+        if (!isGeral && (abaDesejada === 'cadastroClientes' || abaDesejada === 'usuarios')) {
           abaDesejada = 'sac';
         }
 
@@ -1522,7 +1818,7 @@
             sessionStorage.setItem('sac_usuario_login', loginUsuarioConectado);
             sessionStorage.setItem('sac_nivel_acesso', nivelAcessoLogado);
             sessionStorage.setItem('aba_ativa_atual', 'dashboardSAC');
-          } catch (storageErr) {}
+          } catch (storageErr) { }
 
           verificarEstadoAutenticacao();
         } else {
@@ -1554,7 +1850,7 @@
         sessionStorage.removeItem('sac_usuario_login');
         sessionStorage.removeItem('sac_nivel_acesso');
         sessionStorage.removeItem('aba_ativa_atual');
-      } catch(e) {}
+      } catch (e) { }
       document.getElementById('globalLoginForm').reset();
       verificarEstadoAutenticacao();
     }
@@ -1562,47 +1858,7 @@
     // TÉRMINO: realizarLogoutGlobal
     // =========================================================================
 
-    // =========================================================================
-    // INÍCIO: aplicarRegrasDeAcesso
-    // =========================================================================
-    function aplicarRegrasDeAcesso() {
-      const btnCadastro = document.getElementById('navCadastroClientes');
-      const badgeAcesso = document.getElementById('badgeNivelAcesso');
-      const badgeHeader = document.getElementById('badgeHeaderNivelAcesso');
-      const containerCli = document.getElementById('containerAcessoClientes');
-      const bloqueioCli = document.getElementById('bloqueioAcessoClientes');
 
-      const ehGeral = (nivelAcessoLogado || '').trim().toLowerCase() === 'geral';
-
-      if (ehGeral) {
-        if (btnCadastro) btnCadastro.classList.remove('hidden');
-        if (containerCli) containerCli.classList.remove('hidden');
-        if (bloqueioCli) bloqueioCli.classList.add('hidden');
-        if (badgeAcesso) {
-          badgeAcesso.innerText = "Geral";
-          badgeAcesso.className = "text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200";
-        }
-        if (badgeHeader) {
-          badgeHeader.innerText = "Geral";
-          badgeHeader.className = "text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block";
-        }
-      } else {
-        if (btnCadastro) btnCadastro.classList.add('hidden');
-        if (containerCli) containerCli.classList.add('hidden');
-        if (bloqueioCli) bloqueioCli.classList.remove('hidden');
-        if (badgeAcesso) {
-          badgeAcesso.innerText = "Atendente";
-          badgeAcesso.className = "text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200";
-        }
-        if (badgeHeader) {
-          badgeHeader.innerText = "Atendente";
-          badgeHeader.className = "text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 inline-block";
-        }
-      }
-    }
-    // =========================================================================
-    // TÉRMINO: aplicarRegrasDeAcesso
-    // =========================================================================
 
     // =========================================================================
     // INÍCIO: converterParaPrimeirasMaiusculas
@@ -1661,7 +1917,7 @@
       if (!valor) return false; // Campo vazio já é pego pelo required
 
       const opcoesValidas = obterValoresDeDatalist(datalistId);
-      
+
       // Se o datalist ainda estiver vazio (ex: carregando do backend), permite o valor atual
       if (opcoesValidas.length === 0) return true;
 
@@ -1670,7 +1926,7 @@
       if (!achado) {
         alert('⛔ Atenção no campo "' + nomeAmigavel + '":\nO valor "' + valor + '" não foi encontrado na lista padrão.\nPor favor, escolha uma opção disponível.');
         // NÃO limpa o input.value para o usuário não perder o que estava preenchido
-        setTimeout(() => { input.focus(); }, 50);
+        setTimeout(() => {input.focus();}, 50);
         return false;
       } else {
         input.value = achado; // Normaliza com a grafia oficial da lista
@@ -1760,7 +2016,7 @@
         lucideIcon.setAttribute('data-lucide', 'check-circle');
       }
       alertBox.classList.remove('hidden');
-      alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alertBox.scrollIntoView({behavior: 'smooth', block: 'center'});
       lucide.createIcons();
     }
     // =========================================================================
@@ -1770,7 +2026,7 @@
     // =========================================================================
     // INÍCIO: enviarParaBancoGarantido
     // =========================================================================
-   // =========================================================================
+    // =========================================================================
     // INÍCIO: enviarParaBancoGarantido
     // =========================================================================
     async function enviarParaBancoGarantido(payload) {
@@ -1778,11 +2034,11 @@
         const payloadUtf8 = sanitizarObjetoUtf8(payload);
         const jsonString = JSON.stringify(payloadUtf8).normalize('NFC');
         const utf8Bytes = new TextEncoder().encode(jsonString);
-        const utf8Blob = new Blob([utf8Bytes], { type: 'application/json; charset=utf-8' });
+        const utf8Blob = new Blob([utf8Bytes], {type: 'application/json; charset=utf-8'});
 
         const resp = await fetch(BACKEND_API_URL, {
           method: "POST",
-          headers: { 
+          headers: {
             "Content-Type": "application/json; charset=utf-8",
             "Accept": "application/json; charset=utf-8"
           },
@@ -1802,26 +2058,26 @@
         const dadosResposta = sanitizarObjetoUtf8(rawJson);
 
         if (!resp.ok) {
-          const msgErro = (dadosResposta && (dadosResposta.detail || dadosResposta.message || dadosResposta.error)) 
+          const msgErro = (dadosResposta && (dadosResposta.detail || dadosResposta.message || dadosResposta.error))
             || `Falha de comunicação (${resp.status} - ${resp.statusText})`;
-          return { status: "error", message: msgErro, detail: dadosResposta };
+          return {status: "error", message: msgErro, detail: dadosResposta};
         }
 
         if (dadosResposta && (dadosResposta.status === "error" || dadosResposta.success === false)) {
-          return { 
-            status: "error", 
+          return {
+            status: "error",
             message: dadosResposta.detail || dadosResposta.message || "Erro retornado pelo servidor.",
-            detail: dadosResposta 
+            detail: dadosResposta
           };
         }
 
-        return { status: "success", data: dadosResposta };
+        return {status: "success", data: dadosResposta};
       } catch (err) {
         console.error("Erro na comunicação com a API do banco:", err);
-        return { 
-          status: "error", 
-          message: "Servidor inacessível ou falha de conexão de rede. Verifique se o backend está em execução.", 
-          detail: err 
+        return {
+          status: "error",
+          message: "Servidor inacessível ou falha de conexão de rede. Verifique se o backend está em execução.",
+          detail: err
         };
       }
     }
@@ -1846,24 +2102,28 @@
     // INÍCIO: switchPage
     // =========================================================================
     function switchPage(page) {
-      if (page === 'cadastroClientes' && (nivelAcessoLogado || '').trim().toLowerCase() !== 'geral') {
-        alert('⛔ Acesso Restrito:\nSeu perfil não tem permissão para cadastrar ou gerenciar clientes.');
+      const isGeral = normalizarTextoUtf8(nivelAcessoLogado).trim().toLowerCase() === 'geral';
+
+      if ((page === 'cadastroClientes' || page === 'usuarios') && !isGeral) {
+        alert('⛔ Acesso Restrito:\nSeu perfil não tem permissão para acessar esta página.');
         switchPage('sac');
         return;
       }
-      try { sessionStorage.setItem('aba_ativa_atual', page); } catch(e) {}
+      try {sessionStorage.setItem('aba_ativa_atual', page);} catch (e) { }
 
       const pages = {
         dashboardSAC: document.getElementById('pageDashboardSAC'),
         sac: document.getElementById('pageSAC'),
         chamadosAbertos: document.getElementById('pageChamadosAbertos'),
-        cadastroClientes: document.getElementById('pageCadastroClientes')
+        cadastroClientes: document.getElementById('pageCadastroClientes'),
+        usuarios: document.getElementById('pageUsuarios') || document.getElementById('abaUsuarios')
       };
       const buttons = {
         dashboardSAC: document.getElementById('navDashboardSAC'),
         sac: document.getElementById('navSAC'),
         chamadosAbertos: document.getElementById('navChamadosAbertos'),
-        cadastroClientes: document.getElementById('navCadastroClientes')
+        cadastroClientes: document.getElementById('navCadastroClientes'),
+        usuarios: document.getElementById('navUsuarios') || document.getElementById('btnAbaUsuarios')
       };
 
       Object.keys(pages).forEach(key => {
@@ -1891,6 +2151,8 @@
       } else if (page === 'cadastroClientes') {
         aplicarRegrasDeAcesso();
         filtrarClientesCadastrados();
+      } else if (page === 'usuarios') {
+        renderizarTabelaUsuarios();
       }
       lucide.createIcons();
     }
@@ -1932,7 +2194,7 @@
           for (const chave of propriedadesChave) {
             if (item[chave]) {
               const s = normalizarTextoUtf8(item[chave]).trim();
-              if (s) { resultado.push(s); break; }
+              if (s) {resultado.push(s); break;}
             }
           }
         }
@@ -1984,7 +2246,7 @@
 
       // 3. Descrição * -> Tabela "produtos"
       const listaProdutos = extrairListaTexto(
-        dadosSAC.produtos || dadosSAC.descricoes || [], 
+        dadosSAC.produtos || dadosSAC.descricoes || [],
         ['produto', 'descricao', 'nome', 'descricao_produto', 'item']
       );
       const dlDesc = document.getElementById('listaSACDescricoes');
@@ -1997,7 +2259,7 @@
 
       // 4. Problemas * -> Tabela "problemas"
       const listaProblemas = extrairListaTexto(
-        dadosSAC.problemas || [], 
+        dadosSAC.problemas || [],
         ['problema', 'problemas', 'descricao', 'motivo', 'nome']
       );
       const dlProb = document.getElementById('listaSACProblemas');
@@ -2010,7 +2272,7 @@
 
       // 5. Forma de Pagamento * -> Tabela "formas_pgt"
       const listaFormasPgt = extrairListaTexto(
-        dadosSAC.formas_pgt || dadosSAC.formas_pagamento || [], 
+        dadosSAC.formas_pgt || dadosSAC.formas_pagamento || [],
         ['forma_pgt', 'forma_pagamento', 'forma', 'descricao', 'nome']
       );
       const dlPgto = document.getElementById('listaSACFormasPgto');
@@ -2092,7 +2354,7 @@
       document.getElementById('alertSACEditMode').classList.add('hidden');
       document.getElementById('sacFormTitleText').innerText = "Lançamento de Ocorrências do SAC";
       document.getElementById('btnSalvarSACText').innerText = "Lançar Ocorrência SAC";
-      
+
       const anoAtual = new Date().getFullYear();
       document.getElementById('sacChamado').value = calcularPreviaProximoChamado(anoAtual);
       document.getElementById('sacData').value = new Date().toISOString().split('T')[0];
@@ -2131,7 +2393,7 @@
       // Local Interno (aceita local_interno, localInterno, Local Interno ou local)
       const localVal = normalizarTextoUtf8(item.local_interno || item.localInterno || item['Local Interno'] || item.local || '');
       const selectLocal = document.getElementById('sacLocalInterno');
-      
+
       // Se a opção não constava na lista populada do cliente, adiciona para garantir a seleção
       if (localVal) {
         let optExiste = Array.from(selectLocal.options).some(o => o.value.toLowerCase() === localVal.toLowerCase());
@@ -2149,7 +2411,7 @@
 
       // 4. Descrição e Produto
       document.getElementById('sacDescricao').value = normalizarTextoUtf8(item.descricao || item.Descricao || item['Descrição'] || '');
-      
+
       const prodVal = normalizarTextoUtf8(item.produto || item.Produto || '').trim();
       const selectProduto = document.getElementById('sacProduto');
       if (prodVal.toLowerCase().includes('café') || prodVal.toLowerCase().includes('cafe')) {
@@ -2163,7 +2425,7 @@
       // 5. Data e Hora da Transação
       const dtTrans = item.data_transacao || item.dataTransacao || item['Data da Transação'] || '';
       document.getElementById('sacDataTransacao').value = dtTrans.includes('/') ? dataPtBrParaIso(dtTrans) : dtTrans;
-      
+
       let hrTrans = item.hora_transacao || item.horaTransacao || item['Hora da Transação'] || '';
       if (hrTrans && hrTrans.length > 5) hrTrans = hrTrans.substring(0, 5); // Formata HH:MM
       document.getElementById('sacHoraTransacao').value = hrTrans;
@@ -2207,8 +2469,8 @@
       document.getElementById('labelSACEditChamado').innerText = item.chamado || item.Chamado;
       document.getElementById('sacFormTitleText').innerText = 'Edição da Ocorrência: ' + (item.chamado || item.Chamado);
       document.getElementById('btnSalvarSACText').innerText = 'Salvar Alterações';
-      document.getElementById('sacForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      
+      document.getElementById('sacForm').scrollIntoView({behavior: 'smooth', block: 'start'});
+
       lucide.createIcons();
     }
     // =========================================================================
@@ -2233,15 +2495,15 @@
     // =========================================================================
     async function excluirChamadoSAC(numeroChamado) {
       if (!confirm('Deseja realmente excluir o chamado ' + numeroChamado + '? Esta ação solicitará a remoção do banco SQL.')) return;
-      
+
       abrirModalLoading('Excluindo Ocorrência...', 'Removendo a ocorrência ' + numeroChamado + ' do banco de dados.', 'loading');
       const item = listaChamadosSAC.find(c => c.chamado === numeroChamado);
 
       const resultado = await enviarParaBancoGarantido({
-        "action": "excluir", 
-        "acao": "excluir", 
+        "action": "excluir",
+        "acao": "excluir",
         "tipo": "excluir_sac",
-        "Chamado": numeroChamado, 
+        "Chamado": numeroChamado,
         "chamado": numeroChamado,
         "linha": item?.linha || ""
       });
@@ -2264,7 +2526,7 @@
 
       abrirModalLoading('Chamado Excluído!', 'A ocorrência ' + numeroChamado + ' foi removida da base com sucesso.', 'excluir');
       exibirMensagemTopo('🗑️ Chamado ' + numeroChamado + ' excluído!', 'A ocorrência foi removida do sistema e do banco de dados.', 'excluir');
-      
+
       setTimeout(fecharModalLoading, 1000);
     }
     // =========================================================================
@@ -2352,8 +2614,8 @@
       const reembolsoRealizado = normalizarTextoUtf8(document.getElementById('sacReembolsoRealizado').value || "Não");
       const observacao = normalizarTextoUtf8(document.getElementById('sacObservacao').value).trim();
 
-      let atendente = normalizarTextoUtf8(ehEdicao && (chamadoEmEdicao?.atendente || chamadoEmEdicao?.Atendente) 
-        ? (chamadoEmEdicao.atendente || chamadoEmEdicao.Atendente) 
+      let atendente = normalizarTextoUtf8(ehEdicao && (chamadoEmEdicao?.atendente || chamadoEmEdicao?.Atendente)
+        ? (chamadoEmEdicao.atendente || chamadoEmEdicao.Atendente)
         : (atendenteSACLogado || document.getElementById('sacAtendente').value));
 
       let dataHoraLancamento = ehEdicao && (chamadoEmEdicao?.dataHoraLancamento || chamadoEmEdicao?.data_hora_lancamento)
@@ -2468,7 +2730,7 @@
       });
 
       if (ehEdicao) {
-        listaChamadosSAC = listaChamadosSAC.map(c => 
+        listaChamadosSAC = listaChamadosSAC.map(c =>
           (c.chamado === chamado || c.Chamado === chamado) ? novoItem : c
         );
       } else {
@@ -2478,7 +2740,7 @@
       }
 
       const destinoAposSalvar = (ehEdicao && origemEdicaoSAC === 'chamadosAbertos') ? 'chamadosAbertos' : 'sac';
-      
+
       // Limpeza ocorre SOMENTE após o sucesso confirmado da API
       limparFormSAC();
       filtrarChamadosSAC(false);
@@ -2489,7 +2751,7 @@
       abrirModalLoading(ehEdicao ? 'Ocorrência Atualizada!' : 'Lançamento Concluído!', 'Ocorrência gravada com sucesso.', 'sucesso');
       if (destinoAposSalvar === 'chamadosAbertos') switchPage('chamadosAbertos');
       exibirMensagemTopo('✅ Ocorrência ' + chamado + ' registrada com sucesso!', 'Valor: ' + formatCurrency(valor) + ' · Forma Pgto: ' + (formaPgto || '-'));
-      
+
       setTimeout(fecharModalLoading, 1000);
     }
     // =========================================================================
@@ -2518,7 +2780,7 @@
         const dtB = parseDateToYMD(b.data || b.Data || '');
         if (dtA !== dtB) return dtB.localeCompare(dtA);
 
-        return chB.localeCompare(chA, 'pt-BR', { numeric: true });
+        return chB.localeCompare(chA, 'pt-BR', {numeric: true});
       });
     }
     // =========================================================================
@@ -2553,7 +2815,7 @@
         renderizarTabelaChamadosSAC(listaFiltradaSACAtual);
         return;
       }
-      listaFiltradaSACAtual = listaChamadosSAC.filter(c => 
+      listaFiltradaSACAtual = listaChamadosSAC.filter(c =>
         Object.values(c).some(val => normalizarTextoUtf8(val || '').toLowerCase().includes(termo))
       );
       renderizarTabelaChamadosSAC(listaFiltradaSACAtual);
@@ -2607,7 +2869,7 @@
       tbody.innerHTML = fatiaPagina.map(c => {
         const rVal = normalizarTextoUtf8(c.reembolsoRealizado || c.reembolso_realizado || 'Não').toString().trim().toLowerCase();
         const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
-        const badgePago = pago 
+        const badgePago = pago
           ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
           : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
 
@@ -2687,7 +2949,7 @@
         renderizarTabelaChamadosAbertos(listaFiltradaAbertosAtual);
         return;
       }
-      listaFiltradaAbertosAtual = listaChamadosSAC.filter(c => 
+      listaFiltradaAbertosAtual = listaChamadosSAC.filter(c =>
         Object.values(c).some(val => normalizarTextoUtf8(val || '').toLowerCase().includes(termo))
       );
       renderizarTabelaChamadosAbertos(listaFiltradaAbertosAtual);
@@ -2741,7 +3003,7 @@
       tbody.innerHTML = fatiaPagina.map(c => {
         const rVal = normalizarTextoUtf8(c.reembolsoRealizado || c.reembolso_realizado || 'Não').toString().trim().toLowerCase();
         const pago = (rVal === 'sim' || rVal === 's' || rVal === 'true');
-        const badgePago = pago 
+        const badgePago = pago
           ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">Sim</span>'
           : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300">Não</span>';
 
@@ -2798,8 +3060,8 @@
     // =========================================================================
     // INÍCIO: cancelarEdicaoCliente
     // =========================================================================
-    function cancelarEdicaoCliente() { 
-      limparFormCliente(); 
+    function cancelarEdicaoCliente() {
+      limparFormCliente();
     }
     // =========================================================================
     // TÉRMINO: cancelarEdicaoCliente
@@ -2816,7 +3078,7 @@
       const item = listaCadastroClientes[index];
       if (!item) return;
 
-      clienteEmEdicao = { ...item, indexOriginal: index };
+      clienteEmEdicao = {...item, indexOriginal: index};
       document.getElementById('cadCliCliente').value = converterParaPrimeirasMaiusculas(item.cliente || '');
       document.getElementById('cadCliLocal').value = converterParaPrimeirasMaiusculas(item.local || '');
       document.getElementById('cadCliLocalInterno').value = converterParaPrimeirasMaiusculas(item.localInterno || item.local || '');
@@ -2828,7 +3090,7 @@
       document.getElementById('labelCliEditNome').innerText = normalizarTextoUtf8(item.cliente + ' (' + (item.localInterno || item.local || '') + ')');
       document.getElementById('cliFormTitleText').innerText = 'Edição de Ponto: ' + normalizarTextoUtf8(item.cliente);
       document.getElementById('btnSalvarClienteText').innerText = 'Salvar Alterações';
-      document.getElementById('clienteForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('clienteForm').scrollIntoView({behavior: 'smooth', block: 'start'});
       lucide.createIcons();
     }
     // =========================================================================
@@ -2849,17 +3111,17 @@
       if (!confirm('Deseja realmente excluir o cadastro de "' + descr + '"?')) return;
 
       abrirModalLoading('Excluindo Cliente...', 'Removendo o ponto "' + descr + '" do banco de dados.', 'loading');
-      
+
       const resultado = await enviarParaBancoGarantido({
-        "action": "excluir_cliente", 
-        "acao": "excluir_cliente", 
+        "action": "excluir_cliente",
+        "acao": "excluir_cliente",
         "tipo": "excluir_cliente",
         "linha": item.linha || "",
-        "Cliente": item.cliente, 
-        "Local": item.local, 
+        "Cliente": item.cliente,
+        "Local": item.local,
         "Local interno": item.localInterno,
-        "Máquina": item.maquina, 
-        "Modelo de máquina": item.modeloMaquina, 
+        "Máquina": item.maquina,
+        "Modelo de máquina": item.modeloMaquina,
         "Filial Responsavel": item.filialResponsavel
       });
 
@@ -2908,7 +3170,7 @@
         renderizarTabelaClientes(listaFiltradaClientesAtual);
         return;
       }
-      listaFiltradaClientesAtual = listaCadastroClientes.filter(c => 
+      listaFiltradaClientesAtual = listaCadastroClientes.filter(c =>
         Object.values(c).some(val => normalizarTextoUtf8(val || '').toLowerCase().includes(termo))
       );
       renderizarTabelaClientes(listaFiltradaClientesAtual);
@@ -3023,11 +3285,11 @@
         "action": ehEdicao ? "editar_cliente" : "inserir_cliente",
         "tipo": "cadastro_cliente",
         "linha": ehEdicao && clienteEmEdicao.linha ? clienteEmEdicao.linha : "",
-        "Cliente": cliente, 
-        "Local": local, 
+        "Cliente": cliente,
+        "Local": local,
         "Local interno": localInterno,
-        "Máquina": maquina, 
-        "Modelo de máquina": modeloMaquina, 
+        "Máquina": maquina,
+        "Modelo de máquina": modeloMaquina,
         "Filial Responsavel": filialResponsavel
       });
 
@@ -3050,7 +3312,7 @@
       }
 
       if (!dadosSAC.clientes) dadosSAC.clientes = [];
-      dadosSAC.clientes.push({ cliente, local: localInterno, cidade: filialResponsavel });
+      dadosSAC.clientes.push({cliente, local: localInterno, cidade: filialResponsavel});
       limparFormCliente();
       filtrarClientesCadastrados(false);
 
@@ -3071,23 +3333,23 @@
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { right: 40, left: 10, top: 10, bottom: 10 } },
+        layout: {padding: {right: 40, left: 10, top: 10, bottom: 10}},
         plugins: {
-          legend: { display: false },
+          legend: {display: false},
           tooltip: {
             backgroundColor: '#ffffff', titleColor: '#0f172a', bodyColor: '#334155',
             borderColor: '#e2e8f0', borderWidth: 1, padding: 10,
-            callbacks: { label: (c) => 'Ocorrências: ' + c.raw.toLocaleString('pt-BR') }
+            callbacks: {label: (c) => 'Ocorrências: ' + c.raw.toLocaleString('pt-BR')}
           },
           datalabels: {
             anchor: 'end', align: 'right', offset: 4, color: '#0f172a',
-            font: { family: 'Inter', weight: 'bold', size: 10 },
+            font: {family: 'Inter', weight: 'bold', size: 10},
             formatter: (v) => v ? v.toLocaleString('pt-BR') : ''
           }
         },
         scales: {
-          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 } }, beginAtZero: true },
-          y: { grid: { display: false }, ticks: { color: textColor, font: { size: 10, weight: '600' } } }
+          x: {grid: {color: gridColor}, ticks: {color: textColor, font: {size: 10}}, beginAtZero: true},
+          y: {grid: {display: false}, ticks: {color: textColor, font: {size: 10, weight: '600'}}}
         }
       };
     }
@@ -3101,47 +3363,47 @@
 
     const chartTopProblemasSAC = new Chart(document.getElementById('chartTopProblemasSAC').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6 }] },
+      data: {labels: [], datasets: [{data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6}]},
       options: getHorizontalSACBarOptions()
     });
 
     const chartAtendentesSAC = new Chart(document.getElementById('chartAtendentesSAC').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6 }] },
+      data: {labels: [], datasets: [{data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6}]},
       options: getHorizontalSACBarOptions()
     });
 
     const chartLocaisAnterior = new Chart(document.getElementById('chartLocaisAnterior').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(100, 116, 139, 0.85)', borderRadius: 6 }] },
+      data: {labels: [], datasets: [{data: [], backgroundColor: 'rgba(100, 116, 139, 0.85)', borderRadius: 6}]},
       options: getHorizontalSACBarOptions()
     });
 
     const chartLocaisAtual = new Chart(document.getElementById('chartLocaisAtual').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(79, 70, 229, 0.85)', borderRadius: 6 }] },
+      data: {labels: [], datasets: [{data: [], backgroundColor: 'rgba(79, 70, 229, 0.85)', borderRadius: 6}]},
       options: getHorizontalSACBarOptions()
     });
 
     const chartMesesQtd = new Chart(document.getElementById('chartMesesQtd').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ label: 'Quantidade', data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6 }] },
+      data: {labels: [], datasets: [{label: 'Quantidade', data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6}]},
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 20 } },
+        layout: {padding: {top: 20}},
         plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c) => 'Chamados: ' + c.raw.toLocaleString('pt-BR') } },
+          legend: {display: false},
+          tooltip: {callbacks: {label: (c) => 'Chamados: ' + c.raw.toLocaleString('pt-BR')}},
           datalabels: {
             anchor: 'end', align: 'top', offset: 2, color: '#0284c7',
-            font: { family: 'Inter', weight: 'bold', size: 10 },
+            font: {family: 'Inter', weight: 'bold', size: 10},
             formatter: (v) => v ? v.toLocaleString('pt-BR') : ''
           }
         },
         scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+          x: {ticks: {font: {size: 10}}},
+          y: {beginAtZero: true, ticks: {font: {size: 10}}}
         }
       }
     });
@@ -3160,42 +3422,42 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 22 } },
+        layout: {padding: {top: 22}},
         plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c) => 'Ressarcido: ' + formatCurrency(c.raw) } },
+          legend: {display: false},
+          tooltip: {callbacks: {label: (c) => 'Ressarcido: ' + formatCurrency(c.raw)}},
           datalabels: {
             anchor: 'end', align: 'top', offset: 2, color: '#047857',
-            font: { family: 'Inter', weight: 'bold', size: 9 },
-            formatter: (v) => v ? 'R$' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : ''
+            font: {family: 'Inter', weight: 'bold', size: 9},
+            formatter: (v) => v ? 'R$' + Number(v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : ''
           }
         },
         scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } }
+          x: {ticks: {font: {size: 10}}},
+          y: {beginAtZero: true, ticks: {font: {size: 10}, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR')}}
         }
       }
     });
 
     const chartDiasQtd = new Chart(document.getElementById('chartDiasQtd').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ label: 'Quantidade', data: [], backgroundColor: 'rgba(14, 165, 233, 0.85)', borderRadius: 4 }] },
+      data: {labels: [], datasets: [{label: 'Quantidade', data: [], backgroundColor: 'rgba(14, 165, 233, 0.85)', borderRadius: 4}]},
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 20 } },
+        layout: {padding: {top: 20}},
         plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c) => 'Chamados: ' + c.raw } },
+          legend: {display: false},
+          tooltip: {callbacks: {label: (c) => 'Chamados: ' + c.raw}},
           datalabels: {
             anchor: 'end', align: 'top', offset: 2, color: '#0369a1',
-            font: { family: 'Inter', weight: 'bold', size: 10 },
+            font: {family: 'Inter', weight: 'bold', size: 10},
             formatter: (v) => v ? v : ''
           }
         },
         scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+          x: {ticks: {font: {size: 10}}},
+          y: {beginAtZero: true, ticks: {font: {size: 10}}}
         }
       }
     });
@@ -3214,32 +3476,32 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 22 } },
+        layout: {padding: {top: 22}},
         plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (c) => 'Valor: ' + formatCurrency(c.raw) } },
+          legend: {display: false},
+          tooltip: {callbacks: {label: (c) => 'Valor: ' + formatCurrency(c.raw)}},
           datalabels: {
             anchor: 'end', align: 'top', offset: 2, color: '#b45309',
-            font: { family: 'Inter', weight: 'bold', size: 9 },
-            formatter: (v) => v ? 'R$' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }) : ''
+            font: {family: 'Inter', weight: 'bold', size: 9},
+            formatter: (v) => v ? 'R$' + Number(v).toLocaleString('pt-BR', {maximumFractionDigits: 0}) : ''
           }
         },
         scales: {
-          x: { ticks: { font: { size: 10 } } },
-          y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: (v) => 'R$' + v.toLocaleString('pt-BR') } }
+          x: {ticks: {font: {size: 10}}},
+          y: {beginAtZero: true, ticks: {font: {size: 10}, callback: (v) => 'R$' + v.toLocaleString('pt-BR')}}
         }
       }
     });
 
     const chartTop10Semana = new Chart(document.getElementById('chartTop10Semana').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(225, 29, 72, 0.85)', borderRadius: 6 }] },
+      data: {labels: [], datasets: [{data: [], backgroundColor: 'rgba(225, 29, 72, 0.85)', borderRadius: 6}]},
       options: getHorizontalSACBarOptions()
     });
 
     const chartTop3Filial = new Chart(document.getElementById('chartTop3Filial').getContext('2d'), {
       type: 'bar',
-      data: { labels: [], datasets: [{ data: [], backgroundColor: 'rgba(217, 119, 6, 0.85)', borderRadius: 6 }] },
+      data: {labels: [], datasets: [{data: [], backgroundColor: 'rgba(217, 119, 6, 0.85)', borderRadius: 6}]},
       options: getHorizontalSACBarOptions()
     });
 
@@ -3250,12 +3512,12 @@
       return {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 24, right: 12, left: 8, bottom: 4 } },
+        layout: {padding: {top: 24, right: 12, left: 8, bottom: 4}},
         plugins: {
           legend: {
             display: true,
             position: 'top',
-            labels: { boxWidth: 12, font: { family: 'Inter', size: 11, weight: '600' } }
+            labels: {boxWidth: 12, font: {family: 'Inter', size: 11, weight: '600'}}
           },
           tooltip: {
             backgroundColor: '#ffffff',
@@ -3277,12 +3539,12 @@
             anchor: 'end',
             align: 'top',
             offset: 2,
-            font: { family: 'Inter', weight: 'bold', size: 10 },
+            font: {family: 'Inter', weight: 'bold', size: 10},
             color: (ctx) => ctx.dataset.yAxisID === 'yVal' ? '#047857' : '#0369a1',
             formatter: (v, ctx) => {
               if (!v) return '';
               if (ctx.dataset.yAxisID === 'yVal') {
-                return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
               }
               return v + ' un.';
             }
@@ -3290,28 +3552,28 @@
         },
         scales: {
           x: {
-            grid: { display: false },
-            ticks: { color: '#334155', font: { size: 10, weight: '600' } }
+            grid: {display: false},
+            ticks: {color: '#334155', font: {size: 10, weight: '600'}}
           },
           yQtd: {
             type: 'linear',
             position: 'left',
             beginAtZero: true,
-            grid: { color: 'rgba(226, 232, 240, 0.7)' },
-            ticks: { precision: 0, color: '#0284c7', font: { size: 10 } },
-            title: { display: true, text: 'Quantidade', color: '#0284c7', font: { size: 10, weight: 'bold' } }
+            grid: {color: 'rgba(226, 232, 240, 0.7)'},
+            ticks: {precision: 0, color: '#0284c7', font: {size: 10}},
+            title: {display: true, text: 'Quantidade', color: '#0284c7', font: {size: 10, weight: 'bold'}}
           },
           yVal: {
             type: 'linear',
             position: 'right',
             beginAtZero: true,
-            grid: { drawOnChartArea: false },
+            grid: {drawOnChartArea: false},
             ticks: {
               color: '#059669',
-              font: { size: 10 },
+              font: {size: 10},
               callback: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR')
             },
-            title: { display: true, text: 'Valor (R$)', color: '#059669', font: { size: 10, weight: 'bold' } }
+            title: {display: true, text: 'Valor (R$)', color: '#059669', font: {size: 10, weight: 'bold'}}
           }
         }
       };
@@ -3325,8 +3587,8 @@
       data: {
         labels: [],
         datasets: [
-          { label: 'Quantidade', data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6, yAxisID: 'yQtd' },
-          { label: 'Valor (R$)', data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6, yAxisID: 'yVal' }
+          {label: 'Quantidade', data: [], backgroundColor: 'rgba(2, 132, 199, 0.85)', borderRadius: 6, yAxisID: 'yQtd'},
+          {label: 'Valor (R$)', data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6, yAxisID: 'yVal'}
         ]
       },
       options: getTop3LocalDualAxisOptions()
@@ -3337,8 +3599,8 @@
       data: {
         labels: [],
         datasets: [
-          { label: 'Quantidade', data: [], backgroundColor: 'rgba(79, 70, 229, 0.85)', borderRadius: 6, yAxisID: 'yQtd' },
-          { label: 'Valor (R$)', data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6, yAxisID: 'yVal' }
+          {label: 'Quantidade', data: [], backgroundColor: 'rgba(79, 70, 229, 0.85)', borderRadius: 6, yAxisID: 'yQtd'},
+          {label: 'Valor (R$)', data: [], backgroundColor: 'rgba(16, 185, 129, 0.85)', borderRadius: 6, yAxisID: 'yVal'}
         ]
       },
       options: getTop3LocalDualAxisOptions()
@@ -3377,7 +3639,7 @@
         }
       });
       const truncar = (t, max = 22) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 5);
+      const top5 = Object.entries(cont).map(([nome, qt]) => ({nome, qt})).sort((a, b) => b.qt - a.qt).slice(0, 5);
       chartLocaisAnterior.data.labels = top5.map(t => truncar(t.nome));
       chartLocaisAnterior.data.datasets[0].data = top5.map(t => t.qt);
       chartLocaisAnterior.update();
@@ -3401,7 +3663,7 @@
         }
       });
       const truncar = (t, max = 22) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top5 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 5);
+      const top5 = Object.entries(cont).map(([nome, qt]) => ({nome, qt})).sort((a, b) => b.qt - a.qt).slice(0, 5);
       chartLocaisAtual.data.labels = top5.map(t => truncar(t.nome));
       chartLocaisAtual.data.datasets[0].data = top5.map(t => t.qt);
       chartLocaisAtual.update();
@@ -3547,7 +3809,7 @@
       });
 
       const truncar = (t, max = 26) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top10 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
+      const top10 = Object.entries(cont).map(([nome, qt]) => ({nome, qt})).sort((a, b) => b.qt - a.qt).slice(0, 10);
       chartTop10Semana.data.labels = top10.map(t => truncar(t.nome));
       chartTop10Semana.data.datasets[0].data = top10.map(t => t.qt);
       chartTop10Semana.update();
@@ -3576,7 +3838,7 @@
       });
 
       const truncar = (t, max = 26) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top3 = Object.entries(cont).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 3);
+      const top3 = Object.entries(cont).map(([nome, qt]) => ({nome, qt})).sort((a, b) => b.qt - a.qt).slice(0, 3);
       chartTop3Filial.data.labels = top3.map(t => truncar(t.nome));
       chartTop3Filial.data.datasets[0].data = top3.map(t => t.qt);
       chartTop3Filial.update();
@@ -3587,7 +3849,7 @@
     // TÉRMINO: atualizarGraficoTopFilial
     // =========================================================================
 
-// =========================================================================
+    // =========================================================================
     // INÍCIO: atualizarGraficoTop3LocalDia
     // =========================================================================
     function atualizarGraficoTop3LocalDia() {
@@ -3599,7 +3861,7 @@
         const ymd = parseDateToYMD(c.data);
         if (ymd === dtDia) {
           const loc = normalizarTextoUtf8(c.localInterno || c.local_interno || c.cliente || 'Outros').trim();
-          if (!agrupado[loc]) agrupado[loc] = { qtd: 0, valor: 0 };
+          if (!agrupado[loc]) agrupado[loc] = {qtd: 0, valor: 0};
           agrupado[loc].qtd += 1;
           agrupado[loc].valor += parseValorNumerico(c.valor);
         }
@@ -3607,7 +3869,7 @@
 
       const truncar = (t, max = 24) => t.length > max ? t.substring(0, max) + '...' : t;
       const top3 = Object.entries(agrupado)
-        .map(([nome, dados]) => ({ nome, qtd: dados.qtd, valor: dados.valor }))
+        .map(([nome, dados]) => ({nome, qtd: dados.qtd, valor: dados.valor}))
         .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor)
         .slice(0, 3);
 
@@ -3633,7 +3895,7 @@
         const ymd = parseDateToYMD(c.data);
         if (ymd && ymd.startsWith(anoMes)) {
           const loc = normalizarTextoUtf8(c.localInterno || c.local_interno || c.cliente || 'Outros').trim();
-          if (!agrupado[loc]) agrupado[loc] = { qtd: 0, valor: 0 };
+          if (!agrupado[loc]) agrupado[loc] = {qtd: 0, valor: 0};
           agrupado[loc].qtd += 1;
           agrupado[loc].valor += parseValorNumerico(c.valor);
         }
@@ -3658,7 +3920,7 @@
       };
 
       const top3 = Object.entries(agrupado)
-        .map(([nome, dados]) => ({ nome, qtd: dados.qtd, valor: dados.valor }))
+        .map(([nome, dados]) => ({nome, qtd: dados.qtd, valor: dados.valor}))
         .sort((a, b) => b.qtd - a.qtd || b.valor - a.valor)
         .slice(0, 3);
 
@@ -3683,7 +3945,7 @@
     // TÉRMINO: atualizarGraficoTop3LocalMes
     // =========================================================================
 
-  // =========================================================================
+    // =========================================================================
     // INÍCIO: renderizarBadgesProblemasResumidos
     // =========================================================================
     function renderizarBadgesProblemasResumidos(mapaProblemas) {
@@ -3696,7 +3958,7 @@
     // TÉRMINO: renderizarBadgesProblemasResumidos
     // =========================================================================
 
-    
+
     // =========================================================================
     // INÍCIO: atualizarTabelaTop5LocaisFilialDia
     // =========================================================================
@@ -3738,7 +4000,7 @@
         const chave = loc + '||' + cli + '||' + filialItem;
 
         if (!agrupado[chave]) {
-          agrupado[chave] = { local: loc, cliente: cli, filial: filialItem, qtd: 0, valor: 0, problemas: {} };
+          agrupado[chave] = {local: loc, cliente: cli, filial: filialItem, qtd: 0, valor: 0, problemas: {}};
         }
         agrupado[chave].qtd += 1;
         agrupado[chave].valor += parseValorNumerico(c.valor || c.Valor);
@@ -3800,7 +4062,7 @@
         const chave = cli + '||' + loc + '||' + filialItem;
 
         if (!agrupado[chave]) {
-          agrupado[chave] = { cliente: cli, local: loc, filial: filialItem, qtd: 0, valor: 0, problemas: {} };
+          agrupado[chave] = {cliente: cli, local: loc, filial: filialItem, qtd: 0, valor: 0, problemas: {}};
         }
         agrupado[chave].qtd += 1;
         agrupado[chave].valor += parseValorNumerico(c.valor);
@@ -3831,8 +4093,8 @@
     // =========================================================================
     // TÉRMINO: atualizarTabelaLocaisDiaPorCliente
     // =========================================================================
-    
-// =========================================================================
+
+    // =========================================================================
     // INÍCIO: obterListaFiliaisUnicas
     // =========================================================================
     function obterListaFiliaisUnicas() {
@@ -3928,7 +4190,7 @@
 
       let mesAnt = mesHoje - 1;
       let anoAnt = anoHoje;
-      if (mesAnt === 0) { mesAnt = 12; anoAnt--; }
+      if (mesAnt === 0) {mesAnt = 12; anoAnt--;}
       const strMesAnt = anoAnt + '-' + pad(mesAnt);
 
       const elLocAnt = document.getElementById('filterMesLocaisAnterior');
@@ -4046,7 +4308,7 @@
         probContagem[p] = (probContagem[p] || 0) + 1;
       });
       const truncar = (t, max = 28) => t.length > max ? t.substring(0, max) + '...' : t;
-      const top10Problemas = Object.entries(probContagem).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
+      const top10Problemas = Object.entries(probContagem).map(([nome, qt]) => ({nome, qt})).sort((a, b) => b.qt - a.qt).slice(0, 10);
       chartTopProblemasSAC.data.labels = top10Problemas.map(p => truncar(p.nome));
       chartTopProblemasSAC.data.datasets[0].data = top10Problemas.map(p => p.qt);
       chartTopProblemasSAC.update();
@@ -4057,7 +4319,7 @@
         const a = normalizarTextoUtf8(c.atendente || 'Não Informado').trim();
         atendContagem[a] = (atendContagem[a] || 0) + 1;
       });
-      const topAtendentes = Object.entries(atendContagem).map(([nome, qt]) => ({ nome, qt })).sort((a,b) => b.qt - a.qt).slice(0, 10);
+      const topAtendentes = Object.entries(atendContagem).map(([nome, qt]) => ({nome, qt})).sort((a, b) => b.qt - a.qt).slice(0, 10);
       chartAtendentesSAC.data.labels = topAtendentes.map(a => truncar(a.nome));
       chartAtendentesSAC.data.datasets[0].data = topAtendentes.map(a => a.qt);
       chartAtendentesSAC.update();
@@ -4108,7 +4370,238 @@
     // =========================================================================
     // TÉRMINO: Inicialização Segura da Aplicação
     // =========================================================================
+
+    // =========================================================================
+    // INÍCIO: CRUD e Regras de Cadastro de Usuários
+    // =========================================================================
+    function removerAcentosParaLogin(texto) {
+      return String(texto || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .trim()
+        .toLowerCase();
+    }
+
+    function formatarNomeCapitalizado(nomeBruto) {
+      const limpo = normalizarTextoUtf8(nomeBruto).replace(/\s+/g, ' ').trim();
+      if (!limpo) return '';
+      const preposicoes = ['de', 'da', 'do', 'das', 'dos', 'e'];
+      return limpo.split(' ').map((parte, idx) => {
+        const lower = parte.toLowerCase();
+        if (idx > 0 && preposicoes.includes(lower)) return lower;
+        return lower.charAt(0).toUpperCase() + lower.slice(1);
+      }).join(' ');
+    }
+
+    function gerarLoginAutomatico(nomeCompleto) {
+      const semAcento = removerAcentosParaLogin(nomeCompleto);
+      const partes = semAcento.split(/\s+/).filter(Boolean);
+      if (partes.length === 0) return '';
+      if (partes.length === 1) return partes[0];
+      const primeiraLetra = partes[0].charAt(0);
+      const sobrenomeCompleto = partes[partes.length - 1];
+      return (primeiraLetra + sobrenomeCompleto).toLowerCase();
+    }
+
+    function atualizarPreviewUsuario() {
+      const nomeInput = document.getElementById('usrNome');
+      const loginInput = document.getElementById('usrLogin');
+      if (!nomeInput || !loginInput) return;
+
+      // Garante a primeira letra da digitação sempre em maiúscula em tempo real
+      const val = nomeInput.value;
+      if (val.length > 0 && val.charAt(0) !== val.charAt(0).toUpperCase()) {
+        const pos = nomeInput.selectionStart;
+        nomeInput.value = val.charAt(0).toUpperCase() + val.slice(1);
+        nomeInput.setSelectionRange(pos, pos);
+      }
+
+      loginInput.value = gerarLoginAutomatico(nomeInput.value);
+    }
+
+    function formatarCampoNomeUsuario() {
+      const nomeInput = document.getElementById('usrNome');
+      const loginInput = document.getElementById('usrLogin');
+      if (!nomeInput) return;
+      nomeInput.value = formatarNomeCapitalizado(nomeInput.value);
+      if (loginInput) {
+        loginInput.value = gerarLoginAutomatico(nomeInput.value);
+      }
+    }
+
+    function limparFormularioUsuario() {
+      document.getElementById('usrEditId').value = '';
+      document.getElementById('usrEditOriginal').value = '';
+      document.getElementById('usrNome').value = '';
+      document.getElementById('usrLogin').value = '';
+      document.getElementById('usrSenha').value = '';
+      document.getElementById('usrAcesso').value = 'Atendente';
+      document.getElementById('badgeModoUsuario').textContent = 'Modo: Novo Cadastro';
+      document.getElementById('badgeModoUsuario').className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+      document.getElementById('btnSalvarUsuario').textContent = 'Salvar Usuário';
+    }
+
+    function renderizarTabelaUsuarios() {
+      const tbody = document.getElementById('tbodyUsuarios');
+      const contador = document.getElementById('contadorUsuarios');
+      if (!tbody) return;
+
+      const lista = Array.isArray(dadosSAC.usuarios) ? dadosSAC.usuarios : [];
+      if (contador) contador.textContent = `${lista.length} usuário(s)`;
+
+      if (lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-slate-400">Nenhum usuário cadastrado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = lista.map((u, idx) => {
+        const nome = normalizarTextoUtf8(u.nome || '');
+        const usuario = normalizarTextoUtf8(u.usuario || '');
+        const senha = String(u.senha || '');
+        const acesso = normalizarTextoUtf8(u.acesso || 'Atendente');
+        const badgeAcesso = acesso.toLowerCase() === 'geral'
+          ? 'bg-emerald-100 text-emerald-800'
+          : 'bg-slate-100 text-slate-700';
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-semibold text-slate-800">${nome}</td>
+            <td class="py-3 px-4 font-mono font-bold text-amber-800">${usuario}</td>
+            <td class="py-3 px-4 font-mono text-slate-500">${'•'.repeat(Math.max(4, senha.length))}</td>
+            <td class="py-3 px-4">
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold ${badgeAcesso}">${acesso}</span>
+            </td>
+            <td class="py-3 px-4 text-right space-x-2">
+              <button type="button" onclick="prepararEdicaoUsuario(${idx})" class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold">
+                Editar
+              </button>
+              <button type="button" onclick="excluirUsuarioSistema(${idx})" class="px-2.5 py-1 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 font-bold">
+                Excluir
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function prepararEdicaoUsuario(idx) {
+      const u = (dadosSAC.usuarios || [])[idx];
+      if (!u) return;
+
+      document.getElementById('usrEditId').value = u.id || '';
+      document.getElementById('usrEditOriginal').value = u.usuario || '';
+      document.getElementById('usrNome').value = formatarNomeCapitalizado(u.nome || '');
+      document.getElementById('usrLogin').value = (u.usuario || '').toLowerCase();
+      document.getElementById('usrSenha').value = String(u.senha || '');
+      document.getElementById('usrAcesso').value = (u.acesso === 'Geral') ? 'Geral' : 'Atendente';
+
+      document.getElementById('badgeModoUsuario').textContent = `Editando: ${u.usuario}`;
+      document.getElementById('badgeModoUsuario').className = 'px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800';
+      document.getElementById('btnSalvarUsuario').textContent = 'Atualizar Usuário';
+      document.getElementById('usrNome').focus();
+    }
+
+    async function salvarUsuarioSistema(e) {
+      if (e) e.preventDefault();
+
+      const id = document.getElementById('usrEditId').value.trim();
+      const usuarioOriginal = document.getElementById('usrEditOriginal').value.trim().toLowerCase();
+      const nome = formatarNomeCapitalizado(document.getElementById('usrNome').value);
+      const usuario = gerarLoginAutomatico(nome);
+      const senha = document.getElementById('usrSenha').value.replace(/\D/g, '');
+      const acesso = document.getElementById('usrAcesso').value;
+
+      if (!nome || !usuario) {
+        alert('Informe o nome completo (nome e sobrenome) para gerar o usuário.');
+        return;
+      }
+      if (!senha) {
+        alert('A senha é obrigatória e deve conter apenas números.');
+        return;
+      }
+
+      const isEdicao = Boolean(usuarioOriginal || id);
+      const payload = {
+        acao: isEdicao ? 'editar_usuario' : 'inserir_usuario',
+        id: id ? Number(id) : null,
+        usuarioOriginal,
+        nome,
+        usuario,
+        senha,
+        acesso
+      };
+
+      try {
+        const res = await fetch(BACKEND_API_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json; charset=utf-8'},
+          body: new Blob([JSON.stringify(payload)], {type: 'application/json; charset=utf-8'})
+        });
+        const data = await res.json();
+        if (!res.ok || data.status !== 'success') {
+          throw new Error(data.detail || data.message || 'Falha ao salvar usuário.');
+        }
+
+        if (isEdicao) {
+          const idx = dadosSAC.usuarios.findIndex(x => (id && String(x.id) === String(id)) || (x.usuario || '').toLowerCase() === usuarioOriginal);
+          if (idx !== -1) {
+            dadosSAC.usuarios[idx] = {...dadosSAC.usuarios[idx], nome, usuario, senha, acesso};
+          }
+        } else {
+          dadosSAC.usuarios.push({nome, usuario, senha, acesso});
+        }
+
+        limparFormularioUsuario();
+        renderizarTabelaUsuarios();
+        alert(data.message || 'Usuário salvo com sucesso!');
+      } catch (err) {
+        alert('Erro ao salvar usuário: ' + err.message);
+      }
+    }
+
+    async function excluirUsuarioSistema(idx) {
+      const u = (dadosSAC.usuarios || [])[idx];
+      if (!u) return;
+
+      if ((u.usuario || '').toLowerCase() === (loginUsuarioConectado || '').toLowerCase()) {
+        alert('Você não pode excluir o próprio usuário conectado no momento.');
+        return;
+      }
+
+      if (!confirm(`Deseja realmente excluir o usuário "${u.nome}" (${u.usuario})?`)) {
+        return;
+      }
+
+      try {
+        const payload = {
+          acao: 'excluir_usuario',
+          id: u.id || null,
+          usuario: u.usuario
+        };
+        const res = await fetch(BACKEND_API_URL, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json; charset=utf-8'},
+          body: new Blob([JSON.stringify(payload)], {type: 'application/json; charset=utf-8'})
+        });
+        const data = await res.json();
+        if (!res.ok || data.status !== 'success') {
+          throw new Error(data.detail || data.message || 'Falha ao excluir usuário.');
+        }
+
+        dadosSAC.usuarios.splice(idx, 1);
+        limparFormularioUsuario();
+        renderizarTabelaUsuarios();
+        alert(data.message || 'Usuário excluído com sucesso!');
+      } catch (err) {
+        alert('Erro ao excluir usuário: ' + err.message);
+      }
+    }
+    // =========================================================================
+    // TÉRMINO: CRUD e Regras de Cadastro de Usuários
+    // =========================================================================
   </script>
   </script>
 </body>
+
 </html>
