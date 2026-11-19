@@ -42,7 +42,7 @@ def get_db_connection(autocommit: bool = False):
 # INÍCIO: normalizar_utf8_seguro
 # =========================================================================
 def normalizar_utf8_seguro(valor: Any) -> str:
-    """Repara dupla codificação UTF-8/Latin-1, sequências ï¿½ e restaura tokens com \\ufffd."""
+    """Repara dupla codificação UTF-8/Latin-1/CP1252, sequências ï¿½ e restaura tokens PT-BR."""
     if valor is None:
         return ""
     if isinstance(valor, (bytes, bytearray)):
@@ -56,39 +56,128 @@ def normalizar_utf8_seguro(valor: Any) -> str:
     if not texto:
         return ""
 
-    # 1. Repara dupla codificação (Latin-1/CP1252 -> UTF-8)
-    for _ in range(2):
-        if any(marcador in texto for marcador in ("\u00c3", "\u00c2", "\u00e2\u20ac")):
-            try:
-                reparado = texto.encode("cp1252").decode("utf-8")
-                if reparado and reparado != texto:
-                    texto = reparado
-                else:
-                    break
-            except Exception:
+    # 1. Repara dupla ou tripla codificação (Latin-1/CP1252 -> UTF-8)
+    for _ in range(3):
+        if any(marcador in texto for marcador in ("\u00c3", "\u00c2", "\u00e2\u20ac", "\u00c5")):
+            reparado = None
+            for enc in ("cp1252", "latin-1"):
                 try:
-                    reparado = texto.encode("latin-1").decode("utf-8")
-                    if reparado and reparado != texto:
-                        texto = reparado
-                    else:
+                    tentativa = texto.encode(enc).decode("utf-8")
+                    if tentativa and tentativa != texto:
+                        reparado = tentativa
                         break
                 except Exception:
-                    break
+                    continue
+            if reparado:
+                texto = reparado
+            else:
+                break
         else:
             break
 
-    # 2. Converte a sequência literal "ï¿½" (\u00ef\u00bf\u00bd) para o marcador padrão \ufffd
+    # 2. Converte sequências literais de erro de encoding para \ufffd
     U = "\ufffd"
-    if "\u00ef\u00bf\u00bd" in texto:
-        texto = texto.replace("\u00ef\u00bf\u00bd", U)
+    for seq_corrompida in ("\u00ef\u00bf\u00bd", "ï¿½", "?"):
+        if seq_corrompida == "?" and "?" in texto:
+            # Só substitui '?' se estiver no meio de letras (ex: "Ind?stria", "Administra??o")
+            import re
+            texto = re.sub(r"(?<=[A-Za-zÀ-ÿ])\?(?=[A-Za-zÀ-ÿ])", U, texto)
+        elif seq_corrompida in texto:
+            texto = texto.replace(seq_corrompida, U)
 
-    # 3. Somente atua se existir explicitamente o caractere de substituição \ufffd
+    # 3. Restaura palavras e sufixos PT-BR quando existir \ufffd
     if U in texto:
         substituicoes_fffd = [
-            # Terminações compostas (ção, ções, ça)
+            # Terminações compostas (ção, ções, ça, ças, ão, ões)
             (f"{U}{U}o", "ção"), (f"{U}{U}O", "ÇÃO"),
             (f"{U}{U}es", "ções"), (f"{U}{U}ES", "ÇÕES"),
             (f"{U}{U}a", "ça"), (f"{U}{U}A", "ÇA"),
+            (f"{U}{U}as", "ças"), (f"{U}{U}AS", "ÇAS"),
+            # Clientes, empresas, indústrias e estabelecimentos
+            (f"Ind{U}stria", "Indústria"), (f"IND{U}STRIA", "INDÚSTRIA"),
+            (f"Ind{U}strias", "Indústrias"), (f"IND{U}STRIAS", "INDÚSTRIAS"),
+            (f"Com{U}rcio", "Comércio"), (f"COM{U}RCIO", "COMÉRCIO"),
+            (f"Servi{U}os", "Serviços"), (f"SERVI{U}OS", "SERVIÇOS"),
+            (f"Servi{U}o", "Serviço"), (f"SERVI{U}O", "SERVIÇO"),
+            (f"Solu{U}{U}es", "Soluções"), (f"SOLU{U}{U}ES", "SOLUÇÕES"),
+            (f"Solu{U}{U}o", "Solução"), (f"SOLU{U}{U}O", "SOLUÇÃO"),
+            (f"Condom{U}nio", "Condomínio"), (f"CONDOM{U}NIO", "CONDOMÍNIO"),
+            (f"Cl{U}nica", "Clínica"), (f"CL{U}NICA", "CLÍNICA"),
+            (f"Sa{U}de", "Saúde"), (f"SA{U}DE", "SAÚDE"),
+            (f"Educa{U}{U}o", "Educação"), (f"EDUCA{U}{U}O", "EDUCAÇÃO"),
+            (f"Funda{U}{U}o", "Fundação"), (f"FUNDA{U}{U}O", "FUNDAÇÃO"),
+            (f"Associa{U}{U}o", "Associação"), (f"ASSOCIA{U}{U}O", "ASSOCIAÇÃO"),
+            (f"Coopera{U}{U}o", "Cooperação"), (f"Cooperativa", "Cooperativa"),
+            (f"Agropecu{U}ria", "Agropecuária"), (f"AGROPECU{U}RIA", "AGROPECUÁRIA"),
+            (f"Metal{U}rgica", "Metalúrgica"), (f"METAL{U}RGICA", "METALÚRGICA"),
+            (f"Sider{U}rgica", "Siderúrgica"), (f"SIDER{U}RGICA", "SIDERÚRGICA"),
+            (f"Qu{U}mica", "Química"), (f"QU{U}MICA", "QUÍMICA"),
+            (f"Farmac{U}utica", "Farmacêutica"), (f"FARMAC{U}UTICA", "FARMACÊUTICA"),
+            (f"Pl{U}sticos", "Plásticos"), (f"PL{U}STICOS", "PLÁSTICOS"),
+            (f"Pl{U}stico", "Plástico"), (f"PL{U}STICO", "PLÁSTICO"),
+            (f"El{U}trica", "Elétrica"), (f"EL{U}TRICA", "ELÉTRICA"),
+            (f"Eletr{U}nica", "Eletrônica"), (f"ELETR{U}NICA", "ELETRÔNICA"),
+            (f"Mec{U}nica", "Mecânica"), (f"MEC{U}NICA", "MECÂNICA"),
+            (f"Cer{U}mica", "Cerâmica"), (f"CER{U}MICA", "CERÂMICA"),
+            (f"Gr{U}fica", "Gráfica"), (f"GR{U}FICA", "GRÁFICA"),
+            (f"T{U}xtil", "Têxtil"), (f"T{U}XTIL", "TÊXTIL"),
+            (f"Log{U}stica", "Logística"), (f"LOG{U}STICA", "LOGÍSTICA"),
+            (f"Engenharia", "Engenharia"),
+            (f"Constru{U}{U}o", "Construção"), (f"CONSTRU{U}{U}O", "CONSTRUÇÃO"),
+            (f"Incorpora{U}{U}o", "Incorporação"), (f"INCORPORA{U}{U}O", "INCORPORAÇÃO"),
+            (f"Previden{U}a", "Previdência"), (f"Previd{U}ncia", "Previdência"),
+            (f"Assist{U}ncia", "Assistência"), (f"ASSIST{U}NCIA", "ASSISTÊNCIA"),
+            (f"Emerg{U}ncia", "Emergência"), (f"EMERG{U}NCIA", "EMERGÊNCIA"),
+            (f"M{U}dica", "Médica"), (f"M{U}dico", "Médico"),
+            (f"Odontol{U}gica", "Odontológica"), (f"Laborat{U}rio", "Laboratório"),
+            (f"LABORAT{U}RIO", "LABORATÓRIO"),
+            (f"Universit{U}rio", "Universitário"), (f"Universit{U}ria", "Universitária"),
+            (f"Col{U}gio", "Colégio"), (f"COL{U}GIO", "COLÉGIO"),
+            (f"Ag{U}ncia", "Agência"), (f"AG{U}NCIA", "AGÊNCIA"),
+            (f"Cart{U}rio", "Cartório"), (f"CART{U}RIO", "CARTÓRIO"),
+            # Locais internos e setores
+            (f"Administra{U}{U}o", "Administração"), (f"ADMINISTRA{U}{U}O", "ADMINISTRAÇÃO"),
+            (f"Produ{U}{U}o", "Produção"), (f"PRODU{U}{U}O", "PRODUÇÃO"),
+            (f"Expedi{U}{U}o", "Expedição"), (f"EXPEDI{U}{U}O", "EXPEDIÇÃO"),
+            (f"Manuten{U}{U}o", "Manutenção"), (f"MANUTEN{U}{U}O", "MANUTENÇÃO"),
+            (f"Refeit{U}rio", "Refeitório"), (f"REFEIT{U}RIO", "REFEITÓRIO"),
+            (f"Recep{U}{U}o", "Recepção"), (f"RECEP{U}{U}O", "RECEPÇÃO"),
+            (f"Portaria", "Portaria"),
+            (f"F{U}brica", "Fábrica"), (f"F{U}BRICA", "FÁBRICA"),
+            (f"Galp{U}o", "Galpão"), (f"GALP{U}O", "GALPÃO"),
+            (f"Sal{U}o", "Salão"), (f"SAL{U}O", "SALÃO"),
+            (f"Audit{U}rio", "Auditório"), (f"AUDIT{U}RIO", "AUDITÓRIO"),
+            (f"Escrit{U}rio", "Escritório"), (f"ESCRIT{U}RIO", "ESCRITÓRIO"),
+            (f"Consult{U}rio", "Consultório"), (f"CONSULT{U}RIO", "CONSULTÓRIO"),
+            (f"Ambulat{U}rio", "Ambulatório"), (f"AMBULAT{U}RIO", "AMBULATÓRIO"),
+            (f"Vesti{U}rio", "Vestiário"), (f"VESTI{U}RIO", "VESTIÁRIO"),
+            (f"Sanit{U}rio", "Sanitário"), (f"SANIT{U}RIO", "SANITÁRIO"),
+            (f"Estacionamento", "Estacionamento"),
+            (f"Esta{U}{U}o", "Estação"), (f"ESTA{U}{U}O", "ESTAÇÃO"),
+            (f"P{U}tio", "Pátio"), (f"P{U}TIO", "PÁTIO"),
+            (f"Pr{U}dio", "Prédio"), (f"PR{U}DIO", "PRÉDIO"),
+            (f"T{U}rreo", "Térreo"), (f"T{U}RREO", "TÉRREO"),
+            (f"Subsolo", "Subsolo"),
+            (f"Dep{U}sito", "Depósito"), (f"DEP{U}SITO", "DEPÓSITO"),
+            (f"Armaz{U}m", "Armazém"), (f"ARMAZ{U}M", "ARMAZÉM"),
+            (f"Diretoria", "Diretoria"),
+            (f"Ger{U}ncia", "Gerência"), (f"GER{U}NCIA", "GERÊNCIA"),
+            (f"Supervis{U}o", "Supervisão"), (f"SUPERVIS{U}O", "SUPERVISÃO"),
+            (f"Coordena{U}{U}o", "Coordenação"), (f"COORDENA{U}{U}O", "COORDENAÇÃO"),
+            (f"Opera{U}{U}o", "Operação"), (f"OPERA{U}{U}O", "OPERAÇÃO"),
+            (f"Opera{U}{U}es", "Operações"), (f"OPERA{U}{U}ES", "OPERAÇÕES"),
+            (f"Inspe{U}{U}o", "Inspeção"), (f"INSPE{U}{U}O", "INSPEÇÃO"),
+            (f"Qualidade", "Qualidade"),
+            (f"Seguran{U}a", "Segurança"), (f"SEGURAN{U}A", "SEGURANÇA"),
+            (f"Inform{U}tica", "Informática"), (f"INFORM{U}TICA", "INFORMÁTICA"),
+            (f"Tecnologia", "Tecnologia"),
+            (f"Treinamento", "Treinamento"),
+            (f"Conviv{U}ncia", "Convivência"), (f"CONVIV{U}NCIA", "CONVIVÊNCIA"),
+            (f"{U}rea", "Área"), (f"{U}REA", "ÁREA"),
+            (f"Cafeteria", "Cafeteria"),
+            (f"Lanchonete", "Lanchonete"),
+            (f"Cozinha", "Cozinha"),
+            (f"Copa", "Copa"),
             # Cidades e locais
             (f"S{U}o ", "São "), (f"S{U}O ", "SÃO "),
             (f"Ribeir{U}o", "Ribeirão"), (f"RIBEIR{U}O", "RIBEIRÃO"),
@@ -96,16 +185,20 @@ def normalizar_utf8_seguro(valor: Any) -> str:
             (f"Goi{U}nia", "Goiânia"), (f"Bras{U}lia", "Brasília"),
             (f"Cuiab{U}", "Cuiabá"), (f"Bel{U}m", "Belém"),
             (f"Macei{U}", "Maceió"), (f"Florian{U}polis", "Florianópolis"),
+            (f"Mat{U}o", "Matão"), (f"MAT{U}O", "MATÃO"),
+            (f"Taquaritinga", "Taquaritinga"),
+            (f"Am{U}rico", "Américo"), (f"AM{U}RICO", "AMÉRICO"),
+            (f"Ibitinga", "Ibitinga"),
+            (f"Bebedouro", "Bebedouro"),
+            (f"Sert{U}ozinho", "Sertãozinho"), (f"SERT{U}OZINHO", "SERTÃOZINHO"),
+            (f"Jaboticabal", "Jaboticabal"),
             # Termos operacionais e financeiros
             (f"N{U}o", "Não"), (f"N{U}O", "NÃO"),
             (f"Caf{U}", "Café"), (f"CAF{U}", "CAFÉ"),
             (f"Cr{U}dito", "Crédito"), (f"D{U}bito", "Débito"),
             (f"Devolu{U}{U}o", "Devolução"), (f"Transa{U}{U}o", "Transação"),
             (f"Observa{U}{U}o", "Observação"), (f"Descri{U}{U}o", "Descrição"),
-            (f"Manuten{U}{U}o", "Manutenção"), (f"Refeit{U}rio", "Refeitório"),
-            (f"Recep{U}{U}o", "Recepção"), (f"F{U}brica", "Fábrica"),
             (f"M{U}quina", "Máquina"), (f"M{U}quinas", "Máquinas"),
-            (f"Pr{U}dio", "Prédio"), (f"T{U}rreo", "Térreo"),
             (f"M{U}dio", "Médio"), (f"M{U}dia", "Média"),
             (f"Cart{U}o", "Cartão"), (f"cart{U}o", "cartão"),
             (f"Aleat{U}ria", "Aleatória"), (f"N{U}mero", "Número"),
@@ -130,11 +223,16 @@ def normalizar_utf8_seguro(valor: Any) -> str:
                 texto = texto.replace(errado, certo)
 
         # Terminações genéricas seguras com \ufffd explícito
-        texto = texto.replace(f"{U}o ", "ão ").replace(f"{U}es ", "ões ")
+        texto = texto.replace(f"{U}o ", "ão ").replace(f"{U}O ", "ÃO ")
+        texto = texto.replace(f"{U}es ", "ões ").replace(f"{U}ES ", "ÕES ")
         if texto.endswith(f"{U}o"):
             texto = texto[:-2] + "ão"
+        elif texto.endswith(f"{U}O"):
+            texto = texto[:-2] + "ÃO"
         if texto.endswith(f"{U}es"):
             texto = texto[:-3] + "ões"
+        elif texto.endswith(f"{U}ES"):
+            texto = texto[:-3] + "ÕES"
 
     return unicodedata.normalize("NFC", texto)
 # =========================================================================
