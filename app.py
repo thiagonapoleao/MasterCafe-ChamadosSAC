@@ -37,6 +37,7 @@ def get_db_connection(autocommit: bool = False):
 # TÉRMINO: get_db_connection
 # =========================================================================
 
+
 # =========================================================================
 # INÍCIO: normalizar_utf8_seguro
 # =========================================================================
@@ -139,6 +140,7 @@ def normalizar_utf8_seguro(valor: Any) -> str:
 # =========================================================================
 # TÉRMINO: normalizar_utf8_seguro
 # =========================================================================
+
 
 # =========================================================================
 # INÍCIO: obter_logo_base64
@@ -248,6 +250,7 @@ def buscar_primeira_coluna_texto(cur, tabela: str, colunas_preferenciais: list) 
 # TÉRMINO: buscar_primeira_coluna_texto
 # =========================================================================
 
+
 # =========================================================================
 # INÍCIO: sanitizar_estrutura_utf8
 # =========================================================================
@@ -266,6 +269,35 @@ def sanitizar_estrutura_utf8(dado: Any) -> Any:
 # =========================================================================
 # TÉRMINO: sanitizar_estrutura_utf8
 # =========================================================================
+
+
+# =========================================================================
+# INÍCIO: Gerador Sequencial Seguro no PostgreSQL (Evita Sobrescrita)
+# =========================================================================
+def gerar_proximo_numero_sac_postgres(cur, col_chamado_real: str, ano_str: str) -> str:
+    """Bloqueia a sequência do ano durante a transação e gera o próximo SAC-AAAA-NNNN."""
+    # Trava transacional exclusiva no PostgreSQL para evitar dois inserts simultâneos com mesmo número
+    chave_lock = int(ano_str) if ano_str.isdigit() else 2026
+    cur.execute("SELECT pg_advisory_xact_lock(%s)", (chave_lock,))
+
+    prefixo = f"SAC-{ano_str}-"
+    cur.execute(
+        f'SELECT "{col_chamado_real}" AS ch FROM chamados WHERE "{col_chamado_real}" LIKE %s',
+        (f"{prefixo}%",)
+    )
+    maior_seq = 0
+    for row in (cur.fetchall() or []):
+        ch_val = str(row.get("ch") or "").strip()
+        partes = ch_val.split("-")
+        if len(partes) == 3 and partes[2].isdigit():
+            maior_seq = max(maior_seq, int(partes[2]))
+
+    proximo_seq = maior_seq + 1
+    return f"{prefixo}{str(proximo_seq).zfill(4)}"
+# =========================================================================
+# TÉRMINO: Gerador Sequencial Seguro no PostgreSQL
+# =========================================================================
+
 
 # =========================================================================
 # INÍCIO: carregar_pagina_principal
@@ -415,6 +447,72 @@ async def carregar_pagina_principal(request: Request):
 
 
 # =========================================================================
+# INÍCIO: Rota Leve de Sincronização em Tempo Real (/api/sync)
+# =========================================================================
+@app.get("/api/sync")
+async def sincronizar_dados_tempo_real():
+    """Retorna apenas os chamados e o maior número SAC do Supabase sem recarregar a página."""
+    try:
+        with get_db_connection(autocommit=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT id as linha, 
+                           COALESCE(chamado, '') as chamado, 
+                           COALESCE(to_char(data, 'DD/MM/YYYY'), '') as data,
+                           COALESCE(cliente, '') as cliente, 
+                           COALESCE(local_interno, '') as "localInterno", 
+                           COALESCE(cidade, '') as cidade, 
+                           COALESCE(descricao, '') as descricao, 
+                           COALESCE(produto, '') as produto, 
+                           COALESCE(to_char(data_transacao, 'DD/MM/YYYY'), '') as "dataTransacao", 
+                           COALESCE(hora_transacao::text, '') as "horaTransacao", 
+                           COALESCE(valor, 0) as valor, 
+                           COALESCE(nome_sobrenome, '') as "nomeSobrenome", 
+                           COALESCE(celular, '') as celular, 
+                           COALESCE(problemas, '') as problemas, 
+                           COALESCE(forma_pgto, '') as "formaPgto", 
+                           COALESCE(reembolso, '') as reembolso, 
+                           COALESCE(pix, '') as pix, 
+                           COALESCE(atendente, '') as atendente, 
+                           COALESCE(data_hora_lancamento, '') as "dataHoraLancamento", 
+                           COALESCE(reembolso_realizado, 'Não') as "reembolsoRealizado", 
+                           COALESCE(financeiro_responsavel, '') as "financeiroResponsavel", 
+                           COALESCE(observacao, '') as observacao
+                    FROM chamados 
+                    ORDER BY id DESC
+                """)
+                chamados_raw = cur.fetchall() or []
+
+        maior_sac_ano = {}
+        chamados_formatados = []
+        for c in chamados_raw:
+            item = sanitizar_estrutura_utf8(dict(c))
+            item["valor"] = format_currency_br(item.get("valor", 0))
+            chamados_formatados.append(item)
+
+            ch_str = str(item.get("chamado", ""))
+            if ch_str.startswith("SAC-"):
+                partes = ch_str.split("-")
+                if len(partes) == 3 and partes[2].isdigit():
+                    ano, seq = partes[1], int(partes[2])
+                    maior_sac_ano[ano] = max(maior_sac_ano.get(ano, 0), seq)
+
+        return JSONResponse(
+            content=sanitizar_estrutura_utf8({
+                "status": "success",
+                "chamados": chamados_formatados,
+                "maior_sac_ano": maior_sac_ano
+            }),
+            media_type="application/json; charset=utf-8"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+# =========================================================================
+# TÉRMINO: Rota Leve de Sincronização em Tempo Real (/api/sync)
+# =========================================================================
+
+
+# =========================================================================
 # INÍCIO: processar_acao_api
 # =========================================================================
 @app.post("/api/action")
@@ -435,13 +533,10 @@ async def processar_acao_api(request: Request):
         with conn.cursor() as cur:
             
             # =========================================================================
-            # 1. INSERIR OU EDITAR NA TABELA chamados
+            # 1. INSERIR OU EDITAR NA TABELA chamados (COM TRAVA ANTI-SOBRESCRITA)
             # =========================================================================
             if acao in ["inserir", "editar"]:
-                chamado_num = normalizar_utf8_seguro(payload.get("Chamado") or payload.get("chamado") or "").strip()
-                if not chamado_num:
-                    raise ValueError("O número do chamado é obrigatório.")
-
+                chamado_informado = normalizar_utf8_seguro(payload.get("Chamado") or payload.get("chamado") or "").strip()
                 data_sql = parse_date_to_sql(payload.get("Data") or payload.get("data")) or datetime.now().strftime("%Y-%m-%d")
                 dt_transacao_sql = parse_date_to_sql(payload.get("Data da Transação") or payload.get("data_transacao") or payload.get("dataTransacao"))
                 
@@ -449,6 +544,22 @@ async def processar_acao_api(request: Request):
                 hr_tr_sql = str(hr_tr).strip() if hr_tr and str(hr_tr).strip() else None
 
                 valor_sql = parse_float_sql(payload.get("Valor") if "Valor" in payload else payload.get("valor", 0))
+
+                # Mapeamento dinâmico das colunas reais da tabela 'chamados'
+                cur.execute("SELECT * FROM chamados LIMIT 0")
+                colunas_reais = [desc[0] for desc in (cur.description or [])]
+                mapa_colunas = {c.lower(): c for c in colunas_reais}
+                col_chamado_real = mapa_colunas.get("chamado", "chamado")
+
+                if acao == "inserir":
+                    ano_chamado = data_sql[:4] if len(data_sql) >= 4 else datetime.now().strftime("%Y")
+                    if chamado_informado.startswith("SAC-") and len(chamado_informado.split("-")) == 3:
+                        ano_chamado = chamado_informado.split("-")[1]
+                    chamado_num = gerar_proximo_numero_sac_postgres(cur, col_chamado_real, ano_chamado)
+                else:
+                    if not chamado_informado:
+                        raise ValueError("O número do chamado é obrigatório para edição.")
+                    chamado_num = chamado_informado
 
                 # Dicionário canônico de dados prontos para o banco em UTF-8 NFC
                 dados_canonicos = {
@@ -475,16 +586,7 @@ async def processar_acao_api(request: Request):
                     "observacao": normalizar_utf8_seguro(payload.get("Observação") or payload.get("observacao") or "").strip()
                 }
 
-                # Mapeamento dinâmico das colunas reais da tabela 'chamados'
-                cur.execute("SELECT * FROM chamados LIMIT 0")
-                colunas_reais = [desc[0] for desc in (cur.description or [])]
-                mapa_colunas = {c.lower(): c for c in colunas_reais}
-
-                col_chamado_real = mapa_colunas.get("chamado", "chamado")
-                cur.execute(f'SELECT id FROM chamados WHERE "{col_chamado_real}" = %s', (chamado_num,))
-                registro_existente = cur.fetchone()
-
-                if acao == "inserir" and not registro_existente:
+                if acao == "inserir":
                     cols_sql = []
                     vals_sql = []
                     placeholders = []
@@ -513,7 +615,11 @@ async def processar_acao_api(request: Request):
 
                 conn.commit()
                 return JSONResponse(
-                    content={"status": "success", "message": f"Chamado {chamado_num} gravado com sucesso no banco."},
+                    content={
+                        "status": "success",
+                        "chamado": chamado_num,
+                        "message": f"Chamado {chamado_num} gravado com sucesso no banco."
+                    },
                     media_type="application/json; charset=utf-8"
                 )
 
@@ -577,6 +683,7 @@ async def processar_acao_api(request: Request):
                     content={"status": "success", "message": "Cliente excluído com sucesso."},
                     media_type="application/json; charset=utf-8"
                 )
+
             # =========================================================================
             # 4. USUÁRIOS (INSERIR, EDITAR, EXCLUIR)
             # =========================================================================
