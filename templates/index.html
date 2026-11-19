@@ -1365,7 +1365,7 @@
         str = txtArea.value;
       }
 
-      // 2. Repara dupla codificação UTF-8 lida como Latin-1 / Windows-1252
+      // 2. Repara dupla ou tripla codificação UTF-8 lida como Latin-1 / Windows-1252
       const mapaCp1252ParaByte = {
         0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85,
         0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A,
@@ -1375,8 +1375,8 @@
         0x017E: 0x9E, 0x0178: 0x9F
       };
 
-      for (let pass = 0; pass < 2; pass++) {
-        if (str.indexOf('\u00C3') === -1 && str.indexOf('\u00C2') === -1 && str.indexOf('\u00E2') === -1) {
+      for (let pass = 0; pass < 3; pass++) {
+        if (str.indexOf('\u00C3') === -1 && str.indexOf('\u00C2') === -1 && str.indexOf('\u00E2') === -1 && str.indexOf('\u00C5') === -1) {
           break;
         }
         try {
@@ -1394,7 +1394,7 @@
             }
           }
           if (conversivel) {
-            const decodificado = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
+            const decodificado = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
             if (decodificado && decodificado !== str) {
               str = decodificado;
             } else {
@@ -1408,31 +1408,114 @@
         }
       }
 
-      // 3. Converte a sequência literal "ï¿½" (\u00EF\u00BF\u00BD) para \uFFFD antes do mapeamento
+      // 3. Converte sequências literais "ï¿½" e "?" corrompido entre letras para \uFFFD
       if (str.indexOf('\u00EF\u00BF\u00BD') !== -1) {
         str = str.split('\u00EF\u00BF\u00BD').join('\uFFFD');
       }
+      if (str.indexOf('ï¿½') !== -1) {
+        str = str.split('ï¿½').join('\uFFFD');
+      }
+      // Converte "?" interno entre letras (ex: "Ind?stria", "Administra??o", "Galp?o") sem afetar pontuação no fim de frase
+      str = str.replace(/([A-Za-zÀ-ÿ])\?+([A-Za-zÀ-ÿ])/g, (match, antes, depois) => {
+        const qtd = match.length - 2;
+        return antes + '\uFFFD'.repeat(qtd) + depois;
+      });
 
-      // 4. Restaura palavras PT-BR somente quando existir o caractere \uFFFD explícito
+      // 4. Restaura palavras PT-BR (Clientes, Locais Internos, Cidades, Operação)
       if (str.indexOf('\uFFFD') !== -1) {
         const mapaFffd = [
+          // Terminações compostas (ção, ções, ça, ças)
           ['\uFFFD\uFFFDo', 'ção'], ['\uFFFD\uFFFDO', 'ÇÃO'],
           ['\uFFFD\uFFFDes', 'ções'], ['\uFFFD\uFFFDES', 'ÇÕES'],
           ['\uFFFD\uFFFDa', 'ça'], ['\uFFFD\uFFFDA', 'ÇA'],
+          ['\uFFFD\uFFFDas', 'ças'], ['\uFFFD\uFFFDAS', 'ÇAS'],
+          // Clientes, empresas, indústrias e instituições
+          ['Ind\uFFFDstria', 'Indústria'], ['IND\uFFFDSTRIA', 'INDÚSTRIA'],
+          ['Ind\uFFFDstrias', 'Indústrias'], ['IND\uFFFDSTRIAS', 'INDÚSTRIAS'],
+          ['Com\uFFFDrcio', 'Comércio'], ['COM\uFFFDRCIO', 'COMÉRCIO'],
+          ['Servi\uFFFDos', 'Serviços'], ['SERVI\uFFFDOS', 'SERVIÇOS'],
+          ['Servi\uFFFDo', 'Serviço'], ['SERVI\uFFFDO', 'SERVIÇO'],
+          ['Solu\uFFFD\uFFFDes', 'Soluções'], ['SOLU\uFFFD\uFFFDES', 'SOLUÇÕES'],
+          ['Solu\uFFFD\uFFFDo', 'Solução'], ['SOLU\uFFFD\uFFFDO', 'SOLUÇÃO'],
+          ['Condom\uFFFDnio', 'Condomínio'], ['CONDOM\uFFFDNIO', 'CONDOMÍNIO'],
+          ['Cl\uFFFDnica', 'Clínica'], ['CL\uFFFDNICA', 'CLÍNICA'],
+          ['Sa\uFFFDde', 'Saúde'], ['SA\uFFFDDE', 'SAÚDE'],
+          ['Educa\uFFFD\uFFFDo', 'Educação'], ['EDUCA\uFFFD\uFFFDO', 'EDUCAÇÃO'],
+          ['Funda\uFFFD\uFFFDo', 'Fundação'], ['FUNDA\uFFFD\uFFFDO', 'FUNDAÇÃO'],
+          ['Associa\uFFFD\uFFFDo', 'Associação'], ['ASSOCIA\uFFFD\uFFFDO', 'ASSOCIAÇÃO'],
+          ['Agropecu\uFFFDria', 'Agropecuária'], ['AGROPECU\uFFFDRIA', 'AGROPECUÁRIA'],
+          ['Metal\uFFFDrgica', 'Metalúrgica'], ['METAL\uFFFDRGICA', 'METALÚRGICA'],
+          ['Sider\uFFFDrgica', 'Siderúrgica'], ['SIDER\uFFFDRGICA', 'SIDERÚRGICA'],
+          ['Qu\uFFFDmica', 'Química'], ['QU\uFFFDMICA', 'QUÍMICA'],
+          ['Farmac\uFFFDutica', 'Farmacêutica'], ['FARMAC\uFFFDUTICA', 'FARMACÊUTICA'],
+          ['Pl\uFFFDsticos', 'Plásticos'], ['PL\uFFFDSTICOS', 'PLÁSTICOS'],
+          ['Pl\uFFFDstico', 'Plástico'], ['PL\uFFFDSTICO', 'PLÁSTICO'],
+          ['El\uFFFDtrica', 'Elétrica'], ['EL\uFFFDTRICA', 'ELÉTRICA'],
+          ['Eletr\uFFFDnica', 'Eletrônica'], ['ELETR\uFFFDNICA', 'ELETRÔNICA'],
+          ['Mec\uFFFDnica', 'Mecânica'], ['MEC\uFFFDNICA', 'MECÂNICA'],
+          ['Cer\uFFFDmica', 'Cerâmica'], ['CER\uFFFDMICA', 'CERÂMICA'],
+          ['Gr\uFFFDfica', 'Gráfica'], ['GR\uFFFDFICA', 'GRÁFICA'],
+          ['T\uFFFDxtil', 'Têxtil'], ['T\uFFFDXTIL', 'TÊXTIL'],
+          ['Log\uFFFDstica', 'Logística'], ['LOG\uFFFDSTICA', 'LOGÍSTICA'],
+          ['Constru\uFFFD\uFFFDo', 'Construção'], ['CONSTRU\uFFFD\uFFFDO', 'CONSTRUÇÃO'],
+          ['Incorpora\uFFFD\uFFFDo', 'Incorporação'], ['INCORPORA\uFFFD\uFFFDO', 'INCORPORAÇÃO'],
+          ['Assist\uFFFDncia', 'Assistência'], ['ASSIST\uFFFDNCIA', 'ASSISTÊNCIA'],
+          ['Emerg\uFFFDncia', 'Emergência'], ['EMERG\uFFFDNCIA', 'EMERGÊNCIA'],
+          ['M\uFFFDdica', 'Médica'], ['M\uFFFDdico', 'Médico'],
+          ['Odontol\uFFFDgica', 'Odontológica'], ['Laborat\uFFFDrio', 'Laboratório'],
+          ['LABORAT\uFFFDRIO', 'LABORATÓRIO'],
+          ['Universit\uFFFDrio', 'Universitário'], ['Universit\uFFFDria', 'Universitária'],
+          ['Col\uFFFDgio', 'Colégio'], ['COL\uFFFDGIO', 'COLÉGIO'],
+          ['Ag\uFFFDncia', 'Agência'], ['AG\uFFFDNCIA', 'AGÊNCIA'],
+          ['Cart\uFFFDrio', 'Cartório'], ['CART\uFFFDRIO', 'CARTÓRIO'],
+          // Locais Internos e Setores
+          ['Administra\uFFFD\uFFFDo', 'Administração'], ['ADMINISTRA\uFFFD\uFFFDO', 'ADMINISTRAÇÃO'],
+          ['Produ\uFFFD\uFFFDo', 'Produção'], ['PRODU\uFFFD\uFFFDO', 'PRODUÇÃO'],
+          ['Expedi\uFFFD\uFFFDo', 'Expedição'], ['EXPEDI\uFFFD\uFFFDO', 'EXPEDIÇÃO'],
+          ['Manuten\uFFFD\uFFFDo', 'Manutenção'], ['MANUTEN\uFFFD\uFFFDO', 'MANUTENÇÃO'],
+          ['Refeit\uFFFDrio', 'Refeitório'], ['REFEIT\uFFFDRIO', 'REFEITÓRIO'],
+          ['Recep\uFFFD\uFFFDo', 'Recepção'], ['RECEP\uFFFD\uFFFDO', 'RECEPÇÃO'],
+          ['F\uFFFDbrica', 'Fábrica'], ['F\uFFFDBRICA', 'FÁBRICA'],
+          ['Galp\uFFFDo', 'Galpão'], ['GALP\uFFFDO', 'GALPÃO'],
+          ['Sal\uFFFDo', 'Salão'], ['SAL\uFFFDO', 'SALÃO'],
+          ['Audit\uFFFDrio', 'Auditório'], ['AUDIT\uFFFDRIO', 'AUDITÓRIO'],
+          ['Escrit\uFFFDrio', 'Escritório'], ['ESCRIT\uFFFDRIO', 'ESCRITÓRIO'],
+          ['Consult\uFFFDrio', 'Consultório'], ['CONSULT\uFFFDRIO', 'CONSULTÓRIO'],
+          ['Ambulat\uFFFDrio', 'Ambulatório'], ['AMBULAT\uFFFDRIO', 'AMBULATÓRIO'],
+          ['Vesti\uFFFDrio', 'Vestiário'], ['VESTI\uFFFDRIO', 'VESTIÁRIO'],
+          ['Sanit\uFFFDrio', 'Sanitário'], ['SANIT\uFFFDRIO', 'SANITÁRIO'],
+          ['Esta\uFFFD\uFFFDo', 'Estação'], ['ESTA\uFFFD\uFFFDO', 'ESTAÇÃO'],
+          ['P\uFFFDtio', 'Pátio'], ['P\uFFFDTIO', 'PÁTIO'],
+          ['Pr\uFFFDdio', 'Prédio'], ['PR\uFFFDDIO', 'PRÉDIO'],
+          ['T\uFFFDrreo', 'Térreo'], ['T\uFFFDRREO', 'TÉRREO'],
+          ['Dep\uFFFDsito', 'Depósito'], ['DEP\uFFFDSITO', 'DEPÓSITO'],
+          ['Armaz\uFFFDm', 'Armazém'], ['ARMAZ\uFFFDM', 'ARMAZÉM'],
+          ['Ger\uFFFDncia', 'Gerência'], ['GER\uFFFDNCIA', 'GERÊNCIA'],
+          ['Supervis\uFFFDo', 'Supervisão'], ['SUPERVIS\uFFFDO', 'SUPERVISÃO'],
+          ['Coordena\uFFFD\uFFFDo', 'Coordenação'], ['COORDENA\uFFFD\uFFFDO', 'COORDENAÇÃO'],
+          ['Opera\uFFFD\uFFFDo', 'Operação'], ['OPERA\uFFFD\uFFFDO', 'OPERAÇÃO'],
+          ['Opera\uFFFD\uFFFDes', 'Operações'], ['OPERA\uFFFD\uFFFDES', 'OPERACÕES'],
+          ['Inspe\uFFFD\uFFFDo', 'Inspeção'], ['INSPE\uFFFD\uFFFDo', 'INSPEÇÃO'],
+          ['Seguran\uFFFDa', 'Segurança'], ['SEGURAN\uFFFDA', 'SEGURANÇA'],
+          ['Inform\uFFFDtica', 'Informática'], ['INFORM\uFFFDTICA', 'INFORMÁTICA'],
+          ['Conviv\uFFFDncia', 'Convivência'], ['CONVIV\uFFFDNCIA', 'CONVIVÊNCIA'],
+          ['\uFFFDrea', 'Área'], ['\uFFFDREA', 'ÁREA'],
+          // Cidades e Regiões
           ['S\uFFFDo ', 'São '], ['S\uFFFDO ', 'SÃO '],
           ['Ribeir\uFFFDo', 'Ribeirão'], ['RIBEIR\uFFFDO', 'RIBEIRÃO'],
+          ['Mat\uFFFDo', 'Matão'], ['MAT\uFFFDO', 'MATÃO'],
+          ['Am\uFFFDrico', 'Américo'], ['AM\uFFFDRICO', 'AMÉRICO'],
+          ['Sert\uFFFDo', 'Sertão'], ['SERT\uFFFDO', 'SERTÃO'],
           ['Ja\uFFFD', 'Jaú'], ['Goi\uFFFDnia', 'Goiânia'],
           ['Bras\uFFFDlia', 'Brasília'], ['Cuiab\uFFFD', 'Cuiabá'],
           ['Bel\uFFFDm', 'Belém'], ['Macei\uFFFD', 'Maceió'],
+          // Termos operacionais e nomes
           ['N\uFFFDo', 'Não'], ['N\uFFFDO', 'NÃO'],
           ['Caf\uFFFD', 'Café'], ['CAF\uFFFD', 'CAFÉ'],
           ['Cr\uFFFDdito', 'Crédito'], ['D\uFFFDbito', 'Débito'],
           ['Devolu\uFFFD\uFFFDo', 'Devolução'], ['Transa\uFFFD\uFFFDo', 'Transação'],
           ['Observa\uFFFD\uFFFDo', 'Observação'], ['Descri\uFFFD\uFFFDo', 'Descrição'],
-          ['Manuten\uFFFD\uFFFDo', 'Manutenção'], ['Refeit\uFFFDrio', 'Refeitório'],
-          ['Recep\uFFFD\uFFFDo', 'Recepção'], ['F\uFFFDbrica', 'Fábrica'],
           ['M\uFFFDquina', 'Máquina'], ['M\uFFFDquinas', 'Máquinas'],
-          ['Pr\uFFFDdio', 'Prédio'], ['T\uFFFDrreo', 'Térreo'],
           ['M\uFFFDdio', 'Médio'], ['M\uFFFDdia', 'Média'],
           ['Cart\uFFFDo', 'Cartão'], ['cart\uFFFDo', 'cartão'],
           ['Aleat\uFFFDria', 'Aleatória'], ['N\uFFFDmero', 'Número'],
@@ -1455,7 +1538,11 @@
             str = str.split(errado).join(certo);
           }
         }
-        str = str.replace(/\uFFFDo(\s|$)/g, 'ão$1').replace(/\uFFFDes(\s|$)/g, 'ões$1');
+        str = str
+          .replace(/\uFFFDo(\s|$)/g, 'ão$1')
+          .replace(/\uFFFDO(\s|$)/g, 'ÃO$1')
+          .replace(/\uFFFDes(\s|$)/g, 'ões$1')
+          .replace(/\uFFFDES(\s|$)/g, 'ÕES$1');
       }
 
       return str.normalize('NFC');
@@ -1483,7 +1570,6 @@
     // =========================================================================
     // TÉRMINO: sanitizarObjetoUtf8
     // =========================================================================
-
 
     // =========================================================================
     // INÍCIO: normalizarTextoUtf8
@@ -1777,41 +1863,57 @@
     // TÉRMINO: verificarEstadoAutenticacao
     // =========================================================================
 
+    
     // =========================================================================
-    // INÍCIO: Sincronização em Tempo Real (Sem Refresh e Sem Perder Formulário)
+    // INÍCIO: Sincronização em Tempo Real (Formulário + Tabelas + Dashboard)
     // =========================================================================
     let syncEmAndamento = false;
     let assinaturaChamadosAtual = '';
 
-    function estaEditandoChamadoExistente() {
-      const campoLinha = document.getElementById('sacLinha') || document.getElementById('sacId');
-      if (campoLinha && String(campoLinha.value || '').trim() !== '') {
-        return true;
-      }
-      const btnSubmit = document.getElementById('btnSalvarChamado') || document.querySelector('#formSAC button[type="submit"]');
-      if (btnSubmit && /atualizar|salvar altera/i.test(btnSubmit.innerText || '')) {
-        return true;
-      }
-      return false;
-    }
-
     function atualizarNumeroProximoChamadoSemLimparCampos() {
+      if (typeof chamadoEmEdicao !== 'undefined' && chamadoEmEdicao !== null) return;
+
       const inputChamado = document.getElementById('sacChamado');
-      if (!inputChamado || estaEditandoChamadoExistente()) return;
+      if (!inputChamado) return;
 
       const inputData = document.getElementById('sacData');
-      let ano = String(new Date().getFullYear());
+      let ano = new Date().getFullYear();
       if (inputData && inputData.value) {
         const valData = String(inputData.value).trim();
-        if (valData.includes('-')) ano = valData.split('-')[0];
-        else if (valData.includes('/') && valData.split('/').length === 3) ano = valData.split('/')[2];
+        if (valData.includes('-')) ano = parseInt(valData.split('-')[0], 10) || ano;
+        else if (valData.includes('/') && valData.split('/').length === 3) ano = parseInt(valData.split('/')[2], 10) || ano;
       }
 
-      const maiorSeq = (dadosSAC.maior_sac_ano && Number(dadosSAC.maior_sac_ano[ano])) || 0;
-      const proximoNumero = `SAC-${ano}-${String(maiorSeq + 1).padStart(4, '0')}`;
+      const proximoNumero = (typeof calcularPreviaProximoChamado === 'function')
+        ? calcularPreviaProximoChamado(ano)
+        : `SAC-${ano}-${String(((dadosSAC.maior_sac_ano && Number(dadosSAC.maior_sac_ano[String(ano)])) || 0) + 1).padStart(4, '0')}`;
 
       if (inputChamado.value !== proximoNumero) {
         inputChamado.value = proximoNumero;
+      }
+    }
+
+    function reRenderizarTodasAsTabelasSAC() {
+      // 1. Dispara funções de filtro (se existirem)
+      if (typeof filtrarChamadosSAC === 'function') filtrarChamadosSAC(false);
+      if (typeof filtrarChamadosAbertos === 'function') filtrarChamadosAbertos(false);
+
+      // 2. Garante chamada direta às funções de renderização caso o filtro não chame o render
+      if (typeof renderizarTabelaChamadosSAC === 'function') renderizarTabelaChamadosSAC();
+      if (typeof renderizarTabelaSAC === 'function') renderizarTabelaSAC();
+      if (typeof atualizarTabelaChamados === 'function') atualizarTabelaChamados();
+      if (typeof renderizarTabelaChamadosAbertos === 'function') renderizarTabelaChamadosAbertos();
+
+      // 3. Atualiza contadores visuais de total de registros, se existirem
+      const badgeTotal = document.getElementById('totalChamadosSAC') || document.getElementById('contadorChamadosSAC');
+      if (badgeTotal) {
+        badgeTotal.textContent = String(listaChamadosSAC.length);
+      }
+
+      // 4. Atualiza Dashboard se estiver visível
+      const pageDash = document.getElementById('pageDashboardSAC');
+      if (pageDash && !pageDash.classList.contains('hidden') && typeof atualizarDashboardSAC === 'function') {
+        atualizarDashboardSAC();
       }
     }
 
@@ -1820,7 +1922,7 @@
       syncEmAndamento = true;
 
       try {
-        const resp = await fetch('/api/sync', {
+        const resp = await fetch('/api/sync?t=' + Date.now(), {
           method: 'GET',
           headers: { 'Accept': 'application/json' },
           cache: 'no-store'
@@ -1830,40 +1932,51 @@
         const resultado = await resp.json();
         if (resultado.status !== 'success') return;
 
-        const novaAssinatura = JSON.stringify({
-          total: (resultado.chamados || []).length,
-          maior: resultado.maior_sac_ano || {},
-          statusLista: (resultado.chamados || []).map(c => `${c.linha}:${c.chamado}:${c.reembolsoRealizado}:${c.valor}`).join('|')
-        });
+        const novosChamados = (typeof sanitizarObjetoUtf8 === 'function')
+          ? sanitizarObjetoUtf8(resultado.chamados || [])
+          : (resultado.chamados || []);
 
+        // Compara o JSON completo dos chamados para detectar qualquer inserção, edição ou exclusão
+        const novaAssinatura = JSON.stringify(novosChamados);
         const houveMudanca = forcarRender || (novaAssinatura !== assinaturaChamadosAtual);
-        assinaturaChamadosAtual = novaAssinatura;
 
-        dadosSAC.chamados = resultado.chamados || [];
+        dadosSAC.chamados = novosChamados;
         dadosSAC.maior_sac_ano = resultado.maior_sac_ano || {};
+        listaChamadosSAC = novosChamados;
 
-        // Atualiza apenas o número sugerido do próximo chamado sem apagar o que o atendente está digitando
+        // Atualiza sempre o número sugerido do próximo chamado sem mexer no restante do formulário
         atualizarNumeroProximoChamadoSemLimparCampos();
 
         if (houveMudanca) {
-          if (typeof filtrarChamadosSAC === 'function') filtrarChamadosSAC();
-          else if (typeof renderizarTabelaChamadosSAC === 'function') renderizarTabelaChamadosSAC();
-
-          if (typeof filtrarChamadosAbertos === 'function') filtrarChamadosAbertos();
-          else if (typeof renderizarTabelaChamadosAbertos === 'function') renderizarTabelaChamadosAbertos();
-
-          const pageDash = document.getElementById('pageDashboardSAC');
-          if (pageDash && !pageDash.classList.contains('hidden') && typeof atualizarDashboardSAC === 'function') {
-            atualizarDashboardSAC();
-          }
+          assinaturaChamadosAtual = novaAssinatura;
+          reRenderizarTodasAsTabelasSAC();
         }
       } catch (e) {
-        // Ignora falhas temporárias de rede silenciosamente
+        // Ignora falha temporária de rede silenciosamente
       } finally {
         syncEmAndamento = false;
       }
     }
 
+    async function executarRefresh() {
+      await sincronizarChamadosSilencioso(true);
+    }
+
+    // Executa uma primeira sincronização 2 segundos após carregar e depois a cada 8 segundos
+    setTimeout(() => {
+      if (atendenteSACLogado) sincronizarChamadosSilencioso(true);
+    }, 2000);
+
+    setInterval(() => {
+      if (document.visibilityState === 'visible' && atendenteSACLogado) {
+        sincronizarChamadosSilencioso(false);
+      }
+    }, 8000);
+    // =========================================================================
+    // TÉRMINO: Sincronização em Tempo Real (Formulário + Tabelas + Dashboard)
+    // =========================================================================
+
+    
     // Faz o botão "Sincronizar 🔄" atualizar tabelas e próximo número sem recarregar a página inteira
     async function executarRefresh() {
       await sincronizarChamadosSilencioso(true);
