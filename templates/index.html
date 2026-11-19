@@ -1778,6 +1778,108 @@
     // =========================================================================
 
     // =========================================================================
+    // INÍCIO: Sincronização em Tempo Real (Sem Refresh e Sem Perder Formulário)
+    // =========================================================================
+    let syncEmAndamento = false;
+    let assinaturaChamadosAtual = '';
+
+    function estaEditandoChamadoExistente() {
+      const campoLinha = document.getElementById('sacLinha') || document.getElementById('sacId');
+      if (campoLinha && String(campoLinha.value || '').trim() !== '') {
+        return true;
+      }
+      const btnSubmit = document.getElementById('btnSalvarChamado') || document.querySelector('#formSAC button[type="submit"]');
+      if (btnSubmit && /atualizar|salvar altera/i.test(btnSubmit.innerText || '')) {
+        return true;
+      }
+      return false;
+    }
+
+    function atualizarNumeroProximoChamadoSemLimparCampos() {
+      const inputChamado = document.getElementById('sacChamado');
+      if (!inputChamado || estaEditandoChamadoExistente()) return;
+
+      const inputData = document.getElementById('sacData');
+      let ano = String(new Date().getFullYear());
+      if (inputData && inputData.value) {
+        const valData = String(inputData.value).trim();
+        if (valData.includes('-')) ano = valData.split('-')[0];
+        else if (valData.includes('/') && valData.split('/').length === 3) ano = valData.split('/')[2];
+      }
+
+      const maiorSeq = (dadosSAC.maior_sac_ano && Number(dadosSAC.maior_sac_ano[ano])) || 0;
+      const proximoNumero = `SAC-${ano}-${String(maiorSeq + 1).padStart(4, '0')}`;
+
+      if (inputChamado.value !== proximoNumero) {
+        inputChamado.value = proximoNumero;
+      }
+    }
+
+    async function sincronizarChamadosSilencioso(forcarRender = false) {
+      if (!atendenteSACLogado || syncEmAndamento) return;
+      syncEmAndamento = true;
+
+      try {
+        const resp = await fetch('/api/sync', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          cache: 'no-store'
+        });
+        if (!resp.ok) return;
+
+        const resultado = await resp.json();
+        if (resultado.status !== 'success') return;
+
+        const novaAssinatura = JSON.stringify({
+          total: (resultado.chamados || []).length,
+          maior: resultado.maior_sac_ano || {},
+          statusLista: (resultado.chamados || []).map(c => `${c.linha}:${c.chamado}:${c.reembolsoRealizado}:${c.valor}`).join('|')
+        });
+
+        const houveMudanca = forcarRender || (novaAssinatura !== assinaturaChamadosAtual);
+        assinaturaChamadosAtual = novaAssinatura;
+
+        dadosSAC.chamados = resultado.chamados || [];
+        dadosSAC.maior_sac_ano = resultado.maior_sac_ano || {};
+
+        // Atualiza apenas o número sugerido do próximo chamado sem apagar o que o atendente está digitando
+        atualizarNumeroProximoChamadoSemLimparCampos();
+
+        if (houveMudanca) {
+          if (typeof filtrarChamadosSAC === 'function') filtrarChamadosSAC();
+          else if (typeof renderizarTabelaChamadosSAC === 'function') renderizarTabelaChamadosSAC();
+
+          if (typeof filtrarChamadosAbertos === 'function') filtrarChamadosAbertos();
+          else if (typeof renderizarTabelaChamadosAbertos === 'function') renderizarTabelaChamadosAbertos();
+
+          const pageDash = document.getElementById('pageDashboardSAC');
+          if (pageDash && !pageDash.classList.contains('hidden') && typeof atualizarDashboardSAC === 'function') {
+            atualizarDashboardSAC();
+          }
+        }
+      } catch (e) {
+        // Ignora falhas temporárias de rede silenciosamente
+      } finally {
+        syncEmAndamento = false;
+      }
+    }
+
+    // Faz o botão "Sincronizar 🔄" atualizar tabelas e próximo número sem recarregar a página inteira
+    async function executarRefresh() {
+      await sincronizarChamadosSilencioso(true);
+    }
+
+    // Verifica novidades no Supabase a cada 8 segundos enquanto a aba estiver ativa
+    setInterval(() => {
+      if (document.visibilityState === 'visible' && atendenteSACLogado) {
+        sincronizarChamadosSilencioso(false);
+      }
+    }, 8000);
+    // =========================================================================
+    // TÉRMINO: Sincronização em Tempo Real (Sem Refresh e Sem Perder Formulário)
+    // =========================================================================
+
+    // =========================================================================
     // INÍCIO: realizarLoginGlobal
     // =========================================================================
     function realizarLoginGlobal(e) {
@@ -2533,7 +2635,7 @@
     // TÉRMINO: excluirChamadoSAC
     // =========================================================================
 
-    // =========================================================================
+  // =========================================================================
     // INÍCIO: handleSACSubmit
     // =========================================================================
     async function handleSACSubmit(e) {
@@ -2599,6 +2701,7 @@
       if (!ehEdicao && !chamado) {
         chamado = calcularPreviaProximoChamado(anoAtual);
       }
+      const chamadoPrevio = chamado;
 
       const dataIso = document.getElementById('sacData').value;
       const data = dataIso.includes('-') ? dataIsoParaPtBr(dataIso) : dataIso;
@@ -2697,8 +2800,12 @@
         return; // Não executa limparFormSAC()
       }
 
-      if (resultado.data && resultado.data.chamado) {
-        chamado = resultado.data.chamado;
+      // Captura o número oficial confirmado pela trava transacional do banco
+      const chamadoConfirmado = (resultado.data && resultado.data.chamado) ? resultado.data.chamado : chamado;
+      chamado = chamadoConfirmado;
+
+      if (!ehEdicao && chamadoPrevio && chamadoConfirmado !== chamadoPrevio) {
+        alert(`ℹ️ Outro atendente lançou um chamado neste exato instante.\nSeu chamado foi salvo com segurança sob o número: ${chamadoConfirmado}`);
       }
 
       // Atualiza o estado da memória
@@ -2747,6 +2854,11 @@
       filtrarChamadosAbertos(false);
       atualizarDashboardSAC();
       origemEdicaoSAC = 'sac';
+
+      // Sincroniza silenciosamente com o banco para alinhar maior_sac_ano e demais registros
+      if (typeof sincronizarChamadosSilencioso === 'function') {
+        sincronizarChamadosSilencioso(false);
+      }
 
       abrirModalLoading(ehEdicao ? 'Ocorrência Atualizada!' : 'Lançamento Concluído!', 'Ocorrência gravada com sucesso.', 'sucesso');
       if (destinoAposSalvar === 'chamadosAbertos') switchPage('chamadosAbertos');
